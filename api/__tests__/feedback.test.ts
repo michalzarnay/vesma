@@ -126,6 +126,19 @@ describe('POST /api/feedback', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('chýbajúca konfigurácia mosta vráti 503 a nič neposiela', async () => {
+    process.env.SHEET_WEBAPP_URL = '';
+    process.env.SHEET_WEBHOOK_SECRET = '';
+    vi.resetModules();
+    const handler = (await import('../feedback')).default;
+    const { res, odpoved } = mockRes();
+
+    await handler({ method: 'POST', body: { nazovPodnetu: 'Test' } }, res);
+
+    expect(odpoved.status).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('chyba mosta sa premietne do 502', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
     const handler = await nacitajHandler();
