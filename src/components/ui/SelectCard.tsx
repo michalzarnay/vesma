@@ -1,4 +1,5 @@
 import { Tooltip } from './Tooltip';
+import { FeedbackButton } from './FeedbackButton';
 
 interface SelectOption {
   value: number | string;
@@ -24,6 +25,7 @@ export function SelectCard({
       <label className="block text-sm font-medium text-gray-700 flex items-center">
         {label}
         {(tooltipKey || tooltipText) && <Tooltip glossaryKey={tooltipKey} text={tooltipText} />}
+        <FeedbackButton fieldLabel={label} />
       </label>
       <div className={`flex gap-2 ${layout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}>
         {options.map((option) => {

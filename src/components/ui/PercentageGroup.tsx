@@ -1,4 +1,5 @@
 import { Tooltip } from './Tooltip';
+import { FeedbackButton } from './FeedbackButton';
 
 interface PercentageField {
   key: string;
@@ -28,6 +29,7 @@ export function PercentageGroup({
         <h4 className="flex items-center text-sm font-medium text-gray-700">
           {title}
           {(tooltipKey || tooltipText) && <Tooltip glossaryKey={tooltipKey} text={tooltipText} />}
+          <FeedbackButton fieldLabel={title} />
         </h4>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
           total === 0
@@ -49,6 +51,7 @@ export function PercentageGroup({
               {(field.tooltipKey || field.tooltipText) && (
                 <Tooltip glossaryKey={field.tooltipKey} text={field.tooltipText} />
               )}
+              <FeedbackButton fieldLabel={`${title} – ${field.label}`} />
             </label>
             <div className="relative w-20 flex-shrink-0">
               <input

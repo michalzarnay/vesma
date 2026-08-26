@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { KRAJE, OKRESY_BY_KRAJ } from '../../data/slovakLocations';
+import { FeedbackButton } from './FeedbackButton';
 
 interface AddressAutocompleteProps {
   value: string;
@@ -166,7 +167,10 @@ export function AddressAutocomplete({
   return (
     <div className="flex flex-col gap-1 relative">
       {label && (
-        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <label className="flex items-center text-sm font-medium text-gray-700">
+          {label}
+          <FeedbackButton fieldLabel={label} />
+        </label>
       )}
       <div className="relative">
         <input
