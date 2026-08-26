@@ -519,7 +519,7 @@ export function createEmptyBudova(): Budova {
     fotovoltika: 0,
     fotovoltikaPlocha: 0,
     bateriovyUlozisko: 0,
-    pocitacovaSiet: 0,
+    pocitacovaSiet: 1,
     celkovyStavBudovy: '',
     energetickyCertifikat: 0,
     energetickyCertifikatCislo: '',
