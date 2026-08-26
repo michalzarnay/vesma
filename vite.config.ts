@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import type { Plugin } from 'vite'
+import { loadEnv, type Plugin } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 /**
@@ -126,8 +126,117 @@ function pvgisProxyPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), svpProxyPlugin(), pvgisProxyPlugin()],
+/**
+ * Dev-only plugin: simulates the /api/feedback Vercel function locally.
+ * Bez neho vráti dev server na POST /api/feedback 404 a zber podnetov
+ * ani nezodpovedaných otázok chatbota sa lokálne nedá odskúšať.
+ *
+ * Telo požiadavky sa rozlišuje rovnako ako v api/feedback.ts:
+ *  - { question, ... }      -> action 'unanswered'
+ *  - { nazovPodnetu, ... }  -> action 'feedback'
+ *
+ * Premenné SHEET_WEBAPP_URL a SHEET_WEBHOOK_SECRET sa načítajú z .env
+ * v koreni projektu. Ak chýbajú, plugin vráti 503 s vysvetlením –
+ * rovnako ako produkčná funkcia.
+ */
+function feedbackProxyPlugin(env: Record<string, string>): Plugin {
+  return {
+    name: 'feedback-dev-proxy',
+    configureServer(server) {
+      server.middlewares.use(
+        '/api/feedback',
+        async (req: IncomingMessage, res: ServerResponse) => {
+          const send = (status: number, body: unknown) => {
+            res.statusCode = status
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(body))
+          }
+
+          if (req.method !== 'POST') return send(405, { error: 'Method not allowed' })
+
+          const chunks: Buffer[] = []
+          for await (const chunk of req) chunks.push(chunk as Buffer)
+
+          let telo: {
+            fieldLabel?: string
+            nazovPodnetu?: string
+            opisPodnetu?: string
+            url?: string
+            question?: string
+            step?: number
+            timestamp?: string
+          }
+          try {
+            telo = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+          } catch {
+            return send(400, { error: 'Telo požiadavky nie je platný JSON.' })
+          }
+
+          const WEBAPP_URL = env.SHEET_WEBAPP_URL ?? ''
+          const WEBHOOK_SECRET = env.SHEET_WEBHOOK_SECRET ?? ''
+
+          let payload: Record<string, unknown>
+          if (typeof telo.question === 'string' && telo.question.trim().length > 0) {
+            payload = {
+              secret: WEBHOOK_SECRET,
+              action: 'unanswered',
+              question: telo.question.trim(),
+              step: telo.step ?? 0,
+              timestamp: telo.timestamp ?? new Date().toISOString(),
+            }
+          } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
+            payload = {
+              secret: WEBHOOK_SECRET,
+              action: 'feedback',
+              datum: new Date().toISOString(),
+              prvok: telo.fieldLabel ?? '',
+              nazov: telo.nazovPodnetu.trim(),
+              opis: telo.opisPodnetu?.trim() ?? '',
+              url: telo.url ?? '',
+            }
+          } else {
+            return send(400, { error: 'Chýba názov podnetu alebo otázka.' })
+          }
+
+          if (!WEBAPP_URL || !WEBHOOK_SECRET) {
+            return send(503, {
+              error:
+                'Lokálne chýba konfigurácia VESMA mostu. Do .env v koreni projektu ' +
+                'doplň SHEET_WEBAPP_URL a SHEET_WEBHOOK_SECRET a reštartuj dev server.',
+            })
+          }
+
+          try {
+            const controller = new AbortController()
+            const t = setTimeout(() => controller.abort(), 10000)
+            const resp = await fetch(WEBAPP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            })
+            clearTimeout(t)
+            if (!resp.ok) return send(502, { error: `VESMA most vrátil ${resp.status}` })
+            send(200, { ok: true })
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Neznáma chyba'
+            send(502, { error: `Nedá sa spojiť s VESMA mostom: ${msg}` })
+          }
+        },
+      )
+    },
+  }
+}
+
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    tailwindcss(),
+    svpProxyPlugin(),
+    pvgisProxyPlugin(),
+    // '' = načítaj aj premenné bez prefixu VITE_ (sú len pre dev server, nie pre klienta).
+    feedbackProxyPlugin(loadEnv(mode, process.cwd(), '')),
+  ],
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'api/**/*.test.ts'],
@@ -140,4 +249,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['api'],
   },
-})
+}))
