@@ -14,7 +14,7 @@ export function FeedbackButton({ fieldLabel }: FeedbackButtonProps) {
         type="button"
         onClick={() => setOpen(true)}
         title="Pridať podnet"
-        className="ml-1 text-gray-300 hover:text-[#52A8DE] transition-colors focus:outline-none"
+        className="ml-1 flex-shrink-0 text-gray-300 hover:text-[#52A8DE] transition-colors focus:outline-none"
         aria-label="Pridať podnet"
       >
         <MessageSquarePlus className="w-3.5 h-3.5" />

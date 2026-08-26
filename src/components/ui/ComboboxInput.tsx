@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Tooltip } from './Tooltip';
+import { FeedbackButton } from './FeedbackButton';
 
 interface ComboboxInputProps {
   label: string;
@@ -100,6 +101,7 @@ export function ComboboxInput({
         {(tooltipKey || tooltipText) && (
           <Tooltip glossaryKey={tooltipKey} text={tooltipText} />
         )}
+        <FeedbackButton fieldLabel={label} />
       </label>
       <input
         type="text"
