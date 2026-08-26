@@ -1,106 +1,151 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-/** Načíta handler s nastavenými premennými prostredia (číta ich pri importe). */
-async function loadHandler(env: { url?: string; secret?: string } = {}) {
-  vi.resetModules();
-  process.env.SHEET_WEBAPP_URL = env.url ?? 'https://most.example/exec';
-  process.env.SHEET_WEBHOOK_SECRET = env.secret ?? 'tajne';
-  return (await import('../feedback.ts')).default;
-}
+/**
+ * Regresný test k chybe z merge commitu 5036de4: súbor api/feedback.ts
+ * obsahoval dva zlepené handlery, takže endpoint sa vôbec nedal skompilovať
+ * a nefungovali ani podnety, ani zber nezodpovedaných otázok.
+ */
 
+const WEBAPP_URL = 'https://script.google.com/macros/s/test/exec';
+const SECRET = 'tajomstvo';
+
+type Odpoved = { status?: number; telo?: unknown };
+
+/** Minimálna náhrada Vercel `res` objektu. */
 function mockRes() {
-  const out = { code: 200, body: undefined as unknown };
+  const odpoved: Odpoved = {};
   return {
+    odpoved,
     res: {
-      status: (c: number) => {
-        out.code = c;
-        return { json: (d: unknown) => { out.body = d; } };
+      status: (c: number) => ({
+        json: (d: unknown) => {
+          odpoved.status = c;
+          odpoved.telo = d;
+        },
+      }),
+      json: (d: unknown) => {
+        odpoved.status = 200;
+        odpoved.telo = d;
       },
-      json: (d: unknown) => { out.body = d; },
     },
-    out,
   };
 }
 
+/** Handler číta env premenné pri importe, preto ho načítavame až po ich nastavení. */
+async function nacitajHandler() {
+  process.env.SHEET_WEBAPP_URL = WEBAPP_URL;
+  process.env.SHEET_WEBHOOK_SECRET = SECRET;
+  vi.resetModules();
+  const modul = await import('../feedback');
+  return modul.default;
+}
+
+function poslanyPayload(fetchMock: ReturnType<typeof vi.fn>) {
+  const [url, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+  return { url, payload: JSON.parse(init.body) };
+}
+
 describe('POST /api/feedback', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200 })));
-  });
-  afterEach(() => {
-    vi.unstubAllGlobals();
+    fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal('fetch', fetchMock);
   });
 
-  it('odošle podnet k prvku ako action "feedback"', async () => {
-    const handler = await loadHandler();
-    const { res, out } = mockRes();
+  it('podnet z formulára pošle na most s action "feedback"', async () => {
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
 
     await handler(
       {
         method: 'POST',
         body: {
-          fieldLabel: 'Celková výmera parcely',
-          nazovPodnetu: 'čo ak je na parcele búda?',
-          opisPodnetu: 'bude to stále pozemok?',
-          url: 'https://vesma.example/krok/2',
+          fieldLabel: 'Plocha strechy',
+          nazovPodnetu: '  Nejasná jednotka  ',
+          opisPodnetu: '  Nie je jasné či m2 alebo ha  ',
+          url: 'https://vesma.sk/krok/3',
         },
       },
       res,
     );
 
-    expect(out.code).toBe(200);
-    expect(out.body).toEqual({ ok: true });
-
-    const [, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
-    const payload = JSON.parse((init as { body: string }).body);
-    expect(payload.action).toBe('feedback');
-    expect(payload.prvok).toBe('Celková výmera parcely');
-    expect(payload.nazov).toBe('čo ak je na parcele búda?');
-    expect(payload.opis).toBe('bude to stále pozemok?');
+    expect(odpoved.status).toBe(200);
+    const { url, payload } = poslanyPayload(fetchMock);
+    expect(url).toBe(WEBAPP_URL);
+    expect(payload).toMatchObject({
+      secret: SECRET,
+      action: 'feedback',
+      prvok: 'Plocha strechy',
+      nazov: 'Nejasná jednotka',
+      opis: 'Nie je jasné či m2 alebo ha',
+      url: 'https://vesma.sk/krok/3',
+    });
   });
 
-  it('odošle nezodpovedanú otázku chatbota ako action "unanswered"', async () => {
-    const handler = await loadHandler();
-    const { res, out } = mockRes();
+  it('nezodpovedaná otázka sa pošle s action "unanswered"', async () => {
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
 
     await handler(
-      { method: 'POST', body: { question: 'Ako sa počíta odtok?', step: 3, timestamp: '2026-01-01T00:00:00.000Z' } },
+      {
+        method: 'POST',
+        body: { question: '  Aký je vek kotla?  ', step: 4, timestamp: '2026-08-26T10:00:00.000Z' },
+      },
       res,
     );
 
-    expect(out.code).toBe(200);
-    const [, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
-    const payload = JSON.parse((init as { body: string }).body);
-    expect(payload.action).toBe('unanswered');
-    expect(payload.question).toBe('Ako sa počíta odtok?');
-    expect(payload.step).toBe(3);
+    expect(odpoved.status).toBe(200);
+    const { payload } = poslanyPayload(fetchMock);
+    expect(payload).toMatchObject({
+      secret: SECRET,
+      action: 'unanswered',
+      question: 'Aký je vek kotla?',
+      step: 4,
+      timestamp: '2026-08-26T10:00:00.000Z',
+    });
   });
 
-  it('odmietne iné metódy než POST', async () => {
-    const handler = await loadHandler();
-    const { res, out } = mockRes();
+  it('prázdne telo vráti 400 a nič neposiela', async () => {
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
+
+    await handler({ method: 'POST', body: {} }, res);
+
+    expect(odpoved.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('iná metóda než POST vráti 405', async () => {
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
+
     await handler({ method: 'GET', body: {} }, res);
-    expect(out.code).toBe(405);
+
+    expect(odpoved.status).toBe(405);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('odmietne prázdny podnet', async () => {
-    const handler = await loadHandler();
-    const { res, out } = mockRes();
-    await handler({ method: 'POST', body: { fieldLabel: 'Niečo', nazovPodnetu: '   ' } }, res);
-    expect(out.code).toBe(400);
+  it('chýbajúca konfigurácia mosta vráti 503 a nič neposiela', async () => {
+    process.env.SHEET_WEBAPP_URL = '';
+    process.env.SHEET_WEBHOOK_SECRET = '';
+    vi.resetModules();
+    const handler = (await import('../feedback')).default;
+    const { res, odpoved } = mockRes();
+
+    await handler({ method: 'POST', body: { nazovPodnetu: 'Test' } }, res);
+
+    expect(odpoved.status).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('vráti 503, keď chýba konfigurácia mostu', async () => {
-    const handler = await loadHandler({ url: '', secret: '' });
-    const { res, out } = mockRes();
-    await handler({ method: 'POST', body: { nazovPodnetu: 'test' } }, res);
-    expect(out.code).toBe(503);
-  });
+  it('chyba mosta sa premietne do 502', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 });
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
 
-  it('vráti 502, keď most odpovie chybou', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 })));
-    const handler = await loadHandler();
-    const { res, out } = mockRes();
-    await handler({ method: 'POST', body: { nazovPodnetu: 'test' } }, res);
-    expect(out.code).toBe(502);
+    await handler({ method: 'POST', body: { nazovPodnetu: 'Test' } }, res);
+
+    expect(odpoved.status).toBe(502);
   });
 });

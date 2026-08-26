@@ -1,57 +1,58 @@
 /**
- * POST /api/feedback
- * Jeden endpoint pre dva druhy záznamov, ktoré VESMA most (Google Apps Script
- * Web App) zapisuje do Google Sheetu:
- *  - action 'feedback'   – podnet používateľa k prvku formulára,
- *  - action 'unanswered' – otázka, na ktorú chatbot nevedel odpovedať.
- * Druh sa rozlíši podľa tvaru tela požiadavky.
+ * Vercel serverless proxy pre VESMA most (Google Apps Script Web App).
+ * Most zapisuje prijaté záznamy do Google Sheetu.
+ *
+ * POST /api/feedback obsluhuje dva typy záznamov, rozlíšené podľa tela požiadavky:
+ *  - podnet z formulára     { fieldLabel?, nazovPodnetu, opisPodnetu?, url? } → action 'feedback'
+ *  - nezodpovedaná otázka   { question, step?, timestamp? }                   → action 'unanswered'
  */
 
 const WEBAPP_URL = process.env.SHEET_WEBAPP_URL ?? '';
 const WEBHOOK_SECRET = process.env.SHEET_WEBHOOK_SECRET ?? '';
 
-interface FeedbackBody {
+type TeloPoziadavky = {
+  // podnet
   fieldLabel?: string;
   nazovPodnetu?: string;
   opisPodnetu?: string;
   url?: string;
+  // nezodpovedaná otázka
   question?: string;
   step?: number;
   timestamp?: string;
-}
+};
 
 export default async function handler(
-  req: { method?: string; body?: FeedbackBody },
+  req: { method?: string; body?: TeloPoziadavky },
   res: { status: (c: number) => { json: (d: unknown) => void }; json: (d: unknown) => void },
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { fieldLabel, nazovPodnetu, opisPodnetu, url, question, step, timestamp } = req.body ?? {};
-
+  const telo = req.body ?? {};
   let payload: Record<string, unknown>;
 
-  if (typeof question === 'string' && question.trim()) {
+  if (typeof telo.question === 'string' && telo.question.trim().length > 0) {
     payload = {
       secret: WEBHOOK_SECRET,
       action: 'unanswered',
-      question: question.trim(),
-      step: step ?? 0,
-      timestamp: timestamp ?? new Date().toISOString(),
+      question: telo.question.trim(),
+      step: telo.step ?? 0,
+      timestamp: telo.timestamp ?? new Date().toISOString(),
     };
-  } else if (nazovPodnetu?.trim()) {
+  } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
     payload = {
       secret: WEBHOOK_SECRET,
       action: 'feedback',
       datum: new Date().toISOString(),
-      prvok: fieldLabel ?? '',
-      nazov: nazovPodnetu.trim(),
-      opis: opisPodnetu?.trim() ?? '',
-      url: url ?? '',
+      prvok: telo.fieldLabel ?? '',
+      nazov: telo.nazovPodnetu.trim(),
+      opis: telo.opisPodnetu?.trim() ?? '',
+      url: telo.url ?? '',
     };
   } else {
-    return res.status(400).json({ error: 'Chýba názov podnetu.' });
+    return res.status(400).json({ error: 'Chýba názov podnetu alebo otázka.' });
   }
 
   if (!WEBAPP_URL || !WEBHOOK_SECRET) {
@@ -60,7 +61,7 @@ export default async function handler(
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+    const timeout = setTimeout(() => controller.abort(), 10_000);
 
     const resp = await fetch(WEBAPP_URL, {
       method: 'POST',
@@ -68,7 +69,7 @@ export default async function handler(
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
-    clearTimeout(timeoutId);
+    clearTimeout(timeout);
 
     if (!resp.ok) {
       return res.status(502).json({ error: `VESMA most vrátil ${resp.status}` });
@@ -76,6 +77,6 @@ export default async function handler(
     return res.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Neznáma chyba';
-    return res.status(502).json({ error: `Nedá sa spojiť s VESMA mostom: ${msg}` });
+    return res.status(502).json({ error: msg });
   }
 }
