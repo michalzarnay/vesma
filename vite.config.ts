@@ -130,7 +130,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), svpProxyPlugin(), pvgisProxyPlugin()],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'api/**/*.test.ts'],
   },
   server: {
     watch: {
