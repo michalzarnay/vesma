@@ -83,6 +83,50 @@ describe('POST /api/feedback', () => {
     });
   });
 
+  it('podnet má kľúče v poradí, ktoré zodpovedá stĺpcom hárku', async () => {
+    const handler = await nacitajHandler();
+    const { res } = mockRes();
+
+    await handler(
+      {
+        method: 'POST',
+        body: {
+          fieldLabel: 'Materiál povrchu strechy',
+          nazovPodnetu: 'a čo lepenka?',
+          opisPodnetu: 'nedoplniť?',
+          url: 'https://sma-nastroj.vercel.app/',
+        },
+      },
+      res,
+    );
+
+    // Most zapisuje hodnoty do hárku v poradí, v akom prídu v payloade,
+    // a kľúče `secret` + `action` preskočí. Poradie preto určuje stĺpce:
+    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis
+    const { payload } = poslanyPayload(fetchMock);
+    expect(Object.keys(payload)).toEqual([
+      'secret',
+      'action',
+      'cislo',
+      'datum',
+      'url',
+      'nazov',
+      'prvok',
+      'opis',
+    ]);
+
+    // Hodnoty v poradí stĺpcov A–F (bez secret/action).
+    const stlpce = Object.keys(payload)
+      .filter((k) => k !== 'secret' && k !== 'action')
+      .map((k) => payload[k]);
+    expect(stlpce[0]).toBe(''); // A číslo – dopĺňa sa ručne
+    expect(stlpce[1]).toMatch(/^\d{4}-\d{2}-\d{2}T/); // B verzia – časová pečiatka
+    expect(stlpce[2]).toBe('https://sma-nastroj.vercel.app/'); // C zapísal(a)
+    expect(stlpce[3]).toBe('a čo lepenka?'); // D názov
+    expect(stlpce[4]).toBe('Materiál povrchu strechy'); // E kde
+    expect(stlpce[5]).toBe('nedoplniť?'); // F opis
+  });
+
   it('nezodpovedaná otázka sa pošle s action "unanswered"', async () => {
     const handler = await nacitajHandler();
     const { res, odpoved } = mockRes();
