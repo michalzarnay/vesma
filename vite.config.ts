@@ -185,14 +185,17 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
               timestamp: telo.timestamp ?? new Date().toISOString(),
             }
           } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
+            // Poradie kľúčov musí sedieť s api/feedback.ts – most zapisuje
+            // hodnoty do hárku v poradí, v akom prídu.
             payload = {
               secret: WEBHOOK_SECRET,
               action: 'feedback',
-              datum: new Date().toISOString(),
-              prvok: telo.fieldLabel ?? '',
-              nazov: telo.nazovPodnetu.trim(),
-              opis: telo.opisPodnetu?.trim() ?? '',
-              url: telo.url ?? '',
+              cislo: '', // A – dopĺňa sa v hárku ručne
+              datum: new Date().toISOString(), // B – verzia
+              url: telo.url ?? '', // C – zapísal(a)
+              nazov: telo.nazovPodnetu.trim(), // D – názov
+              prvok: telo.fieldLabel ?? '', // E – kde (stránka, karta)
+              opis: telo.opisPodnetu?.trim() ?? '', // F – opis
             }
           } else {
             return send(400, { error: 'Chýba názov podnetu alebo otázka.' })

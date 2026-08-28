@@ -42,14 +42,19 @@ export default async function handler(
       timestamp: telo.timestamp ?? new Date().toISOString(),
     };
   } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
+    // POZOR: na poradí kľúčov záleží. VESMA most zapisuje hodnoty do hárku
+    // v poradí, v akom prídu v payloade (kľúče `secret` a `action` preskočí),
+    // takže poradie nižšie určuje stĺpce:
+    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis
     payload = {
       secret: WEBHOOK_SECRET,
       action: 'feedback',
-      datum: new Date().toISOString(),
-      prvok: telo.fieldLabel ?? '',
-      nazov: telo.nazovPodnetu.trim(),
-      opis: telo.opisPodnetu?.trim() ?? '',
-      url: telo.url ?? '',
+      cislo: '', // A – dopĺňa sa v hárku ručne
+      datum: new Date().toISOString(), // B – verzia
+      url: telo.url ?? '', // C – zapísal(a)
+      nazov: telo.nazovPodnetu.trim(), // D – názov
+      prvok: telo.fieldLabel ?? '', // E – kde (stránka, karta)
+      opis: telo.opisPodnetu?.trim() ?? '', // F – opis
     };
   } else {
     return res.status(400).json({ error: 'Chýba názov podnetu alebo otázka.' });
