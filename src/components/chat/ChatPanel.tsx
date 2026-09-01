@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, ChevronDown, Bot } from 'lucide-react';
 import { Areal } from '../../types/areal';
+import { apiUrl } from '../../utils/apiUrl';
 
 interface Sprava {
   id: string;
@@ -295,7 +296,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
 
     // Ak asistent nevie odpovedať, zaznamenaj otázku do Google Sheetu
     if (textOdpovede.startsWith('Prepáčte')) {
-      fetch('/api/feedback', {
+      fetch(apiUrl('feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

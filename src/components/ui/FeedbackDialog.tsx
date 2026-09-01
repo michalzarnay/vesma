@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { apiUrl } from '../../utils/apiUrl';
 
 interface FeedbackDialogProps {
   fieldLabel?: string;
@@ -17,7 +18,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
   async function handleSubmit() {
     setStatus('sending');
     try {
-      const resp = await fetch('/api/feedback', {
+      const resp = await fetch(apiUrl('feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

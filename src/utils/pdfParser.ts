@@ -4,8 +4,10 @@
  */
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Point the worker to the bundled worker file served from /public
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// Point the worker to the bundled worker file served from /public.
+// BASE_URL = základná cesta nasadenia ('/vesma/'), bez nej by worker
+// za proxy na https://inovia.sk/vesma/ skončil na neexistujúcej adrese.
+pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.mjs`;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

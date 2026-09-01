@@ -13,7 +13,7 @@ export function Footer() {
         <p className="mt-1">Toto hodnotenie je orientačné. Pre presný návrh kontaktujte odborníka.</p>
         <div className="mt-2 flex items-center justify-end gap-1.5 text-[10px] text-gray-400">
           <img
-            src="/INOVIA_Logo_Final_RGB.jpg"
+            src={`${import.meta.env.BASE_URL}INOVIA_Logo_Final_RGB.jpg`}
             alt="INOVIA"
             className="w-4 h-4 rounded-full object-cover object-left"
           />

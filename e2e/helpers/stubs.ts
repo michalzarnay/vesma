@@ -50,7 +50,8 @@ export async function stubExternalApis(page: Page): Promise<void> {
  */
 export async function openClean(page: Page): Promise<void> {
   await stubExternalApis(page);
-  await page.goto('/');
+  // Appka beží pod základnou cestou /vesma/ (rovnako lokálne aj v produkcii).
+  await page.goto('/vesma/');
   await page.evaluate(() => {
     localStorage.clear();
     sessionStorage.clear();

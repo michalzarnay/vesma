@@ -8,6 +8,7 @@ import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
 import { matchKraj, matchOkres } from '../../utils/locationMatchers';
+import { apiUrl } from '../../utils/apiUrl';
 
 interface Step1Props {
   areal: Areal;
@@ -61,7 +62,7 @@ async function fetchKlimatickeUdaje(
 
   // 3. Slnečný svit – PVGIS cez server proxy (CORS)
   onStatus('Načítavam dáta slnečného svitu…');
-  const pvRes = await fetch(`/api/pvgis?lat=${lat}&lon=${lon}`);
+  const pvRes = await fetch(apiUrl(`pvgis?lat=${lat}&lon=${lon}`));
   if (!pvRes.ok) throw new Error(`PVGIS zlyhal (${pvRes.status})`);
   const pvData = await pvRes.json() as { solar?: number; error?: string };
   if (pvData.error) throw new Error(`PVGIS: ${pvData.error}`);
@@ -143,7 +144,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         <div className="flex justify-end">
           <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
             <img
-              src="/INOVIA_Logo_Final_RGB.jpg"
+              src={`${import.meta.env.BASE_URL}INOVIA_Logo_Final_RGB.jpg`}
               alt="INOVIA"
               className="w-4 h-4 rounded-full object-cover object-left"
             />

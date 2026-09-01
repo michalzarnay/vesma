@@ -1,8 +1,29 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { loadEnv, type Plugin } from 'vite'
+import { loadEnv, type Plugin, type ViteDevServer } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+
+/**
+ * Základná cesta nasadenia. VESMA sa zverejňuje na https://inovia.sk/vesma/
+ * (reverse proxy pred Vercelom), preto appka aj na Verceli beží pod /vesma/.
+ * Build zapisuje do `dist/vesma`, takže adresy súborov sedia 1:1 s cestami.
+ */
+const BASE = '/vesma/'
+
+/**
+ * Zaregistruje dev middleware serverless funkcie na produkčnú cestu
+ * `/vesma/api/<nazov>` aj na holú `/api/<nazov>` (ručné testovanie, staršie odkazy).
+ */
+function pripojApi(
+  server: ViteDevServer,
+  nazov: string,
+  handler: (req: IncomingMessage, res: ServerResponse) => void,
+): void {
+  for (const cesta of [`${BASE}api/${nazov}`, `/api/${nazov}`]) {
+    server.middlewares.use(cesta, handler)
+  }
+}
 
 /**
  * Dev-only plugin: simulates the /api/svp-flood Vercel function locally.
@@ -45,8 +66,9 @@ function svpProxyPlugin(): Plugin {
   return {
     name: 'svp-dev-proxy',
     configureServer(server) {
-      server.middlewares.use(
-        '/api/svp-flood',
+      pripojApi(
+        server,
+        'svp-flood',
         async (req: IncomingMessage, res: ServerResponse) => {
           const url = new URL(req.url ?? '', 'http://localhost')
           const lat = parseFloat(url.searchParams.get('lat') ?? '')
@@ -116,8 +138,9 @@ function pvgisProxyPlugin(): Plugin {
   return {
     name: 'pvgis-dev-proxy',
     configureServer(server) {
-      server.middlewares.use(
-        '/api/pvgis',
+      pripojApi(
+        server,
+        'pvgis',
         async (req: IncomingMessage, res: ServerResponse) => {
           const url = new URL(req.url ?? '', 'http://localhost')
           const lat = parseFloat(url.searchParams.get('lat') ?? '')
@@ -176,8 +199,9 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
   return {
     name: 'feedback-dev-proxy',
     configureServer(server) {
-      server.middlewares.use(
-        '/api/feedback',
+      pripojApi(
+        server,
+        'feedback',
         async (req: IncomingMessage, res: ServerResponse) => {
           const send = (status: number, body: unknown) => {
             res.statusCode = status
@@ -267,6 +291,13 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
+  base: BASE,
+  build: {
+    // Súbory sa ukladajú do dist/vesma, aby na Verceli fyzicky ležali
+    // na tej istej ceste, akú majú v HTML (/vesma/assets/…).
+    outDir: 'dist/vesma',
+    emptyOutDir: true,
+  },
   plugins: [
     react(),
     tailwindcss(),
