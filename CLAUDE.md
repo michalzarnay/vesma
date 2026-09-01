@@ -18,6 +18,12 @@ s vysvetlením a počkaj na rozhodnutie:
 - Spusti existujúce testy. Ak chýba test pokrývajúci opravenú chybu, doplň ho.
 - Commit správy a popis PR po slovensky. V popise PR uveď „Closes #<číslo>".
 
+## Číslo verzie — nikdy neupravuj ručne
+`src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
+Číslo počíta `scripts/generate-version.mjs` z histórie vetvy `main`
+(pozri `docs/verziovanie.md`). Nikdy doň nezapisuj číslo ručne a nikdy ho
+nepridávaj do gitu — verzia sa posunie sama tým, že sa PR zlúči do `main`.
+
 ## UI a interakčné chyby — zvýšená opatrnosť
 Nevidíš vykreslenú stránku ani na ňu nevieš kliknúť — pri vizuálnych
 a interakčných chybách usudzuješ len z kódu. Preto:

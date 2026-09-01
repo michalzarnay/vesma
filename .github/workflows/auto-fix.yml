@@ -38,7 +38,11 @@ jobs:
         github.event.comment.author_association == 'COLLABORATOR'))
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 – scripts/generate-version.mjs počíta číslo verzie
+      # z histórie `main`; pri plytkom klone by ho nemal z čoho spočítať.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Reakcia na komentár (nech je vidieť, že beh štartuje)
         if: github.event_name == 'issue_comment'
@@ -92,7 +96,7 @@ jobs:
           TEXT_ONLY=true
           while IFS= read -r file; do
             case "$file" in
-              src/components/*|src/data/glossary.ts|src/version.ts) ;;
+              src/components/*|src/data/glossary.ts) ;;
               *) TEXT_ONLY=false; break ;;
             esac
           done <<< "$CHANGED"

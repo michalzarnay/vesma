@@ -31,3 +31,8 @@ dist-ssr
 # Výstupy Playwrightu (snímky, trace, HTML report) – generujú sa pri behu testov
 test-results/
 playwright-report/
+
+# Číslo verzie v hlavičke – generuje scripts/generate-version.mjs pred každým
+# dev/build/preview/test behom. Keby bolo verzované, dalo by sa ručne prepísať
+# a zobrazené číslo by prestalo sedieť s poradím zmien v `main`.
+src/version.ts

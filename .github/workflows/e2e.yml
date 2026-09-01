@@ -15,7 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # fetch-depth: 0 – scripts/generate-version.mjs počíta číslo verzie
+      # z histórie `main`; pri plytkom klone by ho nemal z čoho spočítať.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
