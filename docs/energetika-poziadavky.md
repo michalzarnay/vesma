@@ -5,6 +5,10 @@ Analýza z 1. 9. 2026. Podklad: zákon č. 321/2014 Z. z. o energetickej efektí
 a normy STN EN 16247-1/-2/-3: 2024 (Energetické audity — Všeobecné požiadavky /
 Budovy / Procesy).
 
+Doplnené 1. 9. 2026 o **pripomienky energetického experta** k návrhu váh pre
+porovnanie areálov (súbor `VESMA_viac_LuGrkomentare.xlsx`, karta „OZE+energetika").
+Sú spracované v kapitole D0 a premietnuté do kapitol B, D a F.
+
 > **Poznámka k podkladom.** Priložené PDF súbory noriem STN EN 16247-1/-2/-3 sú
 > **náhľady** — obsahujú titulnú stranu, národný a európsky predhovor, úvod, predmet,
 > normatívne odkazy a **obsah** (zoznam článkov a príloh). Vlastný text článkov 3 až 5
@@ -86,7 +90,9 @@ Bod 8 prílohy č. 1 žiada pri osvetlení charakteristiku sústavy, spôsob pre
 a spotrebu; pri technologických zariadeniach príkon, prevádzkovú dobu, spotrebu
 a špecifickú spotrebu. VESMA má osvetlenie iba ako **percento LED**. Z toho sa nedá
 vyčísliť úspora v kWh — a `comparisonWeights.ts` to dnes obchádza proxy hodnotou
-„úžitková plocha × (100 − % LED)", čo nemá fyzikálny rozmer.
+„úžitková plocha × (100 − % LED)", čo nemá fyzikálny rozmer. Energetický expert
+odporúča evidovať **počet svietidiel** a pre plochu použiť oficiálne prepočtové tabuľky
+plocha → W používané pri auditoch — rozpracované v D7.
 Chýbajú aj typické veľké spotrebiče areálov samospráv: školská kuchyňa, práčovňa,
 bazén, serverovňa, čerpadlá, výťahy.
 
@@ -149,12 +155,26 @@ existujú, v glosári je dokonca definícia normovanej spotreby s príkladom
 „80 kWh/m²/rok" — ale **v celom kóde sa nikdy nepočítajú ani nezobrazujú** (mŕtve polia).
 
 Treba doplniť aspoň:
-- `kWh/(m²·rok)` na úžitkovú plochu (globálny EnPI, priamo porovnateľný s certifikátom),
+- `kWh/(m²·rok)` na úžitkovú plochu (globálny EnPI),
 - `kWh/osobu/rok` a `kWh/hodinu prevádzky` — VESMA už má `pocetZamestnancov`,
   `kapacitaZariadenia`, `aktualnaObsadenost`, `vyuzitieDniVRoku`, `vyuzitieHodinDenne`,
   `vyuzitieMesiacovVRoku`, `vyuzitieEnergiaPercent` a **žiadne z nich vo výpočtoch
   nepoužíva**,
 - podiel elektriny / tepla / paliva na konečnej spotrebe (rozčlenenie podľa 5.7.2).
+
+**⚠️ Vypočítaná potreba ≠ skutočná spotreba.** Energetický expert sa k tomu pýta priamo
+(D0, riadok 6): *„Ako sa to bude porovnávať — energ. certifikát vs. reálna spotreba?"*
+Sú to dve rôzne čísla:
+- **potreba energie** z energetického certifikátu je **vypočítaná** hodnota za normovaných
+  podmienok užívania a klímy (`potrebaEnergieKurenie`, `potrebaEnergieVoda`,
+  `primarnaEnergia` v kWh/(m²·a) — tie, ktoré parser dnes zahadzuje, viď A9),
+- **skutočná spotreba** z faktúr je **nameraná** a závisí od počasia, obsadenosti
+  a správania používateľov.
+
+Miešať ich do jedného ukazovateľa je klasická chyba. VESMA má obe ukladať **osobitne
+a označene** a pri každom výstupe uviesť, o ktorú ide. Práve rozdiel medzi nimi je
+mimochodom užitočná informácia sám o sebe — veľký rozdiel signalizuje buď zlú prevádzku,
+alebo nereálny certifikát.
 
 ### B2. Klimatická normalizácia (dennostupňová metóda)
 Bod 4 prílohy č. 1: „Údaje o množstve energie, ktorej spotreba závisí od klimatických
@@ -181,6 +201,11 @@ VESMA má na to dobrú štartovaciu pozíciu — `TYP_OBJEKTU_OPTIONS` už rozli
 VŠ, zdravotnícke stredisko, nemocnicu, DSS, kultúru, úrad, zbrojnicu, halu, sklad,
 kanceláriu, obchod, gastro, hotel, RD, BD… Treba k tomu **tabuľku referenčných hodnôt
 kWh/(m²·rok) na typ objektu** (a ideálne vekovú kategóriu — pole `vystavbaPred1980` už existuje).
+
+Parameter je zároveň v tabuľke váh (D0, riadok 6, váha 5) a energetický expert k nemu
+položil kľúčovú otázku — voči čomu sa bude referenčná hodnota porovnávať. **Referencia
+musí byť definovaná voči jednej z dvoch veličín podľa B1** (vypočítaná potreba alebo
+skutočná spotreba), nie voči „tomu, čo je práve k dispozícii".
 
 ⚠️ Hodnoty **nevymýšľať**. Zdroje na overenie s človekom: prílohy vyhlášky č. 364/2012 Z. z.
 (škály energetických tried podľa kategórií budov k zákonu č. 555/2005 Z. z.), dáta
@@ -241,6 +266,9 @@ ako škola 3 000 m². Pritom `kvalitaOkien` v tej istej funkcii **už váži ú�
 — logika je nekonzistentná sama so sebou. Energetická bilancia je zo svojej podstaty
 aditívna (kWh sa sčítavajú), takže vážiť treba plochou alebo spotrebou.
 
+Energetický expert žiada to isté pri váhach porovnania (D0, D1) — „počet budov" nahradiť
+plochou. Rovnaká výhrada teda platí pre skóre aj pre porovnanie.
+
 ### C4. Zozbierané, ale nehodnotené údaje
 Nasledujúce polia sa v `Budova` zbierajú a **do žiadneho skóre nevstupujú**:
 `rekuperaciaCentralnaUcinnost`, `rekuperaciaLokalnaDo75/Od76do89/Od90`,
@@ -264,6 +292,34 @@ VESMA dnes zobrazí skóre rovnako sebavedomo pri troch aj pri tridsiatich vypln
 
 ## D. Parametre a váhy pre porovnanie viacerých areálov (`comparisonWeights.ts`)
 
+### D0. Pripomienky energetického experta k tabuľke váh
+Zdroj: `VESMA_viac_LuGrkomentare.xlsx`, karta „OZE+energetika". V stĺpci D sú otázky
+položené expertovi, v bunkových komentároch jeho odpovede.
+
+| Riadok tabuľky váh | Váha | Pripomienka experta |
+|---|---|---|
+| 1. Plocha pozemkov vhodná pre FV alebo solárne kolektory [m²] | 3 | „Otázka je, či v budúcnosti vôbec bude možné umiestňovať FVE a solár na zelených plochách, je to pomerne veľká téma. Ale uznávam, že si tomu prispôsobil koeficient." |
+| 2. Plocha striech vhodných pre FV (J, V, Z, JV, JZ) [m²] | 10 | „**Zmeniť kategórie na 15° a 35°. Započítať iba plochú a málo šikmú strechu do 15° do vzorca**" |
+| 4. Vykurovanie plynom → potenciál TČ [počet budov] | 6 | „Určite celková úžitková **plocha/vykurovaná**. A pridal by som určite aj **biomasu (uhlie nie)** — SK má veľký potenciál rozvoja biomasy: pelety + štiepka, navyše pre staršie budovy je to lepšia alternatíva vzhľadom na **väčší rozsah výkonu**." |
+| 5. Vykurovanie elektrinou → potenciál TČ [počet budov] | 6 | „Tiež by som dal m²" |
+| 6. Spotreba energie nad referenčnou hodnotou [kWh/m²/rok] | 5 | „**Ako sa to bude porovnávať — energ. certifikát vs. reálna spotreba?**" |
+| 7. Rok výstavby pred rokom 1980 [počet budov] | 4 | „Za mňa opäť plocha" |
+| 8. Osvetlenie nie-LED [m² alebo počet svietidiel] | 3 | „Oba sú správne, existujú **pre audity oficiálne tabuľky prepočtu plochy na W** spotreby elektriny na osvetlenie, každopádne **počet svietidiel bude presnejší**" |
+| 11. Odrátať existujúce riešenia: TČ [počet budov] | −1 | (otázka v stĺpci D: „plocha budovy?") |
+
+K riadkom 3, 9, 10 a 12 expert výhrady nemal.
+
+**Dve poznámky k samotnému súboru:**
+- Komentár na bunke B11 karty „OZE+energetika" („Typické riešenia aktuálne: na asfaltový
+  chodník, vodný tok alebo vsak do pôdy") sem nepatrí — je to kópia komentára z karty
+  „MZI – spoločná dohoda" (B23), kde dáva zmysel pri odvode vody zo striech.
+- Pripomienka o kategóriách 15°/35° je aj na karte MZI pri „Strecha vhodná na obnovu",
+  takže platí konzistentne pre FV aj pre zelené strechy.
+
+**Interpretácia biomasy** (potvrdená zadávateľom 1. 9. 2026): ide o **nový samostatný
+parameter porovnania „prechod plyn → biomasa (pelety + štiepka)"**, nie o zmenu
+existujúceho riadku 4. Uhlie ako cieľová technológia nie. Rozpracované v D6.
+
 ### D1. Energetické skóre sčítava nesúrodé jednotky
 `ENERGIA_PARAMETERS` sčítava do jedného čísla: m² strechy × 10, m² nezateplenej obálky × 8,
 **počet budov** × 6, počet budov × 4, m² proxy pre osvetlenie × 3… Výsledok nemá fyzikálny
@@ -280,33 +336,103 @@ a „budova s plynom" je 6?).
 Dokumentácia (`porovnanie-arealov-zmeny.md`, bod 4) sama uvádza, že energetické váhy
 nie sú finálne — toto je príležitosť urobiť ich rovno metodicky obhájiteľné.
 
+**Expert žiada to isté, len opatrnejšie (D0).** Všade, kde tabuľka počíta *počet budov*
+— riadky 4, 5, 7 a v stĺpci D aj 11 — žiada **plochu v m²**. To nie je v rozpore
+s prechodom na kWh; m² je medzikrok, ktorý sa dá spraviť **z dát, ktoré appka už má**,
+kým kWh potrebuje ceny a spotreby (A1, A2). Odporúčané poradie:
+
+1. **teraz:** počet budov → m² (riadky 4, 5, 7, 11),
+2. **potom:** m² → kWh/rok, keď pribudnú ceny, spotreby a prepočtové tabuľky.
+
+Expertova poznámka k osvetleniu (D0, riadok 8), že pre audity existujú oficiálne tabuľky
+prepočtu plochy na W, je mimochodom presne ten mechanizmus, ktorým sa z m² dostaneme na
+kWh — treba si tú tabuľku od neho vypýtať.
+
+⚠️ Pri prechode na plochu použiť **vykurovanú plochu**, nie úžitkovú — expert to píše
+výslovne („úžitková plocha/vykurovaná"). VESMA má `uzitkovaPlochaNUS`, čo je úžitková.
+Pri halách, telocvičniach a skladoch je rozdiel podstatný. Viď D8.
+
 ### D2. Chýba normalizácia veľkosti
 Skóre je súčet absolútnych hodnôt, takže **väčší areál skončí v rebríčku vždy vyššie**.
 Pre samosprávu, ktorá vyberá, kam dať prvé peniaze, je to niekedy správne (absolútny
 potenciál), ale často zavádzajúce. Treba doplniť druhý pohľad: potenciál **na m²
 úžitkovej plochy** alebo **na užívateľa**, prípadne pomer potenciál/investícia.
 
-### D3. Aproximácie, ktoré prežili z núdze
-Podľa `porovnanie-arealov-zmeny.md`:
-- plocha vhodná pre FV = iba `strechaOrientovanaPlochaNaJuh` (appka nepozná V/Z/JV/JZ
-  orientácie ani sklon a tienenie),
-- „nezateplená fasáda" sa počíta z `fasadaOrientovanaNaJuh`, hoci tepelné straty idú
-  cez **celú** obálku, nielen cez južnú fasádu — to je vecná chyba, nie len aproximácia,
-- osvetlenie ako `plocha × (1 − % LED)`.
+### D3. Strechy pre FV: expert nahrádza orientáciu sklonom
+Dnešný stav podľa `porovnanie-arealov-zmeny.md`: plocha vhodná pre FV =
+`strechaOrientovanaPlochaNaJuh`, lebo appka nepozná orientácie V/Z/JV/JZ ani sklon
+a tienenie. Pôvodne som navrhoval doplniť azimut, sklon a tienenie pre každú strechu.
 
-Doplniť: obvod/plochu celej obálky (alebo aspoň počet podlaží + obvod), orientáciu
-a sklon striech, tienenie.
+**Expert navrhuje lacnejšie a lepšie riešenie (D0, riadok 2):** *„Zmeniť kategórie na
+15° a 35°. Započítať iba plochú a málo šikmú strechu do 15° do vzorca."*
 
-### D4. PVGIS sa využíva len na polovicu
+Logika sedí: na plochej streche sa panely natočia ľubovoľne, takže orientácia budovy je
+irelevantná; na šikmej rozhoduje a tú VESMA spoľahlivo nezachytáva. **A `strechaTyp`
+v `src/data/constants.ts` už presne túto kategorizáciu má** (1 = do 15°, 2 = 16–35°,
+3 = nad 35°), takže filter `strechaTyp === 1` nevyžaduje žiadne nové pole.
+
+Dotýka sa dvoch miest: `energia_strecha_fv` v `comparisonWeights.ts`
+a `vhodnostStrechyPreSolar` v `useScoring.calculateOZE` — obe dnes stoja na orientácii
+na juh bez ohľadu na sklon. Tým padá aproximácia č. 2 z `porovnanie-arealov-zmeny.md`.
+
+### D4. Nezateplená obálka sa počíta len z južnej fasády — vecná chyba
+`energia_nezateplena_obalka` (a jeho protikus `energia_odratat_zateplenie`) berie plochu
+fasády z `fasadaOrientovanaNaJuh`, hoci tepelné straty idú cez **celú** obálku. Južná
+orientácia je relevantná pre fotovoltiku a solárne zisky, nie pre zateplenie.
+
+**Potvrdené tabuľkou váh:** riadok 3 znie „Nezateplená fasáda alebo strecha budovy **[m²]**"
+— bez akejkoľvek zmienky o orientácii, a expert k nemu výhradu nemal. Použitie
+`fasadaOrientovanaNaJuh` teda nie je nič, čo by tabuľka žiadala; je to implementačný
+artefakt. Riešenie: odvodiť plochu obálky z pôdorysu a počtu podlaží, alebo doplniť
+do `Budova` plochu obvodového plášťa.
+
+### D5. PVGIS sa využíva len na polovicu
 `api/pvgis.ts` sťahuje **horizontálny úhrn ožiarenia** (kWh/m²). Výnos FV sa pritom
 počíta paušálom v `calculations.ts`: `kWp = plocha × 0,15`, `kWh = kWp × 1050`.
 Konštanta 1 050 je celoslovenský priemer — PVGIS pritom vie vrátiť výnos pre konkrétnu
-polohu, azimut a sklon (PVcalc). Ide o presnejšie číslo takmer zadarmo.
+polohu, azimut a sklon (PVcalc).
 
-### D5. Chýbajúci parameter: plochy pozemkov vhodné pre FV
+Priorita klesá po D3: ak sa do vzorca započítajú iba strechy do 15°, azimut prestáva
+byť premennou a zostáva prínos z lokality. Stále presnejšie číslo takmer zadarmo, ale
+nie je to už blokujúce.
+
+### D6. Chýbajúci parameter: prechod plyn → biomasa (pelety + štiepka)
+Dnešné váhy aj `catalog.ts` poznajú jedinú cestu preč od plynu a elektriny —
+**tepelné čerpadlo**. Expert (D0, riadok 4) upozorňuje, že pri starších budovách je
+biomasa lepšou alternatívou pre **väčší rozsah výkonu**, a že SK má v biomase veľký
+potenciál. Uhlie ako cieľová technológia nie.
+
+Doplniť teda **nový samostatný parameter porovnania** „prechod plyn → biomasa
+(pelety + štiepka)" popri existujúcom „plyn → TČ", s vlastnou váhou (na určenie
+expertom) a s plochou ako veličinou podľa D1.
+
+Naráža to aj na dnešné skóre: `useScoring.calculateOZE` dáva `+8` bodov potenciálu
+tepelného čerpadla za `kurenieUhlimDrevom > 0`, teda posiela uhoľné kotly rovno na TČ.
+Po doplnení biomasy treba prejsť aj toto pravidlo a katalóg opatrení.
+
+### D7. Osvetlenie: počet svietidiel, nie plocha
+Dnes `energia_osvetlenie_nie_led` používa proxy `uzitkovaPlochaNUS × (1 − % LED)`.
+Expert (D0, riadok 8): oba prístupy sú prípustné, ale **počet svietidiel je presnejší**,
+a pre plochu existujú **oficiálne tabuľky prepočtu na W** používané pri auditoch.
+
+Doplniť do `Budova` počet svietidiel (celkom a z toho LED) a plochu ponechať ako
+záložný odhad cez oficiálnu tabuľku. Tabuľku treba vypýtať od experta — bez nej je to
+znalostná báza bez zdroja.
+
+### D8. Vykurovaná plocha vs. úžitková plocha
+Expert píše „celková úžitková **plocha/vykurovaná**". VESMA má iba `uzitkovaPlochaNUS`
+(úžitková). Pri halách, skladoch, telocvičniach a čiastočne vykurovaných objektoch je
+rozdiel podstatný a skresľuje každý ukazovateľ v kWh/(m²·rok) aj každý prepočet váh
+na plochu. Doplniť samostatné pole pre vykurovanú plochu.
+
+### D9. Chýbajúci parameter: plochy pozemkov vhodné pre FV
 Uvedený v `porovnanie-arealov-zmeny.md` ako vynechaný, lebo `Pozemok` nemá údaj
-o orientácii/vhodnosti. Pri poľnohospodárskych a priemyselných areáloch (typy objektov,
-ktoré VESMA pozná) je to podstatný potenciál.
+o orientácii/vhodnosti. **Expert ho nevyškrtol** — akceptoval nízku váhu 3 ako primeranú
+regulačnej neistote („či v budúcnosti vôbec bude možné umiestňovať FVE a solár na
+zelených plochách, je to pomerne veľká téma").
+
+Doplniť teda áno, ale s nízkou váhou a s upozornením pre používateľa, že umiestňovanie
+FVE na zelených plochách je otvorená regulačná téma.
 
 ---
 
@@ -349,21 +475,28 @@ VESMA takúto možnosť nemá, každú budovu treba vyplniť celú.
 
 ## F. Priorizácia
 
-**Poradie podľa pomeru prínos / náročnosť:**
+**Poradie podľa pomeru prínos / náročnosť.** Po pripomienkach experta (D0) sa posunuli
+nahor tri kroky, ktoré sa dajú spraviť **z dát, ktoré appka už má** — pôvodne boli
+až za prechodom na kWh.
 
 | # | Krok | Prečo prvé |
 |---|------|-----------|
-| 1 | Uložiť EnPI z energetického certifikátu (A9) + počítať kWh/(m²·rok) (B1) | Parser ich už číta a zahadzuje; polia `normovanaSpotreba` a `kategoriaEnergetickejNarocnosti` už v modeli sú |
-| 2 | Ceny energie v EUR pri každom médiu (A1) | Odomkne úspory v EUR a návratnosť (B5) — bez toho je ekonomika slepá |
-| 3 | Rok, ku ktorému sa spotreba viaže (A2) | Jedno pole, bez neho nie je možná ani normalizácia, ani trend |
-| 4 | Deklarácia rozsahu „nie je energetický audit" vo výstupoch (kap. 0) | Právna hygiena, nulová technická cena |
-| 5 | Kontrola § 11 ods. 1 pri budovách nad 1 000 m² (A7) | Vysoká hodnota pre samosprávu z údajov, ktoré appka väčšinou už má |
-| 6 | Teplá voda ako samostatná položka (A3) | Chýba celá veľká časť bilancie |
-| 7 | Emisné faktory a CO₂ (B4) | Malý výpočet, veľká motivačná hodnota, väzba na Klimasken |
-| 8 | Referenčné hodnoty na typ objektu (B3) | **Potrebuje rozhodnutie človeka o zdroji dát** |
-| 9 | Dennostupňová normalizácia (B2) | **Potrebuje klimatické dáta pre okresy** |
-| 10 | Prepočet porovnávacích váh na kWh/rok (D1) + normalizácia (D2) | Najväčší metodický posun; má zmysel až po 1–3 a 8–9 |
-| 11 | Prestavba energetického skóre na dve vrstvy (C1–C3) | Mení pravidlá hodnotenia → **iba so súhlasom človeka** |
+| 1 | Uložiť EnPI z energetického certifikátu (A9) + počítať kWh/(m²·rok) (B1) | Parser ich už číta a zahadzuje; polia `normovanaSpotreba` a `kategoriaEnergetickejNarocnosti` už v modeli sú. Ukladať oddelene vypočítanú potrebu a skutočnú spotrebu (B1) |
+| 2 | FV potenciál len zo striech do 15° (D3) | Expertom potvrdené pravidlo; `strechaTyp` už kategorizáciu má, netreba nové pole |
+| 3 | Nezateplená obálka namiesto južnej fasády (D4) | Vecná chyba proti tabuľke váh, skresľuje poradie areálov |
+| 4 | Prepočet váh z počtu budov na plochu (D1, riadky 4, 5, 7, 11) | Expert to žiada výslovne; dáta sú v modeli |
+| 5 | Ceny energie v EUR pri každom médiu (A1) | Odomkne úspory v EUR a návratnosť (B5) — bez toho je ekonomika slepá |
+| 6 | Rok, ku ktorému sa spotreba viaže (A2) | Jedno pole, bez neho nie je možná ani normalizácia, ani trend |
+| 7 | Deklarácia rozsahu „nie je energetický audit" vo výstupoch (kap. 0) | Právna hygiena, nulová technická cena |
+| 8 | Kontrola § 11 ods. 1 pri budovách nad 1 000 m² (A7) | Vysoká hodnota pre samosprávu z údajov, ktoré appka väčšinou už má |
+| 9 | Parameter „plyn → biomasa" (D6) + vykurovaná plocha (D8) | Expertom potvrdené; mení aj katalóg opatrení a pravidlo pre uhlie v `calculateOZE` |
+| 10 | Teplá voda ako samostatná položka (A3) | Chýba celá veľká časť bilancie |
+| 11 | Emisné faktory a CO₂ (B4) | Malý výpočet, veľká motivačná hodnota, väzba na Klimasken |
+| 12 | Osvetlenie: počet svietidiel (D7) | **Potrebuje oficiálnu prepočtovú tabuľku od experta** |
+| 13 | Referenčné hodnoty na typ objektu (B3) | **Potrebuje rozhodnutie o zdroji dát a o tom, voči čomu sa porovnáva (B1)** |
+| 14 | Dennostupňová normalizácia (B2) | **Potrebuje klimatické dáta pre okresy** |
+| 15 | Prepočet porovnávacích váh na kWh/rok (D1) + normalizácia (D2) | Najväčší metodický posun; má zmysel až po 4–6 a 12–14 |
+| 16 | Prestavba energetického skóre na dve vrstvy (C1–C3) | Mení pravidlá hodnotenia → **iba so súhlasom človeka** |
 
 ---
 
@@ -372,12 +505,49 @@ VESMA takúto možnosť nemá, každú budovu treba vyplniť celú.
 Táto analýza je zámerne len pomenovaním medzier — **nič z nej som neimplementoval**,
 lebo väčšina bodov spadá do zakázaných oblastí:
 
-- **dátová schéma a dátový model** — A1 až A10 sú zmeny `Budova`/`Areal`/`Pozemok`,
+- **dátová schéma a dátový model** — A1 až A10, D6 až D9 sú zmeny
+  `Budova`/`Areal`/`Pozemok`,
 - **metodická príručka a znalostná báza chatbota** — B3 (referenčné hodnoty),
   B4 (emisné faktory), B5 (jednotkové náklady), A1 (výhrevnosti),
+  D7 (prepočtová tabuľka pre osvetlenie),
 - **exportný kontrakt na xMatik a Klimasken** — E1,
-- **zmena správania, UX a rozsahu funkcií** — C1 až C5, D1, D2, E3
+- **zmena správania, UX a rozsahu funkcií** — C1 až C5, D1 až D4, E3
   (nové otázky vo formulári, iné skóre, iné poradie v rebríčku).
 
-Odporúčaný ďalší krok: prejsť tabuľku v kapitole F, rozhodnúť rozsah a zdroje dát
-(najmä body 8 a 9) a z odsúhlasených položiek založiť samostatné issues.
+**Čo je už rozhodnuté** (pripomienkami experta z D0 a potvrdením zadávateľa 1. 9. 2026),
+takže pri implementácii netreba riešiť *čo*, len *ako*:
+- FV potenciál iba zo striech do 15° (D3),
+- prechod z počtu budov na plochu pri riadkoch 4, 5, 7, 11 (D1), a to na **vykurovanú**
+  plochu (D8),
+- nový parameter „plyn → biomasa (pelety + štiepka)", uhlie ako cieľ nie (D6),
+- pri osvetlení je presnejší počet svietidiel, plocha zostáva ako záloha (D7),
+- parameter pre plochy pozemkov vhodné pre FV zostáva, s nízkou váhou 3 (D9),
+- vypočítaná potreba a skutočná spotreba sa nesmú miešať (B1).
+
+### Založené issues
+Z bodov, ktoré nevyžadujú ďalšie rozhodnutie o obsahu:
+
+| Issue | Kapitola |
+|---|---|
+| [#170](https://github.com/michalzarnay/vesma/issues/170) Uložiť ukazovatele z energetického certifikátu | A9, B1 |
+| [#171](https://github.com/michalzarnay/vesma/issues/171) Počítať mernú spotrebu kWh/(m²·rok) | B1 |
+| [#172](https://github.com/michalzarnay/vesma/issues/172) Rok, ku ktorému sa spotreba viaže | A2 |
+| [#173](https://github.com/michalzarnay/vesma/issues/173) Ročné náklady v EUR pri každom médiu | A1, B5 |
+| [#174](https://github.com/michalzarnay/vesma/issues/174) Terminológia „efektivita" → „efektívnosť" | E2 |
+| [#175](https://github.com/michalzarnay/vesma/issues/175) Vo výstupoch uviesť, že nejde o energetický audit | kap. 0 |
+| [#176](https://github.com/michalzarnay/vesma/issues/176) Nezateplená obálka počítaná len z južnej fasády | D4 |
+| [#177](https://github.com/michalzarnay/vesma/issues/177) Hydraulické vyregulovanie a izolácia rozvodov | A7 |
+| [#179](https://github.com/michalzarnay/vesma/issues/179) FV potenciál iba zo striech do 15° | D3 |
+| [#180](https://github.com/michalzarnay/vesma/issues/180) Plocha namiesto počtu budov v energetických váhach | D1 |
+| [#181](https://github.com/michalzarnay/vesma/issues/181) Doplniť vykurovanú plochu budovy | D8 |
+| [#182](https://github.com/michalzarnay/vesma/issues/182) Nový parameter: prechod plyn → biomasa | D6 |
+| [#183](https://github.com/michalzarnay/vesma/issues/183) Osvetlenie: počet svietidiel namiesto plochy | D7, A5 |
+| [#184](https://github.com/michalzarnay/vesma/issues/184) Plochy pozemkov vhodné pre FV | D9 |
+
+Samotná implementácia každého z nich sa dotýka dátovej schémy alebo správania, takže
+podľa `CLAUDE.md` stále vyžaduje odsúhlasenie človekom. Issues sú založené **bez labelu
+`auto-fix`** — ten v tomto repe spúšťa automatickú opravu, takže spustenie je na
+rozhodnutí človeka.
+
+Odporúčaný ďalší krok: prejsť tabuľku v kapitole F, vypýtať si od experta prepočtovú
+tabuľku pre osvetlenie (D7) a rozhodnúť zdroje dát pre body 13 a 14.
