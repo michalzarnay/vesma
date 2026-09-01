@@ -796,6 +796,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
         </div>
 
         {/* PD 1 */}
+        <p className="text-xs text-gray-500">Môžete zadať aj viac ako jednu projektovú dokumentáciu (až 3) – ďalšie polia sa zobrazia po vyplnení názvu predchádzajúcej.</p>
         <PDSection
           num={1}
           nazov={budova.pd1Nazov} onNazov={(v) => onChange({ pd1Nazov: v })}
