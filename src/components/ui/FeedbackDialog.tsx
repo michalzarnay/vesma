@@ -40,7 +40,13 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-800">Nový podnet</h3>
+          <h3 className="text-sm font-semibold text-gray-800">
+            {fieldLabel !== undefined ? (
+              <>Podnet k: <span className="text-[#52A8DE]">{fieldLabel}</span></>
+            ) : (
+              'Nový podnet'
+            )}
+          </h3>
           <button
             type="button"
             onClick={onClose}
