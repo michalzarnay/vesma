@@ -15,6 +15,7 @@ import { ChatPanel } from '../chat/ChatPanel';
 import { step1CanProceed } from '../../utils/stepValidation';
 import { SessionManager } from '../sessions/SessionManager';
 import { AreaComparisonView } from '../comparison/AreaComparisonView';
+import { FeedbackButton } from '../ui/FeedbackButton';
 import { FilePlus, GitCompare } from 'lucide-react';
 import { useState } from 'react';
 
@@ -134,6 +135,7 @@ export function WizardContainer() {
               <GitCompare className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Porovnanie areálov</span>
             </button>
+            <FeedbackButton variant="header" />
           </>
         }
       />

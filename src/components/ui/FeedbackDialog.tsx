@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 
 interface FeedbackDialogProps {
-  fieldLabel: string;
+  fieldLabel?: string;
   onClose: () => void;
 }
 
 export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
+  const [prvok, setPrvok] = useState(fieldLabel ?? '');
   const [nazov, setNazov] = useState('');
   const [opis, setOpis] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
@@ -18,7 +19,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fieldLabel,
+          fieldLabel: prvok.trim(),
           nazovPodnetu: nazov.trim(),
           opisPodnetu: opis.trim(),
           url: window.location.href,
@@ -39,9 +40,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-800">
-            Podnet k: <span className="text-[#52A8DE]">{fieldLabel}</span>
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-800">Nový podnet</h3>
           <button
             type="button"
             onClick={onClose}
@@ -56,6 +55,16 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
           <p className="text-sm text-green-600 text-center py-4">Podnet odoslaný. Ďakujeme!</p>
         ) : (
           <>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">Názov prvku</label>
+              <input
+                value={prvok}
+                onChange={(e) => setPrvok(e.target.value)}
+                placeholder="napr. Plocha strechy, krok 3..."
+                className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none"
+              />
+            </div>
+
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-600">Názov podnetu</label>
               <input
