@@ -1,50 +1,178 @@
-// Generuje src/version.ts s číslom verzie pre hlavičku.
-// Verzia = BASE_VERSION + počet commitov na `main` od BASE_COMMIT.
-// Spúšťa sa ako `prebuild` (npm) tesne pred `vite build`.
-import { execSync } from 'node:child_process';
+// Generuje src/version.ts s číslom verzie pre hlavičku aplikácie.
+//
+// PRAVIDLO
+//   verzia = BASE_VERSION + počet commitov v prvej rodičovskej línii (`--first-parent`)
+//            vetvy `main` od BASE_COMMIT po bod, z ktorého vychádza aktuálny build.
+//
+// PREČO PRÁVE TAKTO (čo to rieši)
+//   1. Jeden merge do `main` = presne +1. Predtým sa počítali všetky commity
+//      (`rev-list BASE..HEAD`), takže PR zlúčený merge commitom pridal toľko
+//      čísel, koľko mal commitov — verzia skákala o 1, 5 aj 20 naraz.
+//   2. Číslo nezávisí od toho, kto build spustil. Predtým sa počítalo od `HEAD`,
+//      takže build z vetvy (Vercel preview, beh agenta) dal iné číslo než build
+//      z `main`. Teraz sa vždy počíta po `merge-base(HEAD, main)`, čiže build
+//      z vetvy ukáže verziu `main`, z ktorej vetva vychádza — nikdy nie vyššiu,
+//      ktorá by po squash merge „klesla".
+//   3. Číslo nikdy ticho nespadne. Predtým sa pri plytkom (shallow) klone
+//      výpočet nepodaril a skript ticho vypísal BASE_VERSION (23) — odtiaľ skoky
+//      typu 145 → 23. Teraz sa história najprv dotiahne a keď sa verzia spočítať
+//      nedá, skript skončí chybou. Núdzový východ: premenná VESMA_VERSION.
+//   4. src/version.ts je v .gitignore a generuje sa pred každým `dev`, `build`,
+//      `preview` aj `test` behom. Nie je čo ručne prepísať — ani človekom,
+//      ani agentom.
+//
+// KOTVA
+//   BASE_COMMIT = HEAD vetvy `main` v čase zavedenia tohto pravidla.
+//   BASE_VERSION = 160 je zvolené zámerne vyššie než najvyššie číslo, aké mohla
+//   vypísať predchádzajúca logika (23 + 135 = 158), aby postupnosť ani pri
+//   prechode na nové pravidlo neklesla.
+import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-// BASE_COMMIT = HEAD vetvy `main` v čase zavedenia tohto skriptu (issue #46).
-// Pri tomto commite je počet commitov 0, takže verzia = BASE_VERSION = 23.
-// Každý ďalší (squash) merge do `main` pridá presne +1.
-const BASE_VERSION = 23;
-const BASE_COMMIT = '0468f0c78e73ceee580a18a68e485b1e7a933332';
+export const BASE_VERSION = 160;
+export const BASE_COMMIT = 'cd3645218b4ec15c402ae378f690ecf66896ed86';
 
-const dir = dirname(fileURLToPath(import.meta.url));
-const outFile = join(dir, '..', 'src', 'version.ts');
+/** Vetvy, ktoré považujeme za `main` — v poradí, v akom ich skúšame. */
+const MAIN_REFS = ['refs/remotes/origin/main', 'refs/heads/main', 'refs/remotes/upstream/main'];
 
-function git(cmd) {
-  return execSync(`git ${cmd}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+/** Spustí git a vráti očistený výstup. Pri chybe vyhodí výnimku. */
+function git(args, cwd) {
+  return execFileSync('git', args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
 }
 
-let version = BASE_VERSION;
-try {
-  // Vercel klonuje repo plytko (shallow) — potrebujeme históriu až po BASE_COMMIT.
+/** Spustí git a pri chybe vráti null (namiesto výnimky). */
+function gitOrNull(args, cwd) {
   try {
-    git('fetch --unshallow');
+    return git(args, cwd);
   } catch {
-    // Repo už má úplnú históriu (lokálny build alebo už odšallované) — pokračuj.
+    return null;
   }
-  const count = Number.parseInt(git(`rev-list --count ${BASE_COMMIT}..HEAD`), 10);
-  if (Number.isFinite(count)) {
-    version = BASE_VERSION + count;
-  } else {
-    console.warn(`[generate-version] Neplatný počet commitov, použijem ${BASE_VERSION}.`);
-  }
-} catch (err) {
-  console.warn(
-    `[generate-version] Verziu sa nepodarilo spočítať z gitu, použijem ${BASE_VERSION}.`,
-    err.message,
-  );
-  version = BASE_VERSION;
 }
 
-const content = `// Tento súbor je generovaný skriptom scripts/generate-version.mjs.
-// Needituj ručne — pri builde sa prepíše.
-export const APP_VERSION = ${version};
-`;
+/**
+ * Dotiahne plnú históriu, ak je klon plytký.
+ * Vercel aj actions/checkout klonujú plytko — bez tohto kroku by BASE_COMMIT
+ * v histórii vôbec nebol a verzia by vyšla nižšia (alebo by sa nespočítala).
+ */
+function dotiahniHistoriu(cwd) {
+  if (gitOrNull(['rev-parse', '--is-shallow-repository'], cwd) !== 'true') return;
+  if (gitOrNull(['fetch', '--unshallow', '--quiet'], cwd) !== null) return;
+  // Keď `--unshallow` nie je možný (napr. bez remote), skús aspoň prehĺbiť.
+  gitOrNull(['fetch', '--deepen=1000', '--quiet'], cwd);
+}
 
-writeFileSync(outFile, content);
-console.log(`[generate-version] APP_VERSION = ${version}`);
+/** Nájde referenciu na `main`; ak lokálne nie je, skúsi ju dotiahnuť z origin. */
+function najdiMainRef(cwd) {
+  for (const ref of MAIN_REFS) {
+    if (gitOrNull(['rev-parse', '--verify', '--quiet', ref], cwd)) return ref;
+  }
+  if (gitOrNull(['fetch', 'origin', 'main', '--quiet'], cwd) !== null) {
+    if (gitOrNull(['rev-parse', '--verify', '--quiet', 'FETCH_HEAD'], cwd)) return 'FETCH_HEAD';
+  }
+  return null;
+}
+
+/**
+ * Bod na `main`, po ktorý sa počíta — `merge-base(HEAD, main)`.
+ * Na `main` je to samotný HEAD, na vetve bod, z ktorého vetva vychádza.
+ */
+function najdiKotvu(cwd) {
+  const mainRef = najdiMainRef(cwd);
+  if (!mainRef) return 'HEAD';
+  return gitOrNull(['merge-base', 'HEAD', mainRef], cwd) ?? 'HEAD';
+}
+
+/**
+ * Spočíta verziu pre repozitár v `cwd`.
+ * Parametre `baseCommit` a `baseVersion` sú kvôli testom.
+ */
+export function vypocitajVerziu({
+  cwd = process.cwd(),
+  baseCommit = BASE_COMMIT,
+  baseVersion = BASE_VERSION,
+  dotiahnut = true,
+} = {}) {
+  if (gitOrNull(['rev-parse', '--is-inside-work-tree'], cwd) !== 'true') {
+    throw new Error('Nie je to git repozitár — verziu sa nedá spočítať.');
+  }
+
+  if (dotiahnut) dotiahniHistoriu(cwd);
+
+  const kotva = najdiKotvu(cwd);
+
+  if (gitOrNull(['cat-file', '-e', `${baseCommit}^{commit}`], cwd) === null) {
+    throw new Error(
+      `Kotviaci commit ${baseCommit} nie je v histórii (plytký klon?). ` +
+        'Naklonuj s plnou históriou (fetch-depth: 0) alebo nastav VESMA_VERSION.',
+    );
+  }
+
+  // Kotva v histórii je, ale build je zo staršieho commitu (napr. rollback
+  // na Verceli). Vtedy je základná verzia správna odpoveď — starší kód
+  // objektívne neobsahuje žiadny z merge-ov započítaných od kotvy.
+  if (gitOrNull(['merge-base', '--is-ancestor', baseCommit, kotva], cwd) === null) {
+    return baseVersion;
+  }
+
+  const vystup = git(['rev-list', '--count', '--first-parent', `${baseCommit}..${kotva}`], cwd);
+  const pocet = Number.parseInt(vystup, 10);
+  if (!Number.isFinite(pocet) || pocet < 0) {
+    throw new Error(`Neplatný počet commitov od kotvy: "${vystup}".`);
+  }
+
+  return baseVersion + pocet;
+}
+
+/** Zapíše src/version.ts a vráti zapísanú verziu. */
+export function zapisVerziu(verzia, outFile) {
+  const content = `// Tento súbor je generovaný skriptom scripts/generate-version.mjs.
+// Needituj ho ručne a necommituj — je v .gitignore a pri každom builde sa prepíše.
+export const APP_VERSION = ${verzia};
+`;
+  writeFileSync(outFile, content);
+  return verzia;
+}
+
+function main() {
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const outFile = join(dir, '..', 'src', 'version.ts');
+
+  // Núdzový východ pre prostredie bez gitu (napr. build z tarballu).
+  const override = process.env.VESMA_VERSION;
+  if (override) {
+    const verzia = Number.parseInt(override, 10);
+    if (!Number.isFinite(verzia) || verzia < 0) {
+      console.error(`[generate-version] VESMA_VERSION="${override}" nie je platné číslo.`);
+      process.exit(1);
+    }
+    zapisVerziu(verzia, outFile);
+    console.log(`[generate-version] APP_VERSION = ${verzia} (z VESMA_VERSION)`);
+    return;
+  }
+
+  let verzia;
+  try {
+    verzia = vypocitajVerziu({ cwd: join(dir, '..') });
+  } catch (err) {
+    // Zámerne padáme. Tichý fallback na BASE_VERSION bol príčinou skokov
+    // typu 145 → 23; radšej nech je chyba vidieť pri builde.
+    console.error(`[generate-version] Verziu sa nepodarilo spočítať: ${err.message}`);
+    console.error('[generate-version] Dočasne sa dá obísť cez VESMA_VERSION=<číslo>.');
+    process.exit(1);
+  }
+
+  zapisVerziu(verzia, outFile);
+  console.log(`[generate-version] APP_VERSION = ${verzia}`);
+}
+
+// Spusti len pri priamom volaní (`node scripts/generate-version.mjs`),
+// nie pri importe z testov.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

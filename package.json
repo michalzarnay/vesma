@@ -4,12 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "version:generate": "node scripts/generate-version.mjs",
+    "predev": "npm run version:generate",
     "dev": "vite",
-    "prebuild": "node scripts/generate-version.mjs",
+    "prebuild": "npm run version:generate",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "prepreview": "npm run version:generate",
     "preview": "vite preview",
+    "pretest": "npm run version:generate",
     "test": "tsc -b && eslint . --max-warnings=0",
+    "pretest:unit": "npm run version:generate",
     "test:unit": "vitest run"
   },
   "dependencies": {
