@@ -4,6 +4,13 @@
  *
  * GET /api/svp-flood?lat=48.15&lon=17.6
  * Response: { riziko: 0-5, perioda: number|null, zona: string|null }
+ *
+ * POZOR – funkcia musí bežať v európskom regióne (Vercel → Settings →
+ * Functions → Function Region = Frankfurt / fra1). Z default regiónu
+ * `iad1` (Washington) SVP spojenie zahadzuje, fetch visí a skončí na
+ * časovom limite s hláškou „This operation was aborted". Nastavenie
+ * regiónu žije len vo Vercel dashboarde, v repozitári po ňom niet stopy –
+ * ak tlačidlo „zistiť zo SVP" prestane fungovať, over najprv región.
  */
 
 const SVP_MAPSERVER =
@@ -14,11 +21,11 @@ const SVP_BASE = `${SVP_MAPSERVER}/identify`;
 const POLE_PERIODY = 'inundationreturnperiod';
 
 /**
- * Identify s `layers=all` prehľadáva všetky vrstvy služby INSPIRE_MPO, čo pri
- * pomalšej odozve SVP prekročí časový limit („This operation was aborted").
+ * Identify s `layers=all` prehľadáva všetky vrstvy služby INSPIRE_MPO.
  * Dopyt preto zúžime na vrstvy, ktoré majú pole inundationReturnPeriod —
- * ostatné do výsledku aj tak nevstupujú, takže riziko sa nemení.
- * Zoznam vrstiev sa zisťuje raz a drží sa v pamäti inštancie funkcie.
+ * ostatné do výsledku aj tak nevstupujú, takže riziko sa nemení a SVP
+ * zbytočne nezaťažujeme. Zoznam vrstiev sa zisťuje raz a drží sa v pamäti
+ * inštancie funkcie.
  */
 let vrstvyCache: Promise<string | null> | null = null;
 
