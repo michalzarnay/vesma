@@ -22,39 +22,32 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     // Analyze pozemky
     let totalPlocha = 0;
     let totalSpevnena = 0;
-    let hasRetencnaNadrz = false;
-    let hasDazdovaZahrada = false;
-    let avgNeriesenyOdvod = 0;
 
     for (const p of areal.pozemky) {
       const plocha = p.plochaBezBudov || p.celkovaVymera;
       totalPlocha += plocha;
       totalSpevnena += p.spevnenaPlochaCelkom;
-      if (p.nadzemneNadobyObjem > 0 || p.podzemneNadobyObjem > 0) hasRetencnaNadrz = true;
-      if (p.dazdovaZahradaPlocha > 0) hasDazdovaZahrada = true;
-      avgNeriesenyOdvod += p.odvodVodyNerieseny;
     }
-    if (areal.pozemky.length > 0) avgNeriesenyOdvod /= areal.pozemky.length;
 
-    // MZI recommendations
+    // ── MZI — Pravidlo 1: Spevnený povrch ────────────────────────────────────
     const spevnenyPodiel = totalPlocha > 0 ? totalSpevnena / totalPlocha : 0;
-    if (spevnenyPodiel > 0.3) {
-      addRec(recs, 'priepustna-dlazba', 'vysoká', `${Math.round(spevnenyPodiel * 100)}% areálu tvorí spevnená plocha.`, `Potenciál nahradiť až ${Math.round(totalSpevnena * 0.5)} m² priepustnou dlažbou.`);
-      addRec(recs, 'dazdova-zahrada', 'vysoká', 'Vysoký podiel spevnených plôch zvyšuje povrchový odtok.');
-    }
-
-    if (!hasDazdovaZahrada && totalPlocha > 200) {
-      addRec(recs, 'dazdova-zahrada', 'stredná', 'Areál nemá dažďovú záhradu na zachytávanie zrážkovej vody.');
-    }
-
-    if (avgNeriesenyOdvod > 50) {
-      addRec(recs, 'vsakovaci-rigol', 'vysoká', `Priemerne ${Math.round(avgNeriesenyOdvod)}% odvodu vody z pozemkov je neriešených.`);
-      addRec(recs, 'odvedenie-mimo-kanalizaciu', 'vysoká', 'Veľká časť dažďovej vody nie je riadene odvádzaná.');
+    if (spevnenyPodiel > 0.15) {
+      const pct = Math.round(spevnenyPodiel * 100);
+      const dovod = `${pct} % areálu tvorí spevnená nepriepustná plocha — zrážková voda nie je zadržiavaná na mieste.`;
+      const dovodVsak = `${dovod} (ak podložie pozemku nie je nepriepustné)`;
+      addRec(recs, 'priepustna-dlazba', 'vysoká', dovod,
+        `Potenciál nahradiť až ${Math.round(totalSpevnena * 0.5)} m² priepustným povrchom.`);
+      addRec(recs, 'dazdova-zahrada', 'vysoká', dovodVsak);
+      addRec(recs, 'vsakovaci-rigol', 'vysoká', dovodVsak);
+      addRec(recs, 'zachytenie-do-nadob', 'stredná', dovod);
+      addRec(recs, 'podzemne-vsakovanie', 'stredná', dovodVsak);
+      if (totalPlocha >= 500) {
+        addRec(recs, 'jazierko', 'stredná', dovod);
+      }
     }
 
     // Green roof potential on buildings
     let totalGreenRoofPotential = 0;
-    let totalStrechaPlochaBudov = 0;
     let hasExistingFV = false;
     let hasExistingSolar = false;
     let hasTC = false;
@@ -71,7 +64,6 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     let poorEnergyClassLabel = '';
 
     for (const b of areal.budovy) {
-      totalStrechaPlochaBudov += b.plochaPodorysu;
       totalJuznaPlochaBudov += b.strechaOrientovanaPlochaNaJuh;
 
       if (b.strechaTyp === 1 && b.zelenaStrechaPlocha === 0) {
@@ -107,18 +99,19 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
       addRec(recs, 'zelena-strecha-ext', 'stredná', `${Math.round(totalGreenRoofPotential)} m² plochých striech bez zelene.`, `Potenciál zachytiť ${Math.round(totalGreenRoofPotential * 0.3)} m³ dažďovej vody ročne.`);
     }
 
-    if (!hasRetencnaNadrz && totalStrechaPlochaBudov > 50) {
-      const potencialLitrov = Math.round(totalStrechaPlochaBudov * 0.8 * 0.7); // 700mm rain, 80% collection
-      addRec(recs, 'retencna-nadrz', 'vysoká', `Areál nemá nádrž na dažďovú vodu. Zo striech (${Math.round(totalStrechaPlochaBudov)} m²) stečie veľa vody.`, `Potenciál zachytiť až ${potencialLitrov} litrov vody ročne.`);
-    }
-
-    // Trees
-    let lowTreePozemky = 0;
+    // ── MZI — Pravidlo 3: Pokryvnosť korunami stromov a krov ─────────────────
+    let lowCanopyPozemky = 0;
     for (const p of areal.pozemky) {
-      if (p.priepustnaPlochaStromy < 20 && p.priepustnaPlochaCelkom > 100) lowTreePozemky++;
+      if (p.priepustnaPlochaCelkom > 0 && (p.priepustnaPlochaStromy + p.priepustnaPlochaKry) < 30) {
+        lowCanopyPozemky++;
+      }
     }
-    if (lowTreePozemky > 0) {
-      addRec(recs, 'vysadba-stromov', 'stredná', 'Nízky podiel stromov na pozemkoch.');
+    if (lowCanopyPozemky > 0) {
+      const n = lowCanopyPozemky;
+      addRec(
+        recs, 'vysadba-stromov', 'stredná',
+        `${n} ${n === 1 ? 'pozemok má' : 'pozemky/pozemkov majú'} pokryvnosť korunami stromov a krov pod 30 % zelenej plochy.`,
+      );
     }
 
     // OZE recommendations
