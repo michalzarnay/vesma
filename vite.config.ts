@@ -9,8 +9,38 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
  * On production (Vercel) the real api/svp-flood.ts is used instead.
  */
 function svpProxyPlugin(): Plugin {
-  const SVP_BASE =
-    'https://mpt.svp.sk/server/rest/services/inspire/INSPIRE_MPO/MapServer/identify'
+  const SVP_MAPSERVER =
+    'https://mpt.svp.sk/server/rest/services/inspire/INSPIRE_MPO/MapServer'
+  const SVP_BASE = `${SVP_MAPSERVER}/identify`
+
+  // Rovnaké zúženie dopytu ako v api/svp-flood.ts – identify sa pýta len vrstiev
+  // s poľom inundationReturnPeriod, aby SVP stihlo odpovedať v limite.
+  let vrstvyCache: Promise<string | null> | null = null
+
+  const zistiVrstvy = async (signal: AbortSignal): Promise<string | null> => {
+    const resp = await fetch(`${SVP_MAPSERVER}/layers?f=json`, {
+      headers: { 'User-Agent': 'sma-nastroj-dev/1.0' },
+      signal,
+    })
+    if (!resp.ok) return null
+    const data = (await resp.json()) as {
+      layers?: Array<{ id?: number; fields?: Array<{ name?: string }> | null }>
+    }
+    const ids = (data.layers ?? [])
+      .filter(l =>
+        (l.fields ?? []).some(f => f.name?.toLowerCase() === 'inundationreturnperiod'),
+      )
+      .map(l => l.id)
+      .filter((id): id is number => typeof id === 'number')
+    return ids.length > 0 ? ids.join(',') : null
+  }
+
+  const parameterLayers = async (signal: AbortSignal): Promise<string> => {
+    if (!vrstvyCache) vrstvyCache = zistiVrstvy(signal).catch(() => null)
+    const ids = await vrstvyCache
+    if (ids === null) vrstvyCache = null
+    return ids ? `all:${ids}` : 'all'
+  }
 
   return {
     name: 'svp-dev-proxy',
@@ -32,16 +62,19 @@ function svpProxyPlugin(): Plugin {
             return send(400, { error: 'Chýbajú parametre lat/lon.' })
 
           const delta = 0.005
-          const svpUrl =
-            `${SVP_BASE}?` +
-            `geometry=${encodeURIComponent(JSON.stringify({ x: lon, y: lat }))}&` +
-            `geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=2&` +
-            `mapExtent=${lon - delta},${lat - delta},${lon + delta},${lat + delta}&` +
-            `imageDisplay=100,100,96&returnGeometry=false&f=json`
 
           try {
             const controller = new AbortController()
             const t = setTimeout(() => controller.abort(), 8000)
+
+            const layers = await parameterLayers(controller.signal)
+            const svpUrl =
+              `${SVP_BASE}?` +
+              `geometry=${encodeURIComponent(JSON.stringify({ x: lon, y: lat }))}&` +
+              `geometryType=esriGeometryPoint&sr=4326&layers=${layers}&tolerance=2&` +
+              `mapExtent=${lon - delta},${lat - delta},${lon + delta},${lat + delta}&` +
+              `imageDisplay=100,100,96&returnGeometry=false&f=json`
+
             const resp = await fetch(svpUrl, {
               headers: { 'User-Agent': 'sma-nastroj-dev/1.0' },
               signal: controller.signal,
