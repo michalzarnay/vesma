@@ -122,7 +122,7 @@ export interface Pozemok {
   priepustnaPlochaByliny: number; // %
   priepustnaPlochaKry: number; // %
   priepustnaPlochaStromy: number; // %
-  priepustnaPlochaZatienena: number; // %
+  priepustnaPlochaZatienena: number; // %, nezadáva sa vo formulári (issue #159) — zobrazuje sa ako informatívny súčet stromov a krov
 
   // Polopriepustna plocha
   polopriepustnaPlochaCelkom: number; // m2
