@@ -34,7 +34,7 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     if (spevnenyPodiel > 0.15) {
       const pct = Math.round(spevnenyPodiel * 100);
       const dovod = `${pct} % areálu tvorí spevnená nepriepustná plocha — zrážková voda nie je zadržiavaná na mieste.`;
-      const dovodVsak = `${dovod} (ak podložie pozemku nie je nepriepustné)`;
+      const dovodVsak = `${dovod} (ak podložie pozemku nie je nepriepustné a plocha sa v zime nesypie soľou)`;
       addRec(recs, 'priepustna-dlazba', 'vysoká', dovod,
         `Potenciál nahradiť až ${Math.round(totalSpevnena * 0.5)} m² priepustným povrchom.`);
       addRec(recs, 'dazdova-zahrada', 'vysoká', dovodVsak);
