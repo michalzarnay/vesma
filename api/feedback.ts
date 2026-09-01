@@ -3,8 +3,8 @@
  * Most zapisuje prijaté záznamy do Google Sheetu.
  *
  * POST /api/feedback obsluhuje dva typy záznamov, rozlíšené podľa tela požiadavky:
- *  - podnet z formulára     { fieldLabel?, nazovPodnetu, opisPodnetu?, url? } → action 'feedback'
- *  - nezodpovedaná otázka   { question, step?, timestamp? }                   → action 'unanswered'
+ *  - podnet z formulára     { fieldLabel?, nazovPodnetu, opisPodnetu?, url?, menoTestera? } → action 'feedback'
+ *  - nezodpovedaná otázka   { question, step?, timestamp? }                                 → action 'unanswered'
  */
 
 const WEBAPP_URL = process.env.SHEET_WEBAPP_URL ?? '';
@@ -16,6 +16,7 @@ type TeloPoziadavky = {
   nazovPodnetu?: string;
   opisPodnetu?: string;
   url?: string;
+  menoTestera?: string;
   // nezodpovedaná otázka
   question?: string;
   step?: number;
@@ -45,7 +46,7 @@ export default async function handler(
     // POZOR: na poradí kľúčov záleží. VESMA most zapisuje hodnoty do hárku
     // v poradí, v akom prídu v payloade (kľúče `secret` a `action` preskočí),
     // takže poradie nižšie určuje stĺpce:
-    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis
+    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis | G meno testera
     payload = {
       secret: WEBHOOK_SECRET,
       action: 'feedback',
@@ -55,6 +56,7 @@ export default async function handler(
       nazov: telo.nazovPodnetu.trim(), // D – názov
       prvok: telo.fieldLabel ?? '', // E – kde (stránka, karta)
       opis: telo.opisPodnetu?.trim() ?? '', // F – opis
+      menoTestera: telo.menoTestera?.trim() ?? '', // G – meno testera
     };
   } else {
     return res.status(400).json({ error: 'Chýba názov podnetu alebo otázka.' });
