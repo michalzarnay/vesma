@@ -1,6 +1,10 @@
 {
+  "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/vesma/api/(.*)", "destination": "/api/$1" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    { "source": "/vesma", "destination": "/vesma/index.html" },
+    { "source": "/vesma/(.*)", "destination": "/vesma/index.html" }
+  ],
+  "redirects": [{ "source": "/", "destination": "/vesma/", "permanent": false }]
 }

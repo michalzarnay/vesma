@@ -9,6 +9,7 @@ import { Tooltip } from '../../ui/Tooltip';
 import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
+import { apiUrl } from '../../../utils/apiUrl';
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 
@@ -70,7 +71,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
       const lat = parseFloat(geoData[0].lat);
       const lon = parseFloat(geoData[0].lon);
 
-      const svpRes = await fetch(`/api/svp-flood?lat=${lat}&lon=${lon}`);
+      const svpRes = await fetch(apiUrl(`svp-flood?lat=${lat}&lon=${lon}`));
       const svpData = await svpRes.json();
       if (svpData.error) { setSvpMsg(`Chyba: ${svpData.error}`); setSvpLoading(false); return; }
 
