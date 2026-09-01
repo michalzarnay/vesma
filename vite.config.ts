@@ -195,6 +195,7 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
             nazovPodnetu?: string
             opisPodnetu?: string
             url?: string
+            menoTestera?: string
             question?: string
             step?: number
             timestamp?: string
@@ -229,6 +230,7 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
               nazov: telo.nazovPodnetu.trim(), // D – názov
               prvok: telo.fieldLabel ?? '', // E – kde (stránka, karta)
               opis: telo.opisPodnetu?.trim() ?? '', // F – opis
+              menoTestera: telo.menoTestera?.trim() ?? '', // G – meno testera
             }
           } else {
             return send(400, { error: 'Chýba názov podnetu alebo otázka.' })

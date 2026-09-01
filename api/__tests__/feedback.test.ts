@@ -95,6 +95,7 @@ describe('POST /api/feedback', () => {
           nazovPodnetu: 'a čo lepenka?',
           opisPodnetu: 'nedoplniť?',
           url: 'https://sma-nastroj.vercel.app/',
+          menoTestera: 'Ján Novák',
         },
       },
       res,
@@ -102,7 +103,7 @@ describe('POST /api/feedback', () => {
 
     // Most zapisuje hodnoty do hárku v poradí, v akom prídu v payloade,
     // a kľúče `secret` + `action` preskočí. Poradie preto určuje stĺpce:
-    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis
+    //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis | G meno testera
     const { payload } = poslanyPayload(fetchMock);
     expect(Object.keys(payload)).toEqual([
       'secret',
@@ -113,9 +114,10 @@ describe('POST /api/feedback', () => {
       'nazov',
       'prvok',
       'opis',
+      'menoTestera',
     ]);
 
-    // Hodnoty v poradí stĺpcov A–F (bez secret/action).
+    // Hodnoty v poradí stĺpcov A–G (bez secret/action).
     const stlpce = Object.keys(payload)
       .filter((k) => k !== 'secret' && k !== 'action')
       .map((k) => payload[k]);
@@ -125,6 +127,21 @@ describe('POST /api/feedback', () => {
     expect(stlpce[3]).toBe('a čo lepenka?'); // D názov
     expect(stlpce[4]).toBe('Materiál povrchu strechy'); // E kde
     expect(stlpce[5]).toBe('nedoplniť?'); // F opis
+    expect(stlpce[6]).toBe('Ján Novák'); // G meno testera
+  });
+
+  it('meno testera je nepovinné a bez neho sa pošle prázdne', async () => {
+    const handler = await nacitajHandler();
+    const { res, odpoved } = mockRes();
+
+    await handler(
+      { method: 'POST', body: { nazovPodnetu: 'Test bez mena testera' } },
+      res,
+    );
+
+    expect(odpoved.status).toBe(200);
+    const { payload } = poslanyPayload(fetchMock);
+    expect(payload.menoTestera).toBe('');
   });
 
   it('nezodpovedaná otázka sa pošle s action "unanswered"', async () => {

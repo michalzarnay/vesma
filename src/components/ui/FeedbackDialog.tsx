@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 interface FeedbackDialogProps {
   fieldLabel?: string;
@@ -10,6 +11,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
   const [prvok, setPrvok] = useState(fieldLabel ?? '');
   const [nazov, setNazov] = useState('');
   const [opis, setOpis] = useState('');
+  const [menoTestera, setMenoTestera] = useLocalStorage('vesma_meno_testera', '');
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
 
   async function handleSubmit() {
@@ -23,6 +25,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
           nazovPodnetu: nazov.trim(),
           opisPodnetu: opis.trim(),
           url: window.location.href,
+          menoTestera: menoTestera.trim(),
         }),
       });
       if (!resp.ok) throw new Error();
@@ -91,6 +94,18 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
                 placeholder="Čo by sa malo zmeniť alebo doplniť?"
                 rows={3}
                 className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none resize-none"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">
+                Meno testera <span className="text-gray-400 font-normal">(nepovinné)</span>
+              </label>
+              <input
+                value={menoTestera}
+                onChange={(e) => setMenoTestera(e.target.value)}
+                placeholder="napr. Ján Novák"
+                className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none"
               />
             </div>
 
