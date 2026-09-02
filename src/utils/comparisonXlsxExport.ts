@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { Areal, Budova, Pozemok, BGOpatrenie } from '../types/areal';
 import { AreaComparisonRow } from '../types/comparison';
 import { MZI_PARAMETERS, ENERGIA_PARAMETERS } from '../data/comparisonWeights';
+import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 
 function sheetVahy(): (string | number)[][] {
   const header = ['Oblasť', 'Parameter', 'Váha – sucho', 'Váha – horúčavy', 'Váha – voda'];
@@ -52,6 +53,7 @@ function sheetVyhodnotenie(riadky: AreaComparisonRow[], arealyById: Map<string, 
     ['VESMA – Vyhodnotenie porovnania areálov'],
     ['Dátum exportu', new Date().toLocaleDateString('sk')],
     ['Vyššia hodnota = vyšší potenciál pre opatrenia v danej oblasti. Poradie #1 = najvyšší potenciál spomedzi vybraných areálov.'],
+    [UPOZORNENIE_ROZSAH_HODNOTENIA],
     [],
     header,
     ...rows,

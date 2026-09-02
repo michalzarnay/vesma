@@ -3,6 +3,7 @@ import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
 import { ScoreResult } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
+import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 
 function weightedScore(score: ScoreResult, vahy: Areal['vahy']): number {
   const sumVah = vahy.mzi + vahy.oze + vahy.energia;
@@ -16,6 +17,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
   const ws = (vahy: Areal['vahy']) => weightedScore(score, vahy);
   return [
     ['VESMA – Hodnotenie areálu'],
+    [UPOZORNENIE_ROZSAH_HODNOTENIA],
     [],
     ['Dátum hodnotenia', new Date().toLocaleDateString('sk')],
     ['Názov areálu', areal.nazov],
