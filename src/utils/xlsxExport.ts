@@ -4,7 +4,6 @@ import { xlsxFilename } from './exportFilenames';
 import { ScoreResult } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
-import { getParagraf11 } from './paragraf11';
 
 function weightedScore(score: ScoreResult, vahy: Areal['vahy']): number {
   const sumVah = vahy.mzi + vahy.oze + vahy.energia;
@@ -135,9 +134,6 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     // Rekuperácia
     'Rekuperácia', 'Centrálna – účinnosť (%)',
     'Lokálne do 75% (ks)', 'Lokálne 76–89% (ks)', 'Lokálne 90%+ (ks)',
-    // Rozvody tepla a TV — § 11 ods. 1 zákona č. 321/2014 Z. z.
-    'Hydraulicky vyregulované ÚK', 'Hydraulicky vyregulované rozvody TV',
-    'Zaizolované rozvody tepla a TV', 'Dopadá § 11 ods. 1',
     // Kúrenie
     'Kúrenie plynom', 'Kúrenie elektrinou', 'Tepelné čerpadlo',
     'Kúrenie peletami', 'Kúrenie CZT',
@@ -152,7 +148,6 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     'Celkový stav budovy',
   ];
   const yn = (v: 0 | 1) => v ? 'áno' : 'nie';
-  const ynu = (v: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
   const typStrechy = (t: number) => t === 1 ? 'plochá' : t === 2 ? 'šikmá' : 'strmá';
   const zateplenie = (z: number) => z === 1 ? 'áno' : z === 2 ? 'čiastočne' : 'nie';
   const rows = areal.budovy.map((b, i) => [
@@ -176,8 +171,6 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     b.osvetlenieLED, b.objemVyvetranehoPrezduchu,
     yn(b.rekuperacia), b.rekuperaciaCentralnaUcinnost,
     b.rekuperaciaLokalnaDo75, b.rekuperaciaLokalnaOd76do89, b.rekuperaciaLokalnaOd90,
-    ynu(b.hydraulickeVyregulovanieUK), ynu(b.hydraulickeVyregulovanieTV),
-    ynu(b.izolaciaRozvodov), getParagraf11(b).dopada ? 'áno' : 'nie',
     yn(b.kurenePlynom), yn(b.kurenieElektrinou), yn(b.tepelneCerpadlo),
     yn(b.kureniePeletami), yn(b.kurenieCZT),
     b.celkovaSpotreba ?? 0,
