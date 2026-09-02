@@ -8,6 +8,7 @@ import { getScoreLevel } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
+import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ResponsiveContainer,
@@ -21,6 +22,7 @@ interface Step6Props {
 export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const score = useScoring(areal);
   const recommendations = useRecommendations(areal);
+  const enpi = computeArealEnPI(areal);
   const [vahyOpen, setVahyOpen] = useState(false);
 
   const radarData = [
@@ -294,6 +296,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         />
       </div>
 
+      {/* Energetické ukazovatele (EnPI) — issue #171 */}
+      <EnergyIndicators enpi={enpi} />
+
       {/* Médiá prehľad */}
       {areal.media.length > 0 && (
         <div className="space-y-2">
@@ -382,6 +387,79 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
 
       <p className="text-xs text-gray-400 text-center italic">
         Toto hodnotenie je orientačné. Pre presný návrh kontaktujte odborníka.
+      </p>
+    </div>
+  );
+}
+
+const fmtNum = (n: number | undefined, digits = 0) =>
+  n === undefined ? '–' : n.toLocaleString('sk', { maximumFractionDigits: digits });
+
+/**
+ * Ukazovatele energetickej hospodárnosti z NAMERANEJ spotreby (faktúry).
+ * Vykurovanie a elektrina sa vedú oddelene (pole „spotreba elektriny" môže zahŕňať
+ * aj elektrinu na vykurovanie). Nejde o vypočítanú potrebu z energetického certifikátu.
+ */
+function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
+  const budovySoSpotrebou = enpi.budovy.filter(
+    ({ enpi: e }) => e.spotrebaVykurovanie > 0 || e.spotrebaElektrina > 0,
+  );
+  if (budovySoSpotrebou.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-gray-800">
+        Energetické ukazovatele – nameraná spotreba
+        {enpi.roky.length > 0 && <span className="font-normal text-gray-500"> (rok {enpi.roky.join(', ')})</span>}
+      </h3>
+      <div className="overflow-x-auto bg-gray-50 rounded-xl p-4">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-left text-gray-500 border-b border-gray-200">
+              <th className="py-1.5 pr-3 font-medium">Budova</th>
+              <th className="py-1.5 px-3 font-medium text-right">Vykurovanie<br /><span className="font-normal">kWh/rok</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Merná spotreba<br /><span className="font-normal">kWh/(m²·rok)</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Na hodinu prev.<br /><span className="font-normal">kWh/h</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Elektrina<br /><span className="font-normal">kWh/rok</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Merná spotreba<br /><span className="font-normal">kWh/(m²·rok)</span></th>
+              <th className="py-1.5 pl-3 font-medium text-right">Na hodinu prev.<br /><span className="font-normal">kWh/h</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {budovySoSpotrebou.map(({ budova, enpi: e }, i) => (
+              <tr key={budova.id} className="border-b border-gray-100 text-gray-700">
+                <td className="py-1.5 pr-3 font-medium">{budova.nazov || `Budova ${i + 1}`}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.spotrebaVykurovanie > 0 ? e.spotrebaVykurovanie : undefined)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.mernaSpotrebaVykurovanie)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.vykurovanieNaHodinu, 1)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.spotrebaElektrina > 0 ? e.spotrebaElektrina : undefined)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.mernaSpotrebaElektrina)}</td>
+                <td className="py-1.5 pl-3 text-right">{fmtNum(e.elektrinaNaHodinu, 1)}</td>
+              </tr>
+            ))}
+            <tr className="font-semibold text-gray-800">
+              <td className="py-1.5 pr-3">Areál spolu</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.spotrebaVykurovanie > 0 ? enpi.spotrebaVykurovanie : undefined)}</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.mernaSpotrebaVykurovanie)}</td>
+              <td className="py-1.5 px-3 text-right">–</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.spotrebaElektrina > 0 ? enpi.spotrebaElektrina : undefined)}</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.mernaSpotrebaElektrina)}</td>
+              <td className="py-1.5 pl-3 text-right">–</td>
+            </tr>
+          </tbody>
+        </table>
+        {enpi.pocetOsob > 0 && (
+          <p className="text-xs text-gray-700 mt-3">
+            Na osobu ({fmtNum(enpi.pocetOsob)} osôb – zamestnanci a klienti/žiaci podľa kapacity a obsadenosti):
+            vykurovanie <span className="font-medium">{fmtNum(enpi.vykurovanieNaOsobu)} kWh/os·rok</span>,
+            elektrina <span className="font-medium">{fmtNum(enpi.elektrinaNaOsobu)} kWh/os·rok</span>.
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-gray-400">
+        Merná spotreba na vykurovanie je vztiahnutá na vykurovanú plochu, merná spotreba elektriny na úžitkovú plochu.
+        Ide o nameranú spotrebu z faktúr, bez klimatickej normalizácie – nezamieňať s vypočítanou potrebou energie
+        z energetického certifikátu.
       </p>
     </div>
   );

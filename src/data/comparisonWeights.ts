@@ -8,16 +8,19 @@
 // Kladná váha = existujúci nevyužitý potenciál (problém na riešenie).
 // Záporná váha = existujúce opatrenie, ktoré potenciál znižuje.
 //
-// POZOR — parametre vynechané oproti zdrojovej tabuľke, lebo by vyžadovali zmenu
-// dátového modelu (Budova/Pozemok) alebo chýbajúci referenčný údaj (pozri
-// docs/porovnanie-arealov-zmeny.md):
-//  - OZE: "Plocha pozemkov vhodná pre FV alebo solárne kolektory" (Pozemok nemá
-//    údaj o orientácii/vhodnosti pre FV)
+// POZOR — parameter vynechaný oproti zdrojovej tabuľke, lebo chýba referenčný údaj
+// (pozri docs/porovnanie-arealov-zmeny.md):
 //  - OZE: "Spotreba energie nad referenčnou hodnotou" (referenčná hodnota kWh/m²/rok
 //    nie je nikde v aplikácii definovaná)
+//
+// Pripomienky energetického experta (docs/energetika-poziadavky.md, kap. D0) zapracované:
+//  - FV potenciál striech iba zo striech do 15° (issue #179),
+//  - nezateplená obálka z celej fasády, nie zo južnej (issue #176),
+//  - plocha pozemkov vhodná pre FV s váhou 3 (issue #184).
 
 import { Areal, Budova, Pozemok } from '../types/areal';
 import { Hrozba } from '../types/comparison';
+import { getPlochaObvodovehoPlasta, getPlochaStrechyPreFV } from '../utils/calculations';
 
 export interface MziParameter {
   key: string;
@@ -148,10 +151,16 @@ export const MZI_PARAMETERS: MziParameter[] = [
 
 export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
   {
+    key: 'energia_pozemky_fv',
+    nazov: 'Plocha pozemkov vhodná pre FV alebo solárne kolektory',
+    vaha: 3,
+    getValue: (areal) => sum(areal.pozemky, (p) => p.plochaVhodnaPreFV),
+  },
+  {
     key: 'energia_strecha_fv',
-    nazov: 'Plocha striech vhodných pre FV (aproximácia: orientácia na juh)',
+    nazov: 'Plocha striech vhodných pre FV (iba plochá / málo šikmá strecha do 15°)',
     vaha: 10,
-    getValue: (areal) => sum(areal.budovy, (b) => b.strechaOrientovanaPlochaNaJuh),
+    getValue: (areal) => sum(areal.budovy, getPlochaStrechyPreFV),
   },
   {
     key: 'energia_nezateplena_obalka',
@@ -159,7 +168,8 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     vaha: 8,
     getValue: (areal) => sum(areal.budovy, (b) => {
       const strecha = b.strechaZateplenie === 0 ? b.plochaPodorysu : b.strechaZateplenie === 2 ? b.plochaPodorysu * 0.5 : 0;
-      const fasada = b.zateplenieFasady === 0 ? b.fasadaOrientovanaNaJuh : b.zateplenieFasady === 2 ? b.fasadaOrientovanaNaJuh * 0.5 : 0;
+      const plocha = getPlochaObvodovehoPlasta(b);
+      const fasada = b.zateplenieFasady === 0 ? plocha : b.zateplenieFasady === 2 ? plocha * 0.5 : 0;
       return strecha + fasada;
     }),
   },
@@ -199,7 +209,8 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     vaha: -2,
     getValue: (areal) => sum(areal.budovy, (b) => {
       const strecha = b.strechaZateplenie === 1 ? b.plochaPodorysu : b.strechaZateplenie === 2 ? b.plochaPodorysu * 0.5 : 0;
-      const fasada = b.zateplenieFasady === 1 ? b.fasadaOrientovanaNaJuh : b.zateplenieFasady === 2 ? b.fasadaOrientovanaNaJuh * 0.5 : 0;
+      const plocha = getPlochaObvodovehoPlasta(b);
+      const fasada = b.zateplenieFasady === 1 ? plocha : b.zateplenieFasady === 2 ? plocha * 0.5 : 0;
       return strecha + fasada;
     }),
   },

@@ -1,6 +1,24 @@
 import { describe, it, expect } from 'vitest';
-import { calculateMZI } from '../useScoring';
+import { calculateMZI, calculateOZE } from '../useScoring';
 import { createEmptyAreal, createEmptyPozemok } from '../../types/areal';
+
+describe('calculateOZE – vhodnosť strechy pre solár iba zo striech do 15° (issue #179)', () => {
+  it('plochá strecha s využiteľnou plochou zvyšuje skóre, šikmá orientovaná na juh nie', () => {
+    const plocha = createEmptyAreal();
+    plocha.budovy[0].plochaPodorysu = 400;
+    plocha.budovy[0].strechaTyp = 1;
+    plocha.budovy[0].strechaOrientovanaPlochaNaJuh = 300;
+
+    const sikma = createEmptyAreal();
+    sikma.budovy[0].plochaPodorysu = 400;
+    sikma.budovy[0].strechaTyp = 2;
+    sikma.budovy[0].strechaOrientovanaPlochaNaJuh = 300;
+
+    expect(calculateOZE(plocha).vhodnostStrechyPreSolar).toBeGreaterThan(0);
+    expect(calculateOZE(sikma).vhodnostStrechyPreSolar).toBe(0);
+    expect(calculateOZE(plocha).potencialDalsichOZE).toBeGreaterThan(calculateOZE(sikma).potencialDalsichOZE);
+  });
+});
 
 describe('calculateMZI – stav zelene s poľom priepustnaPlochaHolaPoda', () => {
   it('započíta holú pôdu do skóre rovnako ako byliny (issue #128 – pole skryté z formulára)', () => {

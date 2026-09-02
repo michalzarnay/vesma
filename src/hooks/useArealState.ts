@@ -5,6 +5,7 @@ import {
   createEmptyInaStavba, createEmptyBGOpatrenie,
 } from '../types/areal';
 import { FUEL_CONVERSIONS } from '../data/constants';
+import { getTotalHeatingCost } from '../utils/calculations';
 import { dbSaveMedia, dbLoadMedia } from '../utils/mediaDb';
 
 type Action =
@@ -54,6 +55,7 @@ function migratePozemok(raw: unknown): Pozemok {
     vsakovaciaPrehlbenaBezpecnostnyPrepad: d.vsakovaciaPrehlbenaBezpecnostnyPrepad ?? 0,
     vsakovaciaPrehlbenaRegulovanyOdtok: d.vsakovaciaPrehlbenaRegulovanyOdtok ?? 0,
     prekorenetelnyPriestorPreStromy: d.prekorenetelnyPriestorPreStromy ?? 0,
+    plochaVhodnaPreFV: d.plochaVhodnaPreFV ?? 0,
   };
 }
 
@@ -63,6 +65,17 @@ function migrateBudova(raw: unknown): Budova {
   return {
     ...empty,
     ...d,
+    // issue #181: staršie relácie vykurovanú plochu nemajú — predvyplní sa z úžitkovej
+    vykurovanaPlocha: d.vykurovanaPlocha ?? d.uzitkovaPlochaNUS ?? 0,
+    plochaObvodovehoPlasta: d.plochaObvodovehoPlasta ?? 0,
+    spotrebaRok: d.spotrebaRok ?? 0,
+    kureniePlynNakladyRok: d.kureniePlynNakladyRok ?? 0,
+    kurenieElektrinaNakladyRok: d.kurenieElektrinaNakladyRok ?? 0,
+    tepelneCerpadloNakladyRok: d.tepelneCerpadloNakladyRok ?? 0,
+    kureniePeletyNakladyRok: d.kureniePeletyNakladyRok ?? 0,
+    kurenieStiepkaNakladyRok: d.kurenieStiepkaNakladyRok ?? 0,
+    kurenieUhlimDrevomNakladyRok: d.kurenieUhlimDrevomNakladyRok ?? 0,
+    spotrebaElektrinyNakladyRok: d.spotrebaElektrinyNakladyRok ?? 0,
     povodnovoRiziko: d.povodnovoRiziko ?? 0,
     budovaZaplavenaPoslednychRokov: d.budovaZaplavenaPoslednychRokov ?? 0,
     castPodTerenomBezOdcerpania: d.castPodTerenomBezOdcerpania ?? 0,
@@ -148,6 +161,9 @@ function computeBudovaFields(budova: Budova): Budova {
     kurenieUhlimDrevomSpotreba_kWh +
     budova.kurenieCZTSpotreba;
 
+  // Total heating cost in EUR (issue #173)
+  const celkoveNakladyKurenie = getTotalHeatingCost(budova);
+
   return {
     ...budova,
     kategoriaBudovy,
@@ -156,7 +172,25 @@ function computeBudovaFields(budova: Budova): Budova {
     kurenieStiepkaSpotreba_kWh,
     kurenieUhlimDrevomSpotreba_kWh,
     celkovaSpotreba,
+    celkoveNakladyKurenie,
   };
+}
+
+/**
+ * Zlúči zmenu do budovy a prepočíta odvodené polia.
+ * Issue #181: vykurovaná plocha sa predvypĺňa z úžitkovej — kým ju používateľ
+ * neupraví ručne (je 0 alebo rovná predchádzajúcej úžitkovej), sleduje úžitkovú plochu.
+ */
+export function applyBudovaUpdate(prev: Budova, data: Partial<Budova>): Budova {
+  const updated = { ...prev, ...data };
+  if (
+    data.uzitkovaPlochaNUS !== undefined &&
+    data.vykurovanaPlocha === undefined &&
+    (prev.vykurovanaPlocha === 0 || prev.vykurovanaPlocha === prev.uzitkovaPlochaNUS)
+  ) {
+    updated.vykurovanaPlocha = data.uzitkovaPlochaNUS;
+  }
+  return computeBudovaFields(updated);
 }
 
 function arealReducer(state: Areal, action: Action): Areal {
@@ -190,8 +224,7 @@ function arealReducer(state: Areal, action: Action): Areal {
 
     case 'UPDATE_BUDOVA': {
       const budovy = [...state.budovy];
-      const updated = { ...budovy[action.payload.index], ...action.payload.data };
-      budovy[action.payload.index] = computeBudovaFields(updated);
+      budovy[action.payload.index] = applyBudovaUpdate(budovy[action.payload.index], action.payload.data);
       return { ...state, budovy };
     }
 
