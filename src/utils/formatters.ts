@@ -23,6 +23,11 @@ export function formatPercent(value: number): string {
   return `${formatNumber(value)} %`;
 }
 
+// Odstráni diakritiku (š → s, ľ → l, …). Štandardné fonty jsPDF slovenskú diakritiku nevykreslia.
+export function bezDiakritiky(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // Format currency
 export function formatCurrency(value: number): string {
   return value.toLocaleString('sk-SK', {

@@ -31,6 +31,11 @@ test.describe('Výsledky a export', () => {
     expect(filename).toMatch(/\d{4}-\d{2}-\d{2}/);
   });
 
+  test('obrazovka Výsledky uvádza, že VESMA nie je energetický audit (issue #175)', async ({ page }) => {
+    await goToResults(page);
+    await expect(page.getByText(/nie energetický audit podľa § 2 vyhlášky MH SR č\. 179\/2015 Z\. z\./)).toBeVisible();
+  });
+
   test('export CSV – názov súboru obsahuje názov areálu', async ({ page }) => {
     await goToResults(page);
 
