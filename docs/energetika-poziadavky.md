@@ -114,11 +114,19 @@ prípravou TV povinnosť:
 - c) zabezpečiť **hydraulicky vyregulované rozvody teplej vody**,
 - d) vybaviť rozvody tepla a TV **vhodnou tepelnou izoláciou**.
 
-VESMA sa pýta na termohlavice a automatickú reguláciu, ale **nie na hydraulické
-vyregulovanie ani na izoláciu rozvodov**. Pritom `uzitkovaPlochaNUS` už má — vie teda
-**automaticky upozorniť, že na budovu dopadá § 11 ods. 1**, a skontrolovať jeho splnenie.
-To je pre samosprávu veľmi konkrétny a užitočný výstup, ktorý dnes žiadny „skríningový"
-nástroj nedáva.
+VESMA sa pýtala na termohlavice a automatickú reguláciu, ale **nie na hydraulické
+vyregulovanie ani na izoláciu rozvodov**.
+
+**✅ Vyriešené (issue #177).** Doplnené tri otázky (`hydraulickeVyregulovanieUK`,
+`hydraulickeVyregulovanieTV`, `izolaciaRozvodov`) s možnosťou „neviem", ktorá je
+predvolená — laik odpoveď reálne nemusí poznať a predstierať „nie" by bolo horšie.
+`src/utils/paragraf11.ts` z nich a z plochy budovy vyhodnotí, či na budovu dopadá
+§ 11 ods. 1, a ktoré zo štyroch povinností nie sú splnené; formulár to zobrazí.
+
+Dva predpoklady, ktoré appka nevie overiť presne, sú zámerne na strane „radšej
+upozorniť" a uvádzajú sa priamo pri upozornení: zákon počíta celkovú podlahovú plochu
+z vonkajších rozmerov (VESMA má úžitkovú) a teplovodné vykurovanie sa odvodzuje zo
+zadaného zdroja tepla.
 
 ### A8. Vlastná výroba a predaj energie
 Tabuľka 2.1 prílohy č. 2 má riadok „predaj energie iným subjektom"; tabuľka 1.2 rieši

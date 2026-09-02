@@ -80,6 +80,10 @@ function migrateBudova(raw: unknown): Budova {
     certifikatPotrebaVykurovanie: d.certifikatPotrebaVykurovanie ?? 0,
     certifikatPotrebaTeplaVoda: d.certifikatPotrebaTeplaVoda ?? 0,
     certifikatPrimarnaEnergia: d.certifikatPrimarnaEnergia ?? 0,
+    // issue #177: staršie relácie odpoveď nemajú — „neviem" je poctivejšie než „nie"
+    hydraulickeVyregulovanieUK: d.hydraulickeVyregulovanieUK ?? 2,
+    hydraulickeVyregulovanieTV: d.hydraulickeVyregulovanieTV ?? 2,
+    izolaciaRozvodov: d.izolaciaRozvodov ?? 2,
     povodnovoRiziko: d.povodnovoRiziko ?? 0,
     budovaZaplavenaPoslednychRokov: d.budovaZaplavenaPoslednychRokov ?? 0,
     castPodTerenomBezOdcerpania: d.castPodTerenomBezOdcerpania ?? 0,
