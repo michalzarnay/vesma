@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Save, FolderOpen, Trash2, Download, Upload, X, Clock, ChevronDown, Share2 } from 'lucide-react';
 import { Areal } from '../../types/areal';
-import { Session, useSessionManager } from '../../hooks/useSessionManager';
+import { findMatchingSessions, Session, useSessionManager } from '../../hooks/useSessionManager';
 
 interface SessionManagerProps {
   areal: Areal;
@@ -14,23 +14,33 @@ interface SessionManagerProps {
 }
 
 export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: SessionManagerProps) {
-  const { sessions, saveSession, deleteSession, exportSession, shareSession, importSession } = useSessionManager();
+  const { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession } = useSessionManager();
   const [otvoreny, setOtvoreny] = useState(false);
   const [rezim, setRezim] = useState<'ulozit' | 'nacitat'>('ulozit');
   const [nazov, setNazov] = useState(areal.nazov || '');
   const [potvrdenie, setPotvrdenie] = useState<string | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
+  const [cielUlozenia, setCielUlozenia] = useState<string>('nova');
   const importRef = useRef<HTMLInputElement>(null);
+
+  // Relácie, ktoré vyzerajú ako ten istý areál (rovnaké ID, názov alebo adresa) — issue #161.
+  const zhody = useMemo(() => findMatchingSessions(sessions, areal), [sessions, areal]);
+  const zhodneId = useMemo(() => new Set(zhody.map((s) => s.id)), [zhody]);
 
   const ulozit = () => {
     if (!nazov.trim()) {
       setChyba('Zadajte názov relácie');
       return;
     }
-    saveSession(nazov.trim(), areal);
+    if (cielUlozenia !== 'nova' && zhody.some((s) => s.id === cielUlozenia)) {
+      updateSession(cielUlozenia, nazov.trim(), areal);
+      setPotvrdenie(`Relácia „${nazov}" bola prepísaná.`);
+    } else {
+      saveSession(nazov.trim(), areal);
+      setPotvrdenie(`Relácia „${nazov}" bola uložená.`);
+    }
     onSaved();
     setChyba(null);
-    setPotvrdenie(`Relácia „${nazov}" bola uložená.`);
     setTimeout(() => setPotvrdenie(null), 3000);
   };
 
@@ -70,7 +80,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
       {/* Trigger tlačidlo */}
       <button
         type="button"
-        onClick={() => setOtvoreny(true)}
+        onClick={() => { setCielUlozenia(zhody[0]?.id ?? 'nova'); setOtvoreny(true); }}
         className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
       >
         <FolderOpen className="w-4 h-4" />
@@ -136,6 +146,34 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
                     />
                   </div>
 
+                  {zhody.length > 0 && (
+                    <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 space-y-1.5">
+                      <p className="text-xs text-amber-800">
+                        Nájdená podobná relácia (rovnaké ID, názov alebo adresa areálu). Prepísať existujúcu, alebo uložiť ako novú?
+                      </p>
+                      <label className="flex items-center gap-2 text-sm text-gray-700">
+                        <input
+                          type="radio"
+                          name="cielUlozenia"
+                          checked={cielUlozenia === 'nova'}
+                          onChange={() => setCielUlozenia('nova')}
+                        />
+                        Uložiť ako novú reláciu
+                      </label>
+                      {zhody.map((s) => (
+                        <label key={s.id} className="flex items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="radio"
+                            name="cielUlozenia"
+                            checked={cielUlozenia === s.id}
+                            onChange={() => setCielUlozenia(s.id)}
+                          />
+                          Prepísať „{s.nazov}" ({formatDatum(s.datumUlozenia)})
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
                   {chyba && <p className="text-sm text-red-600">{chyba}</p>}
                   {potvrdenie && <p className="text-sm text-[#52A8DE]">{potvrdenie}</p>}
 
@@ -190,6 +228,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
                       <SessionKarta
                         key={session.id}
                         session={session}
+                        zvyraznena={zhodneId.has(session.id)}
                         onNacitat={() => nacitat(session)}
                         onExportovat={() => exportSession(session)}
                         onZdielat={() => shareSession(session)}
@@ -210,6 +249,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
 
 function SessionKarta({
   session,
+  zvyraznena,
   onNacitat,
   onExportovat,
   onZdielat,
@@ -217,6 +257,7 @@ function SessionKarta({
   formatDatum,
 }: {
   session: Session;
+  zvyraznena: boolean;
   onNacitat: () => void;
   onExportovat: () => void;
   onZdielat: () => void;
@@ -230,11 +271,12 @@ function SessionKarta({
       <button
         type="button"
         onClick={onNacitat}
+        title={zvyraznena ? 'Zodpovedá aktuálne otvorenému areálu' : undefined}
         className="w-full flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
       >
         <FolderOpen className="w-4 h-4 text-[#52A8DE] flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-800 truncate">{session.nazov}</p>
+          <p className={`text-sm text-gray-800 truncate ${zvyraznena ? 'font-bold' : 'font-medium'}`}>{session.nazov}</p>
           <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
             <Clock className="w-3 h-3" />
             {formatDatum(session.datumUlozenia)}
