@@ -42,13 +42,16 @@
 //   História kotiev:
 //     cd36452 / 160 — zavedenie tohto pravidla (predtým 23 + všetky commity)
 //     8959835 / 170 — posun kvôli plytkému klonu na Verceli (2. 9. 2026)
+//     062dfcf / 179 — druhý posun z rovnakého dôvodu (2. 9. 2026). Kontrola
+//                     kotvy vtedy nebežala: súbor workflowu nemal príponu
+//                     .yml, takže ho GitHub Actions nespúšťal.
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-export const BASE_VERSION = 170;
-export const BASE_COMMIT = '8959835ae07c2001085fd7bbaf45bb98edae9082';
+export const BASE_VERSION = 179;
+export const BASE_COMMIT = '062dfcf067b4a59b6f803fa155fb52c70c35e20b';
 
 /** Vetvy, ktoré považujeme za `main` — v poradí, v akom ich skúšame. */
 const MAIN_REFS = ['refs/remotes/origin/main', 'refs/heads/main', 'refs/remotes/upstream/main'];
