@@ -57,6 +57,7 @@ Implementované 2026-08-13 na základe zadania a dvoch priložených súborov:
 4. **Energetické váhy nie sú finálne** (potvrdené v zadaní) — momentálne sa
    používa jedna spoločná váha na parameter (bez delenia na podoblasti).
    Štruktúra (`EnergiaParameter[]`) je pripravená na budúce rozdelenie.
+   Aktualizované 2026-09-02 — pozri nižšie.
 
 5. **Export XLSX** — hárky `export-pozemky`, `export-budovy`, `export-BG`
    sú surový dump dát za všetky vybrané areály (rovnaká logika ako
@@ -65,6 +66,49 @@ Implementované 2026-08-13 na základe zadania a dvoch priložených súborov:
    (zoznam „x" značiek pre konkrétne opatrenia a textové závery) — tie vo
    vzore vznikali manuálne/expertne, appka ich zatiaľ automaticky
    negeneruje.
+
+## Zmeny 2026-09-02 — pripomienky energetického experta (issues #180 a #182)
+
+Zdroj pripomienok: `VESMA_viac_LuGrkomentare.xlsx`, karta „OZE+energetika";
+súvislosti sú rozpísané v `docs/energetika-poziadavky.md`, kap. D0.
+
+- **Štyri energetické parametre prešli z počtu budov na plochu** —
+  `energia_plyn_potencial_tc`, `energia_elektrina_potencial_tc`,
+  `energia_vystavba_pred_1980` a `energia_odratat_tc`. Expert to žiadal pri
+  všetkých parametroch viazaných na počet budov.
+- **Nový parameter `energia_plyn_potencial_biomasa`** — prechod z plynu na
+  pelety alebo štiepku, ako alternatíva k tepelnému čerpadlu pri starších
+  budovách. Nezapočíta sa budove, ktorá už biomasu má.
+- Pribudlo opatrenie `kotol-na-biomasu` v `src/data/catalog.ts` a pravidlo
+  v `useRecommendations.ts` (staršia budova na plyne).
+
+### Váhy na doladenie expertom
+
+Hodnoty **6, 6, 4, −1** zostali nezmenené, zmenila sa len veličina, na ktorú sa
+aplikujú (z „počet budov" na „m²"). Prevod jednotky nemá meniť dôležitosť
+parametra, preto sa zachovalo poradie, ktoré expert schválil. Až touto zmenou
+začnú tieto parametre v súčte reálne vážiť — pri počte budov prispievali
+jednotkami, kým plošné parametre tisíckami, takže boli prakticky neviditeľné.
+
+Váha nového parametra biomasy je **3**, teda polovica váhy prechodu na tepelné
+čerpadlo. Dôvod: ide o alternatívnu cestu pre tie isté budovy, nie o ďalší
+nezávislý potenciál — plocha plynom kúrenej budovy sa započíta do oboch
+parametrov naraz a nižšia váha to má kompenzovať. **Ak expert považuje
+dvojité započítanie za neželané, treba sa rozhodnúť medzi znížením váh a tým,
+že sa budove priradí len jedna (vhodnejšia) cesta.**
+
+### Použitá plocha
+
+Expert žiadal „úžitkovú **plochu/vykurovanú**". Vykurovanú plochu dátový model
+zatiaľ neeviduje (dopĺňa ju issue #181), preto sa dočasne používa
+`uzitkovaPlochaNUS` cez pomocnú funkciu `plochaBudovy()` v
+`comparisonWeights.ts` — po #181 stačí zmeniť túto jednu funkciu.
+
+### Ceny v katalógu
+
+Orientačná cena a návratnosť pri opatrení `kotol-na-biomasu` sú označené ako
+hodnoty na potvrdenie energetickým expertom. Pri dotáciách sú uvedené programy
+bez konkrétnych súm, keďže tie sa menia s každou výzvou.
 
 ## Čo som nestihol/nemohol overiť
 

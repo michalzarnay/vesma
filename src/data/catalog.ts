@@ -263,6 +263,19 @@ export const katalogOpatreni: Opatrenie[] = [
     krokyRealizacie: ['Posúdenie veľkosti FVE a spotreby', 'Výber kapacity batérie', 'Inštalácia batériového systému', 'Integrácia s existujúcou FVE', 'Nastavenie riadenia nabíjania/vybíjania'],
     dotacie: 'Zelená domácnostiam – príplatok k FVE za batériu.',
   },
+  {
+    id: 'kotol-na-biomasu',
+    nazov: 'Kotol na biomasu (pelety alebo štiepka)',
+    kategoria: 'OZE',
+    popis: 'Automatický kotol spaľujúci drevné pelety alebo štiepku. Oproti tepelnému čerpadlu pokrýva širší rozsah výkonu a nevyžaduje nízkoteplotnú vykurovaciu sústavu, preto býva realizovateľný aj v starších budovách, kde tepelné čerpadlo naráža na limity.',
+    benefity: ['Obnoviteľné palivo z domácich zdrojov', 'Zvládne aj vysokoteplotnú sústavu so staršími radiátormi', 'Široký rozsah výkonu — vhodné aj pre veľké budovy', 'Nezávislosť od ceny zemného plynu'],
+    narocnostRealizacie: 'vysoká',
+    orientacnaCena: 'orientačne 10 000 – 40 000 EUR podľa výkonu a riešenia skladu paliva (hodnotu potvrdí energetický expert)',
+    navratnost: 'orientačne 7 – 15 rokov (hodnotu potvrdí energetický expert)',
+    vhodnePre: ['staršie budovy s vysokoteplotnou sústavou', 'školy', 'obecné úrady', 'budovy s priestorom na sklad paliva'],
+    krokyRealizacie: ['Posúdenie tepelnej straty a potrebného výkonu', 'Overenie priestoru pre kotol, sklad paliva a dopravník', 'Výber paliva (pelety alebo štiepka) podľa dostupnosti v regióne', 'Posúdenie komína a jeho prípadná úprava', 'Inštalácia kotla, akumulačnej nádrže a regulácie', 'Zabezpečenie dodávok paliva a pravidelného servisu'],
+    dotacie: 'Program Obnov dom — výmena zdroja tepla. Zelená domácnostiam — kotly na biomasu pre rodinné domy. Pre verejné budovy výzvy SIEA a Environmentálneho fondu. Konkrétne sumy overte v aktuálnej výzve.',
+  },
   // ENERGETIKA OPATRENIA
   {
     id: 'zateplenie-fasady',

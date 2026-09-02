@@ -1,6 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyAreal } from '../../types/areal';
+import { Areal, createEmptyAreal } from '../../types/areal';
+import { ENERGIA_PARAMETERS } from '../../data/comparisonWeights';
 import { computeAreaComparisonScore, rankAreaComparisons } from '../comparisonScoring';
+
+/**
+ * Príspevok jedného energetického parametra do skóre areálu.
+ * Celkové `score.energia` sa nedá použiť na overenie jedného parametra — akonáhle
+ * budova dostane úžitkovú plochu, prispeje aj parameter osvetlenia.
+ */
+function prispevokEnergia(areal: Areal, key: string): number {
+  const parameter = ENERGIA_PARAMETERS.find((p) => p.key === key);
+  if (!parameter) throw new Error(`Neznámy energetický parameter: ${key}`);
+  const detail = computeAreaComparisonScore(areal).podrobnostiEnergia.find((p) => p.nazov === parameter.nazov);
+  if (!detail) throw new Error(`Parameter ${key} chýba v podrobnostiach`);
+  return detail.prispevok;
+}
 
 describe('computeAreaComparisonScore', () => {
   it('vráti nulové hodnoty pre prázdny areál', () => {
@@ -46,22 +60,59 @@ describe('computeAreaComparisonScore', () => {
     expect(score.voda).toBe(50 * -10);
   });
 
-  it('počíta energetický parameter "vykurovanie plynom" ako počet budov bez tepelného čerpadla', () => {
+  it('počíta "vykurovanie plynom" z plochy budov, nie z ich počtu (issue #180)', () => {
     const areal = createEmptyAreal();
     areal.budovy[0].kurenePlynom = 1;
     areal.budovy[0].tepelneCerpadlo = 0;
+    areal.budovy[0].uzitkovaPlochaNUS = 800;
 
-    const score = computeAreaComparisonScore(areal);
-    // Váha 6, hodnota parametra = 1 (jedna budova)
-    expect(score.energia).toBe(6);
+    expect(prispevokEnergia(areal, 'energia_plyn_potencial_tc')).toBe(800 * 6);
   });
 
-  it('vystavbaPred1980 prispieva do energetického skóre s váhou 4', () => {
+  it('plynom kúrená budova ponúka aj cestu na biomasu, s polovičnou váhou (issue #182)', () => {
+    const areal = createEmptyAreal();
+    areal.budovy[0].kurenePlynom = 1;
+    areal.budovy[0].uzitkovaPlochaNUS = 800;
+
+    expect(prispevokEnergia(areal, 'energia_plyn_potencial_biomasa')).toBe(800 * 3);
+  });
+
+  it('dve budovy s rovnakou celkovou plochou dajú rovnaké skóre ako jedna veľká (issue #180)', () => {
+    const jedna = createEmptyAreal();
+    jedna.budovy[0].kurenieElektrinou = 1;
+    jedna.budovy[0].uzitkovaPlochaNUS = 1000;
+
+    const dve = createEmptyAreal();
+    dve.budovy[0].kurenieElektrinou = 1;
+    dve.budovy[0].uzitkovaPlochaNUS = 400;
+    dve.budovy.push({ ...createEmptyAreal().budovy[0], kurenieElektrinou: 1, uzitkovaPlochaNUS: 600 });
+
+    expect(computeAreaComparisonScore(dve).energia).toBe(computeAreaComparisonScore(jedna).energia);
+  });
+
+  it('vystavbaPred1980 prispieva do energetického skóre plochou budovy s váhou 4', () => {
     const areal = createEmptyAreal();
     areal.budovy[0].vystavbaPred1980 = 1;
+    areal.budovy[0].uzitkovaPlochaNUS = 250;
 
-    const score = computeAreaComparisonScore(areal);
-    expect(score.energia).toBe(4);
+    expect(prispevokEnergia(areal, 'energia_vystavba_pred_1980')).toBe(250 * 4);
+  });
+
+  it('prechod plyn → biomasa sa nezapočíta budove, ktorá už biomasu má (issue #182)', () => {
+    const areal = createEmptyAreal();
+    areal.budovy[0].kurenePlynom = 1;
+    areal.budovy[0].kureniePeletami = 1;
+    areal.budovy[0].uzitkovaPlochaNUS = 500;
+
+    expect(prispevokEnergia(areal, 'energia_plyn_potencial_biomasa')).toBe(0);
+  });
+
+  it('existujúce tepelné čerpadlo znižuje skóre podľa plochy budovy (issue #180)', () => {
+    const areal = createEmptyAreal();
+    areal.budovy[0].tepelneCerpadlo = 1;
+    areal.budovy[0].uzitkovaPlochaNUS = 300;
+
+    expect(prispevokEnergia(areal, 'energia_odratat_tc')).toBe(300 * -1);
   });
 });
 
