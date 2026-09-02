@@ -80,6 +80,9 @@ describe('migrateAreal – migrácia starého formátu', () => {
     delete budova.certifikatPotrebaVykurovanie;
     delete budova.certifikatPotrebaTeplaVoda;
     delete budova.certifikatPrimarnaEnergia;
+    delete budova.hydraulickeVyregulovanieUK;
+    delete budova.hydraulickeVyregulovanieTV;
+    delete budova.izolaciaRozvodov;
     const pozemok = JSON.parse(JSON.stringify(empty.pozemky[0])) as Record<string, unknown>;
     delete pozemok.plochaVhodnaPreFV;
 
@@ -92,6 +95,10 @@ describe('migrateAreal – migrácia starého formátu', () => {
     expect(restored.budovy[0].certifikatPotrebaVykurovanie).toBe(0);
     expect(restored.budovy[0].certifikatPotrebaTeplaVoda).toBe(0);
     expect(restored.budovy[0].certifikatPrimarnaEnergia).toBe(0);
+    // issue #177: pri chýbajúcej odpovedi je „neviem" (2), nie „nie"
+    expect(restored.budovy[0].hydraulickeVyregulovanieUK).toBe(2);
+    expect(restored.budovy[0].hydraulickeVyregulovanieTV).toBe(2);
+    expect(restored.budovy[0].izolaciaRozvodov).toBe(2);
     expect(restored.pozemky[0].plochaVhodnaPreFV).toBe(0);
   });
 
