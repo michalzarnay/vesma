@@ -18,11 +18,20 @@ import { AreaComparisonView } from '../comparison/AreaComparisonView';
 import { FeedbackButton } from '../ui/FeedbackButton';
 import { FilePlus, GitCompare } from 'lucide-react';
 import { useState } from 'react';
+import { chybajuceNovePolia, verziaArealu } from '../../utils/schemaVersion';
+import { NovePoliaPripomienka } from './NovePoliaPripomienka';
 
 export function WizardContainer() {
   const wizard = useWizard();
   const arealState = useArealState();
   const [zobrazitPorovnanie, setZobrazitPorovnanie] = useState(false);
+  // Pripomienka nových polí po načítaní staršej relácie (issue #177).
+  // Zatvorenie sa viaže na konkrétnu reláciu — po načítaní inej sa ukáže znova.
+  const [zavretaPripomienkaPre, setZavretaPripomienkaPre] = useState<string | null>(null);
+  const chybajucePolia = useMemo(
+    () => (zavretaPripomienkaPre === arealState.areal.id ? [] : chybajuceNovePolia(arealState.areal)),
+    [arealState.areal, zavretaPripomienkaPre],
+  );
   const recommendations = useRecommendations(arealState.areal);
   const step6Unlocked = recommendations.length > 0;
   const effectiveVisitedSteps = useMemo(() => {
@@ -61,6 +70,7 @@ export function WizardContainer() {
             updateBudova={arealState.updateBudova}
             removeBudova={arealState.removeBudova}
             arealAdresa={{ adresa: arealState.areal.adresa, obec: arealState.areal.obec }}
+            verziaRelacie={verziaArealu(arealState.areal)}
           />
         );
       case 4:
@@ -148,6 +158,11 @@ export function WizardContainer() {
       )}
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
+        <NovePoliaPripomienka
+          chybajuce={chybajucePolia}
+          onZavriet={() => setZavretaPripomienkaPre(arealState.areal.id)}
+          onPrejstNaBudovy={() => wizard.goToStep(3)}
+        />
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           {renderStep()}
           <StepNavigation

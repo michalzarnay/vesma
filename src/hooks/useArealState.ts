@@ -122,6 +122,8 @@ export function migrateAreal(raw: unknown): Areal {
   return {
     ...empty,
     ...data,
+    // issue #177: relácia bez čísla verzie pochádza spred jeho zavedenia
+    schemaVersion: data.schemaVersion ?? 1,
     organizaciaVZriadovatelskejPobnonosti: data.organizaciaVZriadovatelskejPobnonosti ?? '',
     obhliadkuVykonal: data.obhliadkuVykonal ?? '',
     datumObhliadky: data.datumObhliadky ?? '',

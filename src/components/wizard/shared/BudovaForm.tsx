@@ -13,6 +13,7 @@ import { getParagraf11, PARAGRAF_11_PLOCHA_M2 } from '../../../utils/paragraf11'
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
 import { computeBudovaEnPI } from '../../../utils/energyIndicators';
 import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
+import { jeNevyplneneNovePole } from '../../../utils/schemaVersion';
 import { apiUrl } from '../../../utils/apiUrl';
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -21,6 +22,8 @@ interface BudovaFormProps {
   budova: Budova;
   onChange: (data: Partial<Budova>) => void;
   arealAdresa?: { adresa: string; obec: string };
+  /** Verzia schémy načítanej relácie — podľa nej sa zvýraznia nové nevyplnené polia (issue #177). */
+  verziaRelacie?: number;
 }
 
 /**
@@ -80,7 +83,9 @@ function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>)
 
 const fmt = (n: number, digits = 0) => n.toLocaleString('sk', { maximumFractionDigits: digits });
 
-export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
+export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: BudovaFormProps) {
+  const zvyrazniNovePole = (pole: keyof Budova) =>
+    verziaRelacie !== undefined && jeNevyplneneNovePole(verziaRelacie, budova, pole);
   const [svpLoading, setSvpLoading] = useState(false);
   const [svpMsg, setSvpMsg] = useState<string | null>(null);
   const enpi = computeBudovaEnPI(budova);
@@ -797,6 +802,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.hydraulickeVyregulovanieUK}
             onChange={(v) => onChange({ hydraulickeVyregulovanieUK: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieUK')}
             tooltipKey="hydraulickeVyregulovanieDef"
           />
           <SelectCard
@@ -804,6 +810,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.hydraulickeVyregulovanieTV}
             onChange={(v) => onChange({ hydraulickeVyregulovanieTV: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieTV')}
             tooltipKey="hydraulickeVyregulovanieDef"
           />
           <SelectCard
@@ -811,6 +818,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.izolaciaRozvodov}
             onChange={(v) => onChange({ izolaciaRozvodov: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('izolaciaRozvodov')}
             tooltipKey="izolaciaRozvodovDef"
           />
         </div>

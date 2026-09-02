@@ -1,6 +1,17 @@
 import { useCallback, useState } from 'react';
-import { Areal, createEmptyAreal } from '../types/areal';
+import { AKTUALNA_VERZIA_SCHEMY, Areal } from '../types/areal';
 import { buildShareMailto, sessionJsonFilename } from '../utils/shareSession';
+import { migrateAreal } from './useArealState';
+import { chybajuceNovePolia, verziaArealu } from '../utils/schemaVersion';
+
+/**
+ * Verzia schémy, s ktorou sa relácia uloží (issue #177). Na aktuálnu sa posunie až
+ * vtedy, keď sú nové polia doplnené — inak by pripomienka po ďalšom načítaní zmizla,
+ * hoci polia ostávajú na „neviem".
+ */
+function verziaPreUlozenie(areal: Areal): number {
+  return chybajuceNovePolia(areal).length === 0 ? AKTUALNA_VERZIA_SCHEMY : verziaArealu(areal);
+}
 
 export interface Session {
   id: string;
@@ -64,7 +75,11 @@ export function useSessionManager() {
     const session: Session = {
       id: crypto.randomUUID(),
       nazov,
-      areal: { ...areal, id: areal.id || crypto.randomUUID() },
+      areal: {
+        ...areal,
+        id: areal.id || crypto.randomUUID(),
+        schemaVersion: verziaPreUlozenie(areal),
+      },
       datumUlozenia: new Date().toISOString(),
     };
     setSessions((prev) => {
@@ -79,7 +94,12 @@ export function useSessionManager() {
     setSessions((prev) => {
       const updated = prev.map((s) =>
         s.id === id
-          ? { ...s, nazov, areal, datumUlozenia: new Date().toISOString() }
+          ? {
+            ...s,
+            nazov,
+            areal: { ...areal, schemaVersion: verziaPreUlozenie(areal) },
+            datumUlozenia: new Date().toISOString(),
+          }
           : s
       );
       saveSessions(updated);
@@ -120,15 +140,10 @@ export function useSessionManager() {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string);
-          // Môže byť celá Session alebo iba Areal
-          const areal: Areal = data.areal ?? data;
-          const empty = createEmptyAreal();
-          resolve({
-            ...empty,
-            ...areal,
-            media: areal.media ?? [],
-            vahy: areal.vahy ?? { mzi: 1, oze: 1, energia: 1 },
-          });
+          // Môže byť celá Session alebo iba Areal. migrateAreal doplní chýbajúce polia
+          // aj verziu schémy (issue #177), takže importovaná staršia relácia dostane
+          // rovnakú pripomienku ako uložená.
+          resolve(migrateAreal(data.areal ?? data));
         } catch {
           reject(new Error('Neplatný súbor relácie'));
         }

@@ -10,9 +10,11 @@ interface Step3Props {
   updateBudova: (index: number, data: Partial<Budova>) => void;
   removeBudova: (index: number) => void;
   arealAdresa?: { adresa: string; obec: string };
+  /** Verzia schémy načítanej relácie — zvýrazní nové nevyplnené polia (issue #177). */
+  verziaRelacie?: number;
 }
 
-export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, arealAdresa }: Step3Props) {
+export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, arealAdresa, verziaRelacie }: Step3Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleRemove = (index: number) => {
@@ -64,6 +66,7 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
           budova={budovy[activeIndex]}
           onChange={(data) => updateBudova(activeIndex, data)}
           arealAdresa={arealAdresa}
+          verziaRelacie={verziaRelacie}
         />
       )}
     </div>
