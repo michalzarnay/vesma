@@ -197,7 +197,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <div className="flex flex-wrap justify-center gap-6">
         <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />
         <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
-        <ScoreGauge score={score.energia.celkove} label="Energetická efektivita" size="md" />
+        <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
       </div>
 
       {/* Váhy nastavenie */}

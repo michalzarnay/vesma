@@ -43,7 +43,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Oblasť', 'Skóre (0–100)', 'Váha'],
     ['MZI – Modro-zelená infraštruktúra', score.mzi.celkove, areal.vahy.mzi],
     ['OZE – Obnoviteľné zdroje energie', score.oze.celkove, areal.vahy.oze],
-    ['Energia – Energetická efektivita', score.energia.celkove, areal.vahy.energia],
+    ['Energia – Energetická efektívnosť', score.energia.celkove, areal.vahy.energia],
     [],
     ['Vážené celkové skóre', ws(areal.vahy)],
     ['Nevážené celkové skóre', score.celkove],
