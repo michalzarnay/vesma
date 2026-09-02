@@ -9,8 +9,14 @@ export const glossary: Record<string, GlossaryEntry> = {
   priepustnaPlochaDef: {
     term: 'Prírodný (vsakovací) povrch',
     definition: 'Povrch, cez ktorý môže voda voľne vsiaknuť do zeme.',
-    example: 'Trávnik, záhon, holá pôda, nezhutnená zemina.',
+    example: 'Trávnik, lúka, záhon, zeleninové hriadky, nezhutnená zemina.',
     whereToFind: 'Odhadnite podľa toho, koľko vášho pozemku tvorí trávnik, záhrady alebo prirodzená pôda.',
+  },
+  obrabanaPodaDef: {
+    term: 'Pravidelne obrábaná pôda',
+    definition: 'Pôda, ktorá sa aspoň dvakrát do roka orie, ryje alebo kyprí a ostáva nezakrytá. Po obrobení sa pri prívalovom daždi zaškrupinatie a voda odteká namiesto vsakovania, horšie drží vlahu a mimo vegetačnej sezóny sa prehrieva.',
+    example: 'Zeleninové hriadky, záhony, poľnohospodárske polia.',
+    whereToFind: 'Mulčované záhony sem nepatria — mulč pôdu chráni pred škrupinatením aj výparom, preto ich uveďte ako byliny. Rovnako sem nepatrí trávnik, lúka ani dočasne holé miesto v trávniku.',
   },
   polopriepustnaPlochaDef: {
     term: 'Spevnený (polopriepustný) povrch',

@@ -127,7 +127,11 @@ function plochaPozemku(p: Pozemok): number {
 
 /**
  * Koeficient MZI priepustnej plochy pozemku — vážený priemer podľa podielu
- * holej pôdy, bylín, krov a stromov (kódy C, H, L, J/K metodiky B-GOV2).
+ * obrábanej pôdy, bylín, krov a stromov (kódy C, H, L, J/K metodiky B-GOV2).
+ *
+ * Pravidelne obrábaná pôda bez mulča (hriadky, záhony, polia) patrí pod kód C
+ * „nespevnené plochy bez rastlinného krytu" — po zoraní sa pri prívalovej zrážke
+ * zaškrupinatie, horšie drží vlahu a mimo vegetačnej sezóny sa prehrieva.
  *
  * Mladé a nezdravé stromy sa hodnotia koeficientom pre vzrastovo menšie stromy
  * (K = 0,4), pretože podľa metodiky zachytia výrazne menej zrážok než zapojený
@@ -143,7 +147,7 @@ function plochyPriepustnej(p: Pozemok): Plocha[] {
     KOEF_OKOLIE.stromyMohutne * (1 - podielSlabychStromov);
 
   return [
-    { vymera: celkom * (p.priepustnaPlochaHolaPoda / 100), koef: KOEF_OKOLIE.priepustnyKryt },
+    { vymera: celkom * (p.priepustnaPlochaObrabanaPoda / 100), koef: KOEF_OKOLIE.priepustnyKryt },
     { vymera: celkom * (p.priepustnaPlochaByliny / 100), koef: KOEF_OKOLIE.travnik },
     { vymera: celkom * (p.priepustnaPlochaKry / 100), koef: KOEF_OKOLIE.kry },
     { vymera: celkom * (p.priepustnaPlochaStromy / 100), koef: koefStromov },

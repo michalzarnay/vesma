@@ -13,35 +13,35 @@ function arealSPozemkom(uprav: (p: ReturnType<typeof createEmptyPozemok>) => voi
 }
 
 describe('calculateMZI – priepustná plocha (metodika KLIMASKEN B-GOV2)', () => {
-  it('existujúce nenulové hodnoty priepustnaPlochaHolaPoda naďalej prispievajú ku skóre (issue #128 – pole skryté z formulára)', () => {
-    // Holá pôda je podľa B-GOV2 kód C (nespevnená plocha bez rastlinného krytu,
-    // koeficient 0,4). Oproti prázdnemu pozemku teda skóre zvyšuje.
-    const bezHolejPody = arealSPozemkom((p) => {
+  it('pravidelne obrábaná pôda prispieva ku skóre menej než trávnik, ale viac než nepriepustná plocha', () => {
+    const bezObrabanej = arealSPozemkom((p) => {
       p.priepustnaPlochaCelkom = 100;
       p.spevnenaPlochaCelkom = 100;
     });
-    const sHolouPodou = arealSPozemkom((p) => {
+    const sObrabanou = arealSPozemkom((p) => {
       p.priepustnaPlochaCelkom = 100;
       p.spevnenaPlochaCelkom = 100;
-      p.priepustnaPlochaHolaPoda = 40;
+      p.priepustnaPlochaObrabanaPoda = 40;
     });
 
-    expect(calculateMZI(sHolouPodou).okolie!.body).toBeGreaterThan(
-      calculateMZI(bezHolejPody).okolie!.body,
+    expect(calculateMZI(sObrabanou).okolie!.body).toBeGreaterThan(
+      calculateMZI(bezObrabanej).okolie!.body,
     );
   });
 
-  it('trávnik má vyšší koeficient MZI než holá pôda (kód H = 0,7 vs. kód C = 0,4)', () => {
-    const holaPoda = arealSPozemkom((p) => {
+  it('trávnik má vyšší koeficient MZI než obrábaná pôda (kód H = 0,7 vs. kód C = 0,4)', () => {
+    // Obrábaná pôda horšie zachytáva prívalovú zrážku, horšie drží vlahu
+    // a menej ochladzuje — preto kód C metodiky B-GOV2 (issue #196).
+    const obrabanaPoda = arealSPozemkom((p) => {
       p.priepustnaPlochaCelkom = 100;
-      p.priepustnaPlochaHolaPoda = 100;
+      p.priepustnaPlochaObrabanaPoda = 100;
     });
     const byliny = arealSPozemkom((p) => {
       p.priepustnaPlochaCelkom = 100;
       p.priepustnaPlochaByliny = 100;
     });
 
-    expect(calculateMZI(holaPoda).koefOkolie).toBeCloseTo(0.4, 5);
+    expect(calculateMZI(obrabanaPoda).koefOkolie).toBeCloseTo(0.4, 5);
     expect(calculateMZI(byliny).koefOkolie).toBeCloseTo(0.7, 5);
   });
 

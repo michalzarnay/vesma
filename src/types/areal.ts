@@ -118,7 +118,12 @@ export interface Pozemok {
 
   // Priepustna plocha
   priepustnaPlochaCelkom: number; // m2
-  priepustnaPlochaHolaPoda: number; // %, skryté z formulára (issue #128) — ponechané pre kompatibilitu dát a exportu
+  /**
+   * %, pravidelne (aspoň 2× ročne) obrábaná pôda bez mulča — hriadky, záhony, polia.
+   * Pôvodne „holá pôda" (issue #128), premenované a znovu sprístupnené vo formulári
+   * v issue #196. Mulčované záhony sem nepatria — uvádzajú sa ako byliny.
+   */
+  priepustnaPlochaObrabanaPoda: number;
   priepustnaPlochaByliny: number; // %
   priepustnaPlochaKry: number; // %
   priepustnaPlochaStromy: number; // %
@@ -383,7 +388,7 @@ export function createEmptyPozemok(): Pozemok {
     odvodVodyRetencnaNadrzou: 0,
     odvodVodyNerieseny: 0,
     priepustnaPlochaCelkom: 0,
-    priepustnaPlochaHolaPoda: 0,
+    priepustnaPlochaObrabanaPoda: 0,
     priepustnaPlochaByliny: 0,
     priepustnaPlochaKry: 0,
     priepustnaPlochaStromy: 0,

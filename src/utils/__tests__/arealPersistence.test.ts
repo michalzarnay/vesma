@@ -54,6 +54,20 @@ describe('migrateAreal – migrácia starého formátu', () => {
     expect(restored.pozemky[0].odvodVodyJednotnaKanalizacia).toBe(75);
   });
 
+  it('skonvertuje legacy priepustnaPlochaHolaPoda na priepustnaPlochaObrabanaPoda (issue #196)', () => {
+    const old = {
+      ...createEmptyAreal(),
+      pozemky: [{
+        ...createEmptyAreal().pozemky[0],
+        priepustnaPlochaHolaPoda: 40,
+        priepustnaPlochaObrabanaPoda: undefined,
+      }],
+    };
+
+    const restored = migrateAreal(JSON.parse(JSON.stringify(old)));
+    expect(restored.pozemky[0].priepustnaPlochaObrabanaPoda).toBe(40);
+  });
+
   it('doplní chýbajúce nové polia hodnotou 0', () => {
     const minimal = {
       id: 'test-id',

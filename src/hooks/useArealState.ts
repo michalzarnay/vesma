@@ -30,13 +30,15 @@ type Action =
 
 function migratePozemok(raw: unknown): Pozemok {
   const empty = createEmptyPozemok();
-  const d = raw as Pozemok & { odvodVodyKanalizacia?: number };
+  const d = raw as Pozemok & { odvodVodyKanalizacia?: number; priepustnaPlochaHolaPoda?: number };
   // Migrate old single kanalizácia field to new joint sewer field
   const legacyKanalizacia = d.odvodVodyKanalizacia ?? 0;
   return {
     ...empty,
     ...d,
     odvodVodyJednotnaKanalizacia: d.odvodVodyJednotnaKanalizacia ?? legacyKanalizacia,
+    // „holá pôda" premenovaná na „pravidelne obrábaná pôda" (issue #196)
+    priepustnaPlochaObrabanaPoda: d.priepustnaPlochaObrabanaPoda ?? d.priepustnaPlochaHolaPoda ?? 0,
     odvodVodySplaskovaKanalizacia: d.odvodVodySplaskovaKanalizacia ?? 0,
     odvodVodyZrazkovaKanalizacia: d.odvodVodyZrazkovaKanalizacia ?? 0,
     odvodVodyRetencnaNadrzou: d.odvodVodyRetencnaNadrzou ?? 0,

@@ -35,7 +35,7 @@ menovateľa ako samostatné plochy.
 |---|---|---|---|
 | A | nepriepustné spevnené plochy | 0 | `spevnenaPlochaCelkom` |
 | B | dlažba so škárou < 15 mm, mlatová plocha | 0,2 | `polopriepustnaMlatovyPovrch` |
-| C | priepustný kryt, nespevnená plocha bez rastlinného krytu | 0,4 | priepustný asfalt/betón, vodopriepustná dlažba, živica + kremičitý štrk, Stered, `priepustnaPlochaHolaPoda` |
+| C | priepustný kryt, nespevnená plocha bez rastlinného krytu | 0,4 | priepustný asfalt/betón, vodopriepustná dlažba, živica + kremičitý štrk, Stered, `priepustnaPlochaObrabanaPoda` |
 | G | súvislý rastlinný kryt na silno zhutnenom podklade | 0,4 | `polopriepustnaPlnevegetacneTvarnice` |
 | H | zatrávnená plocha s intenzívnou údržbou | 0,7 | `priepustnaPlochaByliny` |
 | J | mohutné stromy v zapojenom poraste | 1,0 | `priepustnaPlochaStromy` (zdravé vzrastlé) |
@@ -125,9 +125,34 @@ Dôsledky, na ktoré treba myslieť pri porovnaní starších a nových hodnoten
   stavom. Absolútny potenciál zostáva v `ScoreResult.mziPotencial` a v
   porovnaní areálov (`src/data/comparisonWeights.ts`), ktoré táto zmena
   nemení.
-- **Holá pôda** sa už nehodnotí ako trávnik, ale ako kód C (0,4 vs. 0,7).
-  Pole je od issue #128 skryté z formulára, naďalej sa však započítava
-  z existujúcich dát.
+- **Pravidelne obrábaná pôda** sa už nehodnotí ako trávnik, ale ako kód C
+  (0,4 vs. 0,7) — pozri nižšie.
+
+## Pravidelne obrábaná pôda (issue #196)
+
+Pôda, ktorá sa aspoň dvakrát do roka orie, ryje alebo kyprí a ostáva nezakrytá
+(zeleninové hriadky, záhony, poľnohospodárske polia), je samostatný typ
+prírodného povrchu s koeficientom **0,4** (kód C). Oproti trávniku (kód H, 0,7):
+
+- po zoraní sa pri prívalovej zrážke zaškrupinatie a voda odteká namiesto
+  vsakovania (navyše s eróziou),
+- bez súvislého koreňového systému horšie drží vlahu,
+- mimo vegetačnej sezóny nie je čo evapotranspirovať, holý povrch sa prehrieva.
+
+**Mulčované záhony sem nepatria** — mulč pôdu chráni pred škrupinatením aj
+výparom, preto sa uvádzajú ako byliny.
+
+Pole `priepustnaPlochaObrabanaPoda` vzniklo premenovaním pôvodného
+`priepustnaPlochaHolaPoda` (skrytého z formulára v issue #128, kde išlo
+o *dočasne* holé miesto v trávniku). Staré hodnoty prenáša `migratePozemok`
+v `src/hooks/useArealState.ts`.
+
+V porovnaní areálov (`src/data/comparisonWeights.ts`) sa obrábaná pôda
+**nezapočítava** do parametra „na lúku, prípadne namiesto krov sa vysadia mladé
+stromy“ — na hriadky ani na pole sa stromy spravidla nesadia.
+
+Nadväzujúce odporúčania (mulčovanie, krycie plodiny, obmedzenie orby) rieši
+issue #200.
 
 ## Zdroje
 
