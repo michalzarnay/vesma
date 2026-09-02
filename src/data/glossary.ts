@@ -92,6 +92,12 @@ export const glossary: Record<string, GlossaryEntry> = {
     example: 'Holé kovové potrubie v suteréne je neizolované; potrubie obalené sivým penovým alebo minerálnym púzdrom izolované je.',
     whereToFind: 'Vidno pohľadom v kotolni, suteréne alebo v technických šachtách.',
   },
+  sezonnaNevykurovanaDef: {
+    term: 'Sezónna nevykurovaná stavba',
+    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chata, altánok, sklad náradia. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia.',
+    example: 'Záhradná chata, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
+    whereToFind: 'Rozhodnite podľa toho, či sa v stavbe v zime kúri. Ak áno čo i len občas, odpovedzte „nie".',
+  },
   retenciaVodyDef: {
     term: 'Retencia vody',
     definition: 'Schopnosť areálu zadržať dažďovú vodu a spomaliť jej odtok do kanalizácie alebo vodného toku.',

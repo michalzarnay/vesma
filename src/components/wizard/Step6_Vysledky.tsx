@@ -4,7 +4,7 @@ import { Areal, ScoringWeights } from '../../types/areal';
 import { useScoring } from '../../hooks/useScoring';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
-import { getScoreLevel } from '../../types/scoring';
+import { getScoreLevel, saHodnotiEnergetika, vazeneCelkoveSkore } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
@@ -30,15 +30,18 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const radarData = [
     { subject: 'MZI', value: score.mzi.celkove, fullMark: 100 },
     { subject: 'OZE', value: score.oze.celkove, fullMark: 100 },
-    { subject: 'Energia', value: score.energia.celkove, fullMark: 100 },
+    // Nehodnotená energetika sa v grafe nezobrazuje ako nula — pozri saHodnotiEnergetika().
+    ...(saHodnotiEnergetika(score.energia)
+      ? [{ subject: 'Energia', value: score.energia.celkove, fullMark: 100 }]
+      : []),
   ];
 
-  // Vážené celkové skóre
+  // Vážené celkové skóre. Keď sú všetky budovy sezónne nevykurované stavby,
+  // energetika sa nehodnotí a do váženého priemeru nevstupuje.
   const { mzi: wMzi, oze: wOze, energia: wEnergia } = areal.vahy;
   const sumVah = wMzi + wOze + wEnergia;
-  const vazeneSkore = sumVah > 0
-    ? Math.round((score.mzi.celkove * wMzi + score.oze.celkove * wOze + score.energia.celkove * wEnergia) / sumVah)
-    : score.celkove;
+  const hodnotiEnergetiku = saHodnotiEnergetika(score.energia);
+  const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
 
   const handleExportCSV = () => {
     const BOM = '\uFEFF';
@@ -52,7 +55,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       ['Celkové skóre (nevážené)', String(score.celkove)],
       ['MZI skóre', String(score.mzi.celkove), `váha: ${wMzi}`],
       ['OZE skóre', String(score.oze.celkove), `váha: ${wOze}`],
-      ['Energetika skóre', String(score.energia.celkove), `váha: ${wEnergia}`],
+      ['Energetika skóre', hodnotiEnergetiku ? String(score.energia.celkove) : 'nehodnotené', `váha: ${wEnergia}`],
       [''],
       ['Pozemky', String(areal.pozemky.length)],
       ['Budovy', String(areal.budovy.length)],
@@ -102,7 +105,8 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
     doc.setTextColor(0);
     y += 10;
     doc.setFontSize(11);
-    doc.text(`MZI: ${score.mzi.celkove}/100   OZE: ${score.oze.celkove}/100   Energia: ${score.energia.celkove}/100`, 20, y);
+    const energiaText = hodnotiEnergetiku ? `${score.energia.celkove}/100` : 'nehodnotené';
+    doc.text(`MZI: ${score.mzi.celkove}/100   OZE: ${score.oze.celkove}/100   Energia: ${energiaText}`, 20, y);
     y += 15;
 
     // Médiá
@@ -204,7 +208,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <div className="flex flex-wrap justify-center gap-6">
         <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />
         <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
-        <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
+        {hodnotiEnergetiku
+          ? <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
+          : <EnergetikaNehodnotena pocetStavieb={score.energia.vynechanychSezonnych} />}
       </div>
 
       {/* Váhy nastavenie */}
@@ -290,15 +296,17 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
             { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25 },
           ]}
         />
-        <ScoreDetail
-          title="Energetika"
-          items={[
-            { label: 'Zateplenie', score: score.energia.zateplenie, max: 30 },
-            { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20 },
-            { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25 },
-            { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25 },
-          ]}
-        />
+        {hodnotiEnergetiku && (
+          <ScoreDetail
+            title="Energetika"
+            items={[
+              { label: 'Zateplenie', score: score.energia.zateplenie, max: 30 },
+              { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20 },
+              { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25 },
+              { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25 },
+            ]}
+          />
+        )}
       </div>
 
       {/* Energetické ukazovatele (EnPI) — issue #171 */}
@@ -468,6 +476,27 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
         Merná spotreba na vykurovanie je vztiahnutá na vykurovanú plochu, merná spotreba elektriny na úžitkovú plochu.
         Ide o nameranú spotrebu z faktúr, bez klimatickej normalizácie – nezamieňať s vypočítanou potrebou energie
         z energetického certifikátu.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Namiesto ukazovateľa energetickej efektívnosti, keď sa energetika nehodnotí —
+ * všetky budovy areálu sú sezónne nevykurované stavby. Nula by sa tu čítala ako
+ * „veľký priestor na zlepšenie", hoci zlepšovať nie je čo.
+ */
+function EnergetikaNehodnotena({ pocetStavieb }: { pocetStavieb: number }) {
+  return (
+    <div className="max-w-xs rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
+      <p className="text-sm font-medium text-gray-700">Energetická efektívnosť</p>
+      <p className="mt-1 text-sm text-gray-500">nehodnotí sa</p>
+      <p className="mt-2 text-xs text-gray-500">
+        {pocetStavieb === 1
+          ? 'Jediná stavba areálu je sezónna nevykurovaná (letné sídlo).'
+          : `Všetkých ${pocetStavieb} stavieb areálu je sezónnych nevykurovaných (letné sídlo).`}
+        {' '}Zateplenie ani obnova vykurovania v nich nemajú zmysel, preto sa areálu
+        nepočíta ani potenciál zlepšenia v tejto oblasti.
       </p>
     </div>
   );

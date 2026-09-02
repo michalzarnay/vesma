@@ -205,6 +205,16 @@ export interface Budova {
   vykurovanaPlocha: number;  // m2 — vykurovaná plocha (issue #181); predvypĺňa sa z úžitkovej, 0 = použije sa úžitková
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
 
+  /**
+   * Sezónna nevykurovaná stavba — záhradná chata, altánok, sklad náradia.
+   * Užíva sa len v teplej časti roka, nevykuruje sa a nespáva sa v nej, takže
+   * zateplenie ani obnova vykurovania v nej nemajú zmysel. Taká stavba sa
+   * vynecháva z hodnotenia obálky a vykurovania, z návrhov opatrení v tomto
+   * smere aj z potenciálu zlepšenia (pozri src/utils/sezonnaStavba.ts).
+   * 0 = bežná budova, 1 = sezónna nevykurovaná stavba.
+   */
+  sezonnaNevykurovana: 0 | 1;
+
   // Využitie objektu
   vyuzitieDniVRoku: number;
   vyuzitieMesiacovVRoku: number;
@@ -483,6 +493,7 @@ export function createEmptyBudova(): Budova {
     plochaPodorysu: 0,
     uzitkovaPlochaNUS: 0,
     vykurovanaPlocha: 0,
+    sezonnaNevykurovana: 0,
     vyuzitieDniVRoku: 0,
     vyuzitieMesiacovVRoku: 0,
     vyuzitieHodinDenne: 0,

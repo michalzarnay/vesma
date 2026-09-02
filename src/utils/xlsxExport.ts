@@ -1,17 +1,16 @@
 import * as XLSX from 'xlsx';
 import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
-import { ScoreResult } from '../types/scoring';
+import { ScoreResult, saHodnotiEnergetika, vazeneCelkoveSkore } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
 
-function weightedScore(score: ScoreResult, vahy: Areal['vahy']): number {
-  const sumVah = vahy.mzi + vahy.oze + vahy.energia;
-  if (sumVah === 0) return 0;
-  return Math.round(
-    (score.mzi.celkove * vahy.mzi + score.oze.celkove * vahy.oze + score.energia.celkove * vahy.energia) / sumVah
-  );
+const weightedScore = vazeneCelkoveSkore;
+
+/** Text do bunky skóre energetiky — nula nehodnotenej oblasti sa nemá tváriť ako výsledok. */
+function energiaCell(score: ScoreResult): string | number {
+  return saHodnotiEnergetika(score.energia) ? score.energia.celkove : 'nehodnotené';
 }
 
 function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
@@ -46,7 +45,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Oblasť', 'Skóre (0–100)', 'Váha'],
     ['MZI – Modro-zelená infraštruktúra', score.mzi.celkove, areal.vahy.mzi],
     ['OZE – Obnoviteľné zdroje energie', score.oze.celkove, areal.vahy.oze],
-    ['Energia – Energetická efektívnosť', score.energia.celkove, areal.vahy.energia],
+    ['Energia – Energetická efektívnosť', energiaCell(score), areal.vahy.energia],
     [],
     ['Vážené celkové skóre', ws(areal.vahy)],
     ['Nevážené celkové skóre', score.celkove],
@@ -64,6 +63,9 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Potenciál ďalších OZE', score.oze.potencialDalsichOZE, '/ 25'],
     [],
     ['DETAIL ENERGIA'],
+    ...(saHodnotiEnergetika(score.energia)
+      ? []
+      : [['Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.', '', '']]),
     ['Zateplenie', score.energia.zateplenie, '/ 30'],
     ['Kvalita okien', score.energia.kvalitaOkien, '/ 20'],
     ['Vykurovací systém', score.energia.vykurovaciSystem, '/ 25'],
@@ -150,6 +152,8 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     'Zelená stena budovy (m²)', 'Solárne kolektory (m²)',
     // Stav
     'Celkový stav budovy',
+    // Nový stĺpec sa pridáva na koniec, aby sa poradie doterajších stĺpcov neposunulo.
+    'Sezónna nevykurovaná stavba',
   ];
   const yn = (v: 0 | 1) => v ? 'áno' : 'nie';
   const ynu = (v: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
@@ -187,6 +191,7 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     b.zelenaStrechaBudovIntenzivna, b.zelenaStrechaBudovModrozelena, b.zelenaStrechaBudovStrkova,
     b.zelenaStenaBudov, b.solarnePanelyPlocha,
     b.celkovyStavBudovy,
+    yn(b.sezonnaNevykurovana),
   ]);
   return [header, ...rows];
 }
@@ -212,7 +217,9 @@ function sheetOdporucania(recommendations: Odporucanie[]): (string | number)[][]
 }
 
 function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: string })[][] {
-  const { mzi, oze, energia } = areal.vahy;
+  const { mzi, oze } = areal.vahy;
+  // Nehodnotená energetika sa do súčtu váh nezapočíta — pozri vazeneCelkoveSkore().
+  const energia = saHodnotiEnergetika(score.energia) ? areal.vahy.energia : 0;
   const sumVah = mzi + oze + energia;
   return [
     ['Nastavenie váh pre porovnanie areálov'],
@@ -220,7 +227,7 @@ function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: st
     ['Oblasť', 'Skóre (0–100)', 'Váha', 'Vážená hodnota'],
     ['MZI', score.mzi.celkove, mzi, sumVah > 0 ? Math.round(score.mzi.celkove * mzi / sumVah) : 0],
     ['OZE', score.oze.celkove, oze, sumVah > 0 ? Math.round(score.oze.celkove * oze / sumVah) : 0],
-    ['Energia', score.energia.celkove, energia, sumVah > 0 ? Math.round(score.energia.celkove * energia / sumVah) : 0],
+    ['Energia', energiaCell(score), energia, sumVah > 0 ? Math.round(score.energia.celkove * energia / sumVah) : 0],
     [],
     ['Vážené celkové skóre', weightedScore(score, areal.vahy)],
     [],
