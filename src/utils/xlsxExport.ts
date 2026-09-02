@@ -3,6 +3,7 @@ import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
 import { ScoreResult } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
+import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 
 function weightedScore(score: ScoreResult, vahy: Areal['vahy']): number {
   const sumVah = vahy.mzi + vahy.oze + vahy.energia;
@@ -16,6 +17,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
   const ws = (vahy: Areal['vahy']) => weightedScore(score, vahy);
   return [
     ['VESMA – Hodnotenie areálu'],
+    [UPOZORNENIE_ROZSAH_HODNOTENIA],
     [],
     ['Dátum hodnotenia', new Date().toLocaleDateString('sk')],
     ['Názov areálu', areal.nazov],
@@ -43,7 +45,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Oblasť', 'Skóre (0–100)', 'Váha'],
     ['MZI – Modro-zelená infraštruktúra', score.mzi.celkove, areal.vahy.mzi],
     ['OZE – Obnoviteľné zdroje energie', score.oze.celkove, areal.vahy.oze],
-    ['Energia – Energetická efektivita', score.energia.celkove, areal.vahy.energia],
+    ['Energia – Energetická efektívnosť', score.energia.celkove, areal.vahy.energia],
     [],
     ['Vážené celkové skóre', ws(areal.vahy)],
     ['Nevážené celkové skóre', score.celkove],

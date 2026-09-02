@@ -8,6 +8,8 @@ import { getScoreLevel } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
+import { bezDiakritiky } from '../../utils/formatters';
+import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ResponsiveContainer,
@@ -140,6 +142,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
     doc.setFontSize(8);
     doc.setTextColor(128);
     doc.text('Toto hodnotenie je orientacne. Pre presny navrh kontaktujte odbornika.', 20, y);
+    y += 5;
+    // Štandardný font jsPDF nemá slovenskú diakritiku — text ide bez nej (rovnako ako ostatné texty v PDF).
+    doc.text(doc.splitTextToSize(bezDiakritiky(UPOZORNENIE_ROZSAH_HODNOTENIA), 170), 20, y);
 
     doc.save(`${areal.nazov || 'areal'}-hodnotenie.pdf`);
   };
@@ -197,7 +202,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <div className="flex flex-wrap justify-center gap-6">
         <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />
         <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
-        <ScoreGauge score={score.energia.celkove} label="Energetická efektivita" size="md" />
+        <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
       </div>
 
       {/* Váhy nastavenie */}
@@ -382,6 +387,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
 
       <p className="text-xs text-gray-400 text-center italic">
         Toto hodnotenie je orientačné. Pre presný návrh kontaktujte odborníka.
+      </p>
+      <p className="text-xs text-gray-400 text-center italic">
+        {UPOZORNENIE_ROZSAH_HODNOTENIA}
       </p>
     </div>
   );

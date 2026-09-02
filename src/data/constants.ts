@@ -88,6 +88,12 @@ export const REGIONS = [
   'Turiec', 'Liptov', 'Orava', 'Spiš', 'Šariš', 'Zemplín', 'Gemer',
 ] as const;
 
+// Rozsah a limity hodnotenia — uvádza sa vo výstupoch (obrazovka Výsledky, PDF, XLSX), issue #175.
+// VESMA je predbežný skríning (úroveň 1 podľa prílohy B STN EN 16247-1), nie energetický audit.
+export const UPOZORNENIE_ROZSAH_HODNOTENIA =
+  'VESMA je predbežný skríning, nie energetický audit podľa § 2 vyhlášky MH SR č. 179/2015 Z. z. '
+  + 'Výsledky sú orientačné a slúžia ako podklad pre energetického audítora.';
+
 // Colors
 export const COLORS = {
   primary: '#52A8DE',
