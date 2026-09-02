@@ -21,29 +21,19 @@ export interface NovePole {
   chyba: (b: Budova) => boolean;
 }
 
-type TrojstavovePole = 'hydraulickeVyregulovanieUK' | 'hydraulickeVyregulovanieTV' | 'izolaciaRozvodov';
+const neviem = (b: Budova, pole: 'hydraulickeVyregulovanie' | 'izolaciaRozvodov') => (b[pole] ?? 2) === 2;
 
-const neviem = (b: Budova, pole: TrojstavovePole) => (b[pole] ?? 2) === 2;
-
-/**
- * Polia pridané v jednotlivých verziách schémy. Kľúč = verzia, v ktorej pribudli.
- * `label` musí sedieť s popiskom vo formulári budovy, aby ho používateľ našiel.
- */
+/** Polia pridané v jednotlivých verziách schémy. Kľúč = verzia, v ktorej pribudli. */
 export const NOVE_POLIA_VO_VERZII: Record<number, NovePole[]> = {
   2: [
     {
-      pole: 'hydraulickeVyregulovanieUK',
-      label: 'Hydraulicky vyregulovaný vykurovací systém',
-      chyba: (b) => neviem(b, 'hydraulickeVyregulovanieUK'),
-    },
-    {
-      pole: 'hydraulickeVyregulovanieTV',
-      label: 'Hydraulicky vyregulované rozvody teplej vody',
-      chyba: (b) => neviem(b, 'hydraulickeVyregulovanieTV'),
+      pole: 'hydraulickeVyregulovanie',
+      label: 'Je sústava hydraulicky vyregulovaná?',
+      chyba: (b) => neviem(b, 'hydraulickeVyregulovanie'),
     },
     {
       pole: 'izolaciaRozvodov',
-      label: 'Zaizolované rozvody tepla a teplej vody',
+      label: 'Majú rozvody tepelnú izoláciu?',
       chyba: (b) => neviem(b, 'izolaciaRozvodov'),
     },
   ],

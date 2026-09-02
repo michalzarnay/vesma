@@ -109,6 +109,9 @@ function migrateBudova(raw: unknown): Budova {
     zelenaStrechaBudovStrkova: d.zelenaStrechaBudovStrkova ?? 0,
     zelenaStenaBudov: d.zelenaStenaBudov ?? 0,
     vystavbaPred1980: d.vystavbaPred1980 ?? 0,
+    // issue #177: staršie relácie tieto otázky nemajú — načítajú sa ako „neviem"
+    hydraulickeVyregulovanie: d.hydraulickeVyregulovanie ?? 2,
+    izolaciaRozvodov: d.izolaciaRozvodov ?? 2,
   };
 }
 

@@ -33,6 +33,13 @@ export const YES_NO = [
   { value: 0, label: 'nie' },
 ] as const;
 
+// Áno / nie / neviem — pre otázky, kde je „neviem" legitímna odpoveď (issue #177)
+export const YES_NO_UNKNOWN = [
+  { value: 1, label: 'áno' },
+  { value: 0, label: 'nie' },
+  { value: 2, label: 'neviem' },
+] as const;
+
 // Sewage types
 export const SEWAGE_TYPES = [
   { value: 1, label: 'spoločne', description: 'Splašky a dažďová voda odvádzané spoločným potrubím' },

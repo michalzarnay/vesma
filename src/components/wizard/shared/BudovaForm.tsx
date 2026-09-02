@@ -1,5 +1,5 @@
-import { Budova } from '../../../types/areal';
-import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS } from '../../../data/constants';
+import { AnoNieNeviem, Budova } from '../../../types/areal';
+import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS, YES_NO_UNKNOWN } from '../../../data/constants';
 import { TextInput } from '../../ui/TextInput';
 import { NumberInput } from '../../ui/NumberInput';
 import { SelectCard } from '../../ui/SelectCard';
@@ -742,36 +742,6 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             tooltipText="Či je ústredné kúrenie rozdelené na nezávislé zóny, ktoré sa dajú regulovať samostatne."
           />
         </div>
-
-        {/* Rozvody tepla a teplej vody — § 11 ods. 1 zákona č. 321/2014 Z. z. (issue #177) */}
-        <h4 className="text-xs font-semibold text-gray-600 pt-2">Rozvody tepla a teplej vody</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <SelectCard
-            label="Hydraulicky vyregulovaný vykurovací systém"
-            options={YES_NO_UNKNOWN}
-            value={budova.hydraulickeVyregulovanieUK}
-            onChange={(v) => onChange({ hydraulickeVyregulovanieUK: v as 0 | 1 | 2 })}
-            highlight={zvyrazniNovePole('hydraulickeVyregulovanieUK')}
-            tooltipKey="hydraulickeVyregulovanieDef"
-          />
-          <SelectCard
-            label="Hydraulicky vyregulované rozvody teplej vody"
-            options={YES_NO_UNKNOWN}
-            value={budova.hydraulickeVyregulovanieTV}
-            onChange={(v) => onChange({ hydraulickeVyregulovanieTV: v as 0 | 1 | 2 })}
-            highlight={zvyrazniNovePole('hydraulickeVyregulovanieTV')}
-            tooltipKey="hydraulickeVyregulovanieDef"
-          />
-          <SelectCard
-            label="Zaizolované rozvody tepla a teplej vody"
-            options={YES_NO_UNKNOWN}
-            value={budova.izolaciaRozvodov}
-            onChange={(v) => onChange({ izolaciaRozvodov: v as 0 | 1 | 2 })}
-            highlight={zvyrazniNovePole('izolaciaRozvodov')}
-            tooltipKey="izolaciaRozvodovDef"
-          />
-        </div>
-        <Paragraf11Upozornenie budova={budova} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SelectCard
             label="Kúrenie riadené harmonogramom"
@@ -786,6 +756,25 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             value={budova.rekuperacia}
             onChange={(v) => onChange({ rekuperacia: v as 0 | 1 })}
             tooltipKey="rekuperaciaDef"
+          />
+        </div>
+        {/* Rozvody tepla — § 11 ods. 1 zákona č. 321/2014 Z. z. (issue #177) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <SelectCard
+            label="Je sústava hydraulicky vyregulovaná?"
+            options={YES_NO_UNKNOWN}
+            value={budova.hydraulickeVyregulovanie ?? 2}
+            onChange={(v) => onChange({ hydraulickeVyregulovanie: v as AnoNieNeviem })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanie')}
+            tooltipText="Hydraulické vyregulovanie zabezpečí, že do každého vykurovacieho telesa tečie správne množstvo vody. Pri budovách nad 1 000 m² s ústredným teplovodným vykurovaním je povinné podľa § 11 ods. 1 zákona č. 321/2014 Z. z."
+          />
+          <SelectCard
+            label="Majú rozvody tepelnú izoláciu?"
+            options={YES_NO_UNKNOWN}
+            value={budova.izolaciaRozvodov ?? 2}
+            onChange={(v) => onChange({ izolaciaRozvodov: v as AnoNieNeviem })}
+            highlight={zvyrazniNovePole('izolaciaRozvodov')}
+            tooltipText="Izolácia potrubí tepla a teplej vody. Pri budovách nad 1 000 m² ju vyžaduje § 11 ods. 1 zákona č. 321/2014 Z. z.; neizolované rozvody bývajú najrýchlejšie návratným opatrením."
           />
         </div>
         <ConditionalSection title="Detail rekuperácie" show={budova.rekuperacia === 1} defaultOpen>

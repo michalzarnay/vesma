@@ -135,6 +135,8 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     'Rekuperácia', 'Centrálna – účinnosť (%)',
     'Lokálne do 75% (ks)', 'Lokálne 76–89% (ks)', 'Lokálne 90%+ (ks)',
     // Kúrenie
+    // Rozvody tepla — § 11 ods. 1 zákona č. 321/2014 Z. z. (issue #177)
+    'Hydraulicky vyregulovaná sústava', 'Izolácia rozvodov',
     'Kúrenie plynom', 'Kúrenie elektrinou', 'Tepelné čerpadlo',
     'Kúrenie peletami', 'Kúrenie CZT',
     'Celková spotreba (kWh)',
@@ -148,6 +150,7 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     'Celkový stav budovy',
   ];
   const yn = (v: 0 | 1) => v ? 'áno' : 'nie';
+  const ann = (v?: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
   const typStrechy = (t: number) => t === 1 ? 'plochá' : t === 2 ? 'šikmá' : 'strmá';
   const zateplenie = (z: number) => z === 1 ? 'áno' : z === 2 ? 'čiastočne' : 'nie';
   const rows = areal.budovy.map((b, i) => [
@@ -172,6 +175,7 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     b.objemVyvetranehoPrezduchu,
     yn(b.rekuperacia), b.rekuperaciaCentralnaUcinnost,
     b.rekuperaciaLokalnaDo75, b.rekuperaciaLokalnaOd76do89, b.rekuperaciaLokalnaOd90,
+    ann(b.hydraulickeVyregulovanie), ann(b.izolaciaRozvodov),
     yn(b.kurenePlynom), yn(b.kurenieElektrinou), yn(b.tepelneCerpadlo),
     yn(b.kureniePeletami), yn(b.kurenieCZT),
     b.celkovaSpotreba ?? 0,

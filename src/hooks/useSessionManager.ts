@@ -140,9 +140,9 @@ export function useSessionManager() {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target?.result as string);
-          // Môže byť celá Session alebo iba Areal. migrateAreal doplní chýbajúce polia
-          // aj verziu schémy (issue #177), takže importovaná staršia relácia dostane
-          // rovnakú pripomienku ako uložená.
+          // Môže byť celá Session alebo iba Areal
+          // migrateAreal doplní chýbajúce polia aj verziu schémy (issue #177),
+          // takže importovaná staršia relácia dostane rovnakú pripomienku ako uložená.
           resolve(migrateAreal(data.areal ?? data));
         } catch {
           reject(new Error('Neplatný súbor relácie'));

@@ -22,8 +22,8 @@ test('nové otázky o rozvodoch a počet svietidiel sú vo formulári budovy', a
   await clickNext(page);
   await clickNext(page); // krok 3 – Budovy
 
-  await expect(page.getByText('Hydraulicky vyregulovaný vykurovací systém')).toBeVisible();
-  await expect(page.getByText('Zaizolované rozvody tepla a teplej vody')).toBeVisible();
+  await expect(page.getByText('Je sústava hydraulicky vyregulovaná?')).toBeVisible();
+  await expect(page.getByText('Majú rozvody tepelnú izoláciu?')).toBeVisible();
   await expect(page.getByText('Počet svietidiel celkom')).toBeVisible();
   expect(chyby, `Nezachytené chyby: ${chyby.join('\n')}`).toHaveLength(0);
 });

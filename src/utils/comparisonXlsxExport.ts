@@ -126,8 +126,7 @@ const BUDOVA_HEADER = [
   'Odvod – kanalizácia (%)', 'Odvod – vodný tok (%)', 'Odvod – retenčná nádrž (%)', 'Odvod – neriešený (%)',
   'Zateplenie fasády', 'Termoizolačné okná (%)', 'LED osvetlenie (%)',
   'Počet svietidiel (ks)', 'Z toho LED (ks)',
-  'Hydraulicky vyregulované ÚK', 'Hydraulicky vyregulované rozvody TV',
-  'Zaizolované rozvody tepla a TV', 'Dopadá § 11 ods. 1',
+  'Hydraulicky vyregulovaná sústava', 'Izolácia rozvodov',
   'Kúrenie plynom', 'Kúrenie elektrinou', 'Tepelné čerpadlo', 'Kúrenie peletami', 'Kúrenie CZT',
   'Celková spotreba (kWh)',
   'Fotovoltika', 'Plocha FV (m²)', 'Batériové úložisko (kWh)',
@@ -136,6 +135,7 @@ const BUDOVA_HEADER = [
 
 function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | number)[] {
   const yn = (v: 0 | 1) => v ? 'áno' : 'nie';
+  const ann = (v?: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
   const typStrechy = (t: number) => t === 1 ? 'plochá' : t === 2 ? 'šikmá' : 'strmá';
   const zateplenie = (z: number) => z === 1 ? 'áno' : z === 2 ? 'čiastočne' : 'nie';
   return [
@@ -147,8 +147,7 @@ function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | numbe
     b.budovaOdvodVodyKanalizacia, b.budovaOdvodVodyVodnyTok, b.budovaOdvodVodyRetencnaNadrz, b.budovaOdvodVodyNerieseny,
     zateplenie(b.zateplenieFasady), b.termoizolacneOkna, b.osvetlenieLED,
     b.osvetleniePocetSvietidiel ?? 0, b.osvetleniePocetSvietidielLED ?? 0,
-    ynu(b.hydraulickeVyregulovanieUK), ynu(b.hydraulickeVyregulovanieTV),
-    ynu(b.izolaciaRozvodov), getParagraf11(b).dopada ? 'áno' : 'nie',
+    ann(b.hydraulickeVyregulovanie), ann(b.izolaciaRozvodov),
     yn(b.kurenePlynom), yn(b.kurenieElektrinou), yn(b.tepelneCerpadlo), yn(b.kureniePeletami), yn(b.kurenieCZT),
     b.celkovaSpotreba ?? 0,
     yn(b.fotovoltika), b.fotovoltikaPlocha, b.bateriovyUlozisko,
