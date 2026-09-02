@@ -11,6 +11,24 @@ export interface Session {
 
 const SESSIONS_KEY = 'sma-nastroj-sessions';
 
+/**
+ * Nájde uložené relácie, ktoré zodpovedajú rovnakému areálu ako ten, čo sa
+ * práve ukladá — podľa ID areálu (rovnaká otvorená relácia), alebo zhody
+ * názvu, alebo adresy areálu (issue #161). Zoradené od najnovšie uloženej.
+ */
+export function findMatchingSessions(sessions: Session[], areal: Areal): Session[] {
+  const nazov = areal.nazov.trim().toLowerCase();
+  const adresa = areal.adresa.trim().toLowerCase();
+  return sessions
+    .filter((s) => {
+      if (areal.id && s.areal.id === areal.id) return true;
+      if (nazov && s.areal.nazov.trim().toLowerCase() === nazov) return true;
+      if (adresa && s.areal.adresa.trim().toLowerCase() === adresa) return true;
+      return false;
+    })
+    .sort((a, b) => new Date(b.datumUlozenia).getTime() - new Date(a.datumUlozenia).getTime());
+}
+
 function loadSessions(): Session[] {
   try {
     const raw = localStorage.getItem(SESSIONS_KEY);
@@ -57,11 +75,11 @@ export function useSessionManager() {
     return session;
   }, []);
 
-  const updateSession = useCallback((id: string, areal: Areal) => {
+  const updateSession = useCallback((id: string, nazov: string, areal: Areal) => {
     setSessions((prev) => {
       const updated = prev.map((s) =>
         s.id === id
-          ? { ...s, areal, datumUlozenia: new Date().toISOString() }
+          ? { ...s, nazov, areal, datumUlozenia: new Date().toISOString() }
           : s
       );
       saveSessions(updated);
