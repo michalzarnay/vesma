@@ -77,6 +77,9 @@ describe('migrateAreal – migrácia starého formátu', () => {
     delete budova.spotrebaRok;
     delete budova.kureniePlynNakladyRok;
     delete budova.spotrebaElektrinyNakladyRok;
+    delete budova.certifikatPotrebaVykurovanie;
+    delete budova.certifikatPotrebaTeplaVoda;
+    delete budova.certifikatPrimarnaEnergia;
     const pozemok = JSON.parse(JSON.stringify(empty.pozemky[0])) as Record<string, unknown>;
     delete pozemok.plochaVhodnaPreFV;
 
@@ -86,6 +89,9 @@ describe('migrateAreal – migrácia starého formátu', () => {
     expect(restored.budovy[0].spotrebaRok).toBe(0);
     expect(restored.budovy[0].kureniePlynNakladyRok).toBe(0);
     expect(restored.budovy[0].spotrebaElektrinyNakladyRok).toBe(0);
+    expect(restored.budovy[0].certifikatPotrebaVykurovanie).toBe(0);
+    expect(restored.budovy[0].certifikatPotrebaTeplaVoda).toBe(0);
+    expect(restored.budovy[0].certifikatPrimarnaEnergia).toBe(0);
     expect(restored.pozemky[0].plochaVhodnaPreFV).toBe(0);
   });
 

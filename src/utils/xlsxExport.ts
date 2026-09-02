@@ -112,6 +112,10 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
   const header = [
     'Budova', 'Parcela', 'Plocha pôdorysu (m²)', 'NUS (m²)', 'Kategória',
     'Trieda energetickej hospodárnosti',
+    // Vypočítaná potreba z certifikátu — nie nameraná spotreba (issue #170)
+    'Certifikát – potreba na vykurovanie (kWh/(m²·rok))',
+    'Certifikát – potreba na teplú vodu (kWh/(m²·rok))',
+    'Certifikát – primárna energia (kWh/(m²·rok))',
     // Povodne
     'Povodňové riziko (1–5)',
     'Zaplavená v posl. rokoch', 'Časť pod terénom', 'Tech. zariadenia v suteréne',
@@ -150,6 +154,9 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     b.nazov || `Budova ${i + 1}`, b.parcela, b.plochaPodorysu, b.uzitkovaPlochaNUS,
     b.kategoriaBudovy ?? '',
     b.energetickaTrieda ?? '',
+    b.certifikatPotrebaVykurovanie || '',
+    b.certifikatPotrebaTeplaVoda || '',
+    b.certifikatPrimarnaEnergia || '',
     b.povodnovoRiziko || '',
     yn(b.budovaZaplavenaPoslednychRokov), yn(b.castPodTerenomBezOdcerpania),
     yn(b.technologickeZariadenieSuteren), yn(b.kanalizacneVpusteNadSuterenom),

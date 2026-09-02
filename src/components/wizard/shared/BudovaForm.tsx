@@ -8,6 +8,7 @@ import { ConditionalSection } from '../../ui/ConditionalSection';
 import { Tooltip } from '../../ui/Tooltip';
 import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
+import { budovaUpdatesFromDocument } from '../../../utils/documentToBudova';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
 import { computeBudovaEnPI } from '../../../utils/energyIndicators';
 import { apiUrl } from '../../../utils/apiUrl';
@@ -21,32 +22,7 @@ interface BudovaFormProps {
 }
 
 function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>) => void) {
-  const updates: Partial<Budova> = {};
-
-  if (doc.projekt) {
-    const p = doc.projekt;
-    if (p.uzitkovaPlocha) updates.uzitkovaPlochaNUS = p.uzitkovaPlocha;
-    if (p.zastavanahPlocha) updates.plochaPodorysu = p.zastavanahPlocha;
-    if (p.obvodoveStenyMaterial) updates.obvodoveStenyMaterial = p.obvodoveStenyMaterial;
-    if (p.typStrechy) {
-      const t = p.typStrechy.toLowerCase();
-      if (t.includes('ploch')) updates.strechaTyp = 1;
-      else if (t.includes('šikm') || t.includes('sikm')) updates.strechaTyp = 2;
-    }
-  }
-
-  if (doc.certifikat) {
-    const c = doc.certifikat;
-    if (c.celkovaPlochaMsq) updates.uzitkovaPlochaNUS = c.celkovaPlochaMsq;
-    if (c.energetickaTrieda) updates.energetickaTrieda = c.energetickaTrieda;
-  }
-
-  if (doc.audit) {
-    const a = doc.audit;
-    if (a.spotrebaElektrina) updates.kurenieElektrinaSpotreba = a.spotrebaElektrina;
-    if (a.spotrebaPlyn) updates.kureniePlynSpotreba = a.spotrebaPlyn;
-  }
-
+  const updates = budovaUpdatesFromDocument(doc);
   if (Object.keys(updates).length > 0) onChange(updates);
 }
 
@@ -872,6 +848,36 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             />
           </ConditionalSection>
         </div>
+        <ConditionalSection title="" show={budova.energetickyCertifikat === 1}>
+          <p className="text-sm text-gray-600 mb-3">
+            Hodnoty z certifikátu sú <strong>vypočítaná potreba</strong> energie za normovaných
+            podmienok — nie skutočná spotreba z faktúr. Uvádzajú sa preto zvlášť a s vašou
+            spotrebou sa nesčítavajú.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <NumberInput
+              label="Potreba energie na vykurovanie"
+              value={budova.certifikatPotrebaVykurovanie}
+              onChange={(v) => onChange({ certifikatPotrebaVykurovanie: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="certifikatPotrebaDef"
+            />
+            <NumberInput
+              label="Potreba energie na teplú vodu"
+              value={budova.certifikatPotrebaTeplaVoda}
+              onChange={(v) => onChange({ certifikatPotrebaTeplaVoda: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="certifikatPotrebaDef"
+            />
+            <NumberInput
+              label="Primárna energia"
+              value={budova.certifikatPrimarnaEnergia}
+              onChange={(v) => onChange({ certifikatPrimarnaEnergia: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="primarnaEnergiaDef"
+            />
+          </div>
+        </ConditionalSection>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectCard
             label="Energetický audit"

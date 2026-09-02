@@ -118,6 +118,10 @@ function sheetExportPozemky(arealy: Areal[]): (string | number)[][] {
 const BUDOVA_HEADER = [
   'Areál', 'Budova', 'Parcela', 'Plocha pôdorysu (m²)', 'NUS (m²)', 'Kategória',
   'Trieda energetickej hospodárnosti', 'Vystavaná pred rokom 1980',
+  // Vypočítaná potreba z certifikátu — nie nameraná spotreba (issue #170)
+  'Certifikát – potreba na vykurovanie (kWh/(m²·rok))',
+  'Certifikát – potreba na teplú vodu (kWh/(m²·rok))',
+  'Certifikát – primárna energia (kWh/(m²·rok))',
   'Typ strechy', 'Zateplenie strechy', 'Orientácia strechy na juh (m²)', 'Fasáda orientovaná na juh (m²)',
   'Odvod – kanalizácia (%)', 'Odvod – vodný tok (%)', 'Odvod – retenčná nádrž (%)', 'Odvod – neriešený (%)',
   'Zateplenie fasády', 'Termoizolačné okná (%)', 'LED osvetlenie (%)',
@@ -134,6 +138,8 @@ function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | numbe
   return [
     arealNazov, b.nazov || `Budova ${i + 1}`, b.parcela, b.plochaPodorysu, b.uzitkovaPlochaNUS,
     b.kategoriaBudovy ?? '', b.energetickaTrieda ?? '', yn(b.vystavbaPred1980),
+    b.certifikatPotrebaVykurovanie || '', b.certifikatPotrebaTeplaVoda || '',
+    b.certifikatPrimarnaEnergia || '',
     typStrechy(b.strechaTyp), zateplenie(b.strechaZateplenie), b.strechaOrientovanaPlochaNaJuh, b.fasadaOrientovanaNaJuh,
     b.budovaOdvodVodyKanalizacia, b.budovaOdvodVodyVodnyTok, b.budovaOdvodVodyRetencnaNadrz, b.budovaOdvodVodyNerieseny,
     zateplenie(b.zateplenieFasady), b.termoizolacneOkna, b.osvetlenieLED,

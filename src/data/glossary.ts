@@ -68,6 +68,18 @@ export const glossary: Record<string, GlossaryEntry> = {
     example: 'Pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok (trieda A0), nízkoenergetický dom okolo 30 kWh/m²/rok (trieda A1/B).',
     whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy.',
   },
+  certifikatPotrebaDef: {
+    term: 'Potreba energie podľa certifikátu',
+    definition: 'Vypočítaná spotreba energie na meter štvorcový za rok pri normovaných podmienkach užívania a počasia. Nie je to vaša skutočná spotreba z faktúr — tá závisí od toho, ako budovu naozaj používate a aká bola zima.',
+    example: 'Certifikát uvádza 95 kWh/(m²·rok) na vykurovanie, no z faktúr vám vyjde 130 — rozdiel býva v prevádzke budovy alebo v tom, že certifikát počítal s inými podmienkami.',
+    whereToFind: 'Nájdete ju v energetickom certifikáte budovy pri jednotlivých miestach spotreby (vykurovanie, príprava teplej vody).',
+  },
+  primarnaEnergiaDef: {
+    term: 'Primárna energia',
+    definition: 'Celková energia potrebná na prevádzku budovy vrátane strát pri výrobe a doprave energie k budove. Podľa nej sa budova zaraďuje do triedy energetickej hospodárnosti (A0 až G).',
+    example: 'Budova kúrená elektrinou má vyššiu primárnu energiu než rovnaká budova na drevo, hoci v budove spotrebujú rovnako — elektrina má vyššie straty pri výrobe.',
+    whereToFind: 'Nájdete ju v energetickom certifikáte v riadku globálneho ukazovateľa.',
+  },
   retenciaVodyDef: {
     term: 'Retencia vody',
     definition: 'Schopnosť areálu zadržať dažďovú vodu a spomaliť jej odtok do kanalizácie alebo vodného toku.',
