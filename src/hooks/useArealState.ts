@@ -76,6 +76,10 @@ function migrateBudova(raw: unknown): Budova {
     kurenieStiepkaNakladyRok: d.kurenieStiepkaNakladyRok ?? 0,
     kurenieUhlimDrevomNakladyRok: d.kurenieUhlimDrevomNakladyRok ?? 0,
     spotrebaElektrinyNakladyRok: d.spotrebaElektrinyNakladyRok ?? 0,
+    // issue #170: ukazovatele z energetického certifikátu
+    certifikatPotrebaVykurovanie: d.certifikatPotrebaVykurovanie ?? 0,
+    certifikatPotrebaTeplaVoda: d.certifikatPotrebaTeplaVoda ?? 0,
+    certifikatPrimarnaEnergia: d.certifikatPrimarnaEnergia ?? 0,
     povodnovoRiziko: d.povodnovoRiziko ?? 0,
     budovaZaplavenaPoslednychRokov: d.budovaZaplavenaPoslednychRokov ?? 0,
     castPodTerenomBezOdcerpania: d.castPodTerenomBezOdcerpania ?? 0,

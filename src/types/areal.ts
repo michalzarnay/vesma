@@ -333,6 +333,14 @@ export interface Budova {
   energetickyCertifikat: 0 | 1;
   energetickyCertifikatCislo: string;
   energetickaTrieda?: string; // A0–G, voliteľné, podľa energetického certifikátu
+
+  // Ukazovatele z energetického certifikátu (issue #170), kWh/(m²·a).
+  // POZOR — je to VYPOČÍTANÁ potreba energie za normovaných podmienok užívania
+  // a klímy, nie nameraná spotreba z faktúr. Obe veličiny sa vedú oddelene
+  // a nesmú sa miešať do jedného ukazovateľa (pozri src/utils/energyIndicators.ts).
+  certifikatPotrebaVykurovanie: number; // kWh/(m²·a)
+  certifikatPotrebaTeplaVoda: number;   // kWh/(m²·a)
+  certifikatPrimarnaEnergia: number;    // kWh/(m²·a)
   energetickyAudit: 0 | 1;
   energetickyAuditRok: number;
   vystavbaPred1980: 0 | 1; // rok výstavby budovy pred rokom 1980 (voliteľné)
@@ -549,6 +557,9 @@ export function createEmptyBudova(): Budova {
     celkovyStavBudovy: '',
     energetickyCertifikat: 0,
     energetickyCertifikatCislo: '',
+    certifikatPotrebaVykurovanie: 0,
+    certifikatPotrebaTeplaVoda: 0,
+    certifikatPrimarnaEnergia: 0,
     energetickyAudit: 0,
     energetickyAuditRok: 0,
     vystavbaPred1980: 0,

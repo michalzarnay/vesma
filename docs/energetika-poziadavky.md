@@ -129,12 +129,16 @@ výrobu elektriny a jej predaj. VESMA má `fotovoltika` (áno/nie), `fotovoltika
 - **podiel vlastnej spotreby vs. dodávky do siete** — bez toho je ekonomika FV nepresná,
 - výkon a výnos solárnych kolektorov.
 
-### A9. Údaje z energetického certifikátu, ktoré appka prečíta a zahodí
-`src/utils/pdfParser.ts` už z certifikátu vyťahuje `potrebaEnergieKurenie`,
+### A9. Údaje z energetického certifikátu — ✅ vyriešené (issue #170)
+`src/utils/pdfParser.ts` z certifikátu vyťahuje `potrebaEnergieKurenie`,
 `potrebaEnergieVoda` a `primarnaEnergia` **v kWh/(m²·a)** — teda presne tie ukazovatele,
-ktoré normy nazývajú globálnymi EnPI. `BudovaForm.tsx` z nich do modelu prenesie **iba
-energetickú triedu a plochu**, zvyšok sa zahodí, lebo v `Budova` preň nie je pole.
-Toto je najlacnejšie možné doplnenie s najvyššou hodnotou.
+ktoré normy nazývajú globálnymi EnPI. Do modelu sa prenášala **iba energetická trieda
+a plocha**, zvyšok sa zahadzoval, lebo v `Budova` preň nebolo pole.
+
+Doplnené polia `certifikatPotrebaVykurovanie`, `certifikatPotrebaTeplaVoda`
+a `certifikatPrimarnaEnergia`. Mapovanie je vytiahnuté do `src/utils/documentToBudova.ts`,
+aby sa dalo testovať. Hodnoty sa vedú **oddelene od nameranej spotreby** podľa pravidla
+z B1 — do spotrebných polí sa nikdy nezapisujú.
 
 ### A10. SK NACE
 Príloha č. 5 (súbor údajov pre monitorovací systém) žiada zatriedenie podľa SK NACE.
@@ -167,7 +171,7 @@ Treba doplniť aspoň:
 Sú to dve rôzne čísla:
 - **potreba energie** z energetického certifikátu je **vypočítaná** hodnota za normovaných
   podmienok užívania a klímy (`potrebaEnergieKurenie`, `potrebaEnergieVoda`,
-  `primarnaEnergia` v kWh/(m²·a) — tie, ktoré parser dnes zahadzuje, viď A9),
+  `primarnaEnergia` v kWh/(m²·a) — viď A9),
 - **skutočná spotreba** z faktúr je **nameraná** a závisí od počasia, obsadenosti
   a správania používateľov.
 
