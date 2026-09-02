@@ -33,7 +33,8 @@ export const YES_NO = [
   { value: 0, label: 'nie' },
 ] as const;
 
-// Áno / nie / neviem — pre otázky, kde je „neviem" legitímna odpoveď (issue #177)
+// Áno/nie/neviem — tam, kde laik odpoveď reálne nemusí poznať (issue #177).
+// „Neviem" je predvolená hodnota, aby sa nepredstieralo „nie".
 export const YES_NO_UNKNOWN = [
   { value: 1, label: 'áno' },
   { value: 0, label: 'nie' },

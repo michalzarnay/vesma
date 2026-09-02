@@ -10,16 +10,13 @@ export interface MediaItem {
   datumNahratia: string;
 }
 
-/** Trojstavová odpoveď: 1 = áno, 0 = nie, 2 = neviem (issue #177). */
-export type AnoNieNeviem = 0 | 1 | 2;
-
 /**
  * Verzia schémy uloženej relácie (issue #177).
  * Zvýš ju vždy, keď pribudnú polia, ktoré má používateľ v starších reláciách doplniť,
  * a doplň ich zoznam do `NOVE_POLIA_VO_VERZII` v `src/utils/schemaVersion.ts`.
  *
  * 1 = stav pred zavedením verziovania (relácie bez poľa `schemaVersion`)
- * 2 = hydraulické vyregulovanie a izolácia rozvodov
+ * 2 = otázky o rozvodoch tepla (hydraulické vyregulovanie ÚK a TV, izolácia rozvodov)
  */
 export const AKTUALNA_VERZIA_SCHEMY = 2;
 
@@ -335,10 +332,12 @@ export interface Budova {
   automatickaRegulacia: 0 | 1;
   rozdelenieDozOn: 0 | 1;
   kurenieHarmonogram: 0 | 1;
-  // § 11 ods. 1 zákona č. 321/2014 Z. z. a bod 7 prílohy č. 1 vyhlášky č. 179/2015 Z. z.
-  // (issue #177). V reláciách uložených pred touto zmenou chýbajú → „neviem".
-  hydraulickeVyregulovanie: AnoNieNeviem;
-  izolaciaRozvodov: AnoNieNeviem;
+
+  // Povinnosti podľa § 11 ods. 1 zákona č. 321/2014 Z. z. a bodu 7 prílohy č. 1
+  // vyhlášky č. 179/2015 Z. z. (issue #177). 0 = nie, 1 = áno, 2 = neviem.
+  hydraulickeVyregulovanieUK: 0 | 1 | 2;  // vykurovací systém
+  hydraulickeVyregulovanieTV: 0 | 1 | 2;  // rozvody teplej vody
+  izolaciaRozvodov: 0 | 1 | 2;            // tepelná izolácia rozvodov tepla a TV
 
   // Elektrická energia
   spotrebaElektriny: number;
@@ -572,7 +571,8 @@ export function createEmptyBudova(): Budova {
     automatickaRegulacia: 0,
     rozdelenieDozOn: 0,
     kurenieHarmonogram: 0,
-    hydraulickeVyregulovanie: 2,
+    hydraulickeVyregulovanieUK: 2,
+    hydraulickeVyregulovanieTV: 2,
     izolaciaRozvodov: 2,
     spotrebaElektriny: 0,
     spotrebaElektrinyNakladyRok: 0,

@@ -17,7 +17,8 @@ function starsiaRelacia() {
   delete json.schemaVersion;
   const budovy = json.budovy as Record<string, unknown>[];
   budovy.forEach((b) => {
-    delete b.hydraulickeVyregulovanie;
+    delete b.hydraulickeVyregulovanieUK;
+    delete b.hydraulickeVyregulovanieTV;
     delete b.izolaciaRozvodov;
   });
   return json;
@@ -39,32 +40,38 @@ describe('verziovanie uložených relácií (issue #177)', () => {
 
   it('chýbajúce odpovede sa po načítaní nastavia na „neviem" (2), nie na „nie"', () => {
     const nacitany = migrateAreal(starsiaRelacia());
-    expect(nacitany.budovy[0].hydraulickeVyregulovanie).toBe(2);
+    expect(nacitany.budovy[0].hydraulickeVyregulovanieUK).toBe(2);
+    expect(nacitany.budovy[0].hydraulickeVyregulovanieTV).toBe(2);
     expect(nacitany.budovy[0].izolaciaRozvodov).toBe(2);
   });
 
-  it('pripomienka vymenuje budovu a obe nové otázky', () => {
+  it('pripomienka vymenuje budovu a všetky tri nové otázky', () => {
     const nacitany = migrateAreal(starsiaRelacia());
     const chybajuce = chybajuceNovePolia(nacitany);
 
     expect(chybajuce).toHaveLength(1);
     expect(chybajuce[0].budovaNazov).toBe('Hlavná budova');
     expect(chybajuce[0].polia).toEqual([
-      'Je sústava hydraulicky vyregulovaná?',
-      'Majú rozvody tepelnú izoláciu?',
+      'Hydraulicky vyregulovaný vykurovací systém',
+      'Hydraulicky vyregulované rozvody teplej vody',
+      'Zaizolované rozvody tepla a teplej vody',
     ]);
   });
 
   it('po zodpovedaní otázky pole z pripomienky zmizne', () => {
     const nacitany = migrateAreal(starsiaRelacia());
-    nacitany.budovy[0].hydraulickeVyregulovanie = 1;
+    nacitany.budovy[0].hydraulickeVyregulovanieUK = 1;
 
-    expect(chybajuceNovePolia(nacitany)[0].polia).toEqual(['Majú rozvody tepelnú izoláciu?']);
+    expect(chybajuceNovePolia(nacitany)[0].polia).toEqual([
+      'Hydraulicky vyregulované rozvody teplej vody',
+      'Zaizolované rozvody tepla a teplej vody',
+    ]);
   });
 
   it('po zodpovedaní všetkých otázok sa pripomienka nezobrazí', () => {
     const nacitany = migrateAreal(starsiaRelacia());
-    nacitany.budovy[0].hydraulickeVyregulovanie = 1;
+    nacitany.budovy[0].hydraulickeVyregulovanieUK = 1;
+    nacitany.budovy[0].hydraulickeVyregulovanieTV = 1;
     nacitany.budovy[0].izolaciaRozvodov = 0;
 
     expect(chybajuceNovePolia(nacitany)).toEqual([]);
@@ -82,13 +89,14 @@ describe('verziovanie uložených relácií (issue #177)', () => {
 describe('zvýraznenie nových polí vo formulári (issue #177)', () => {
   it('nevyplnené nové pole staršej relácie sa zvýrazní', () => {
     const b = createEmptyBudova(); // predvolene „neviem"
-    expect(jeNevyplneneNovePole(1, b, 'hydraulickeVyregulovanie')).toBe(true);
+    expect(jeNevyplneneNovePole(1, b, 'hydraulickeVyregulovanieUK')).toBe(true);
+    expect(jeNevyplneneNovePole(1, b, 'hydraulickeVyregulovanieTV')).toBe(true);
     expect(jeNevyplneneNovePole(1, b, 'izolaciaRozvodov')).toBe(true);
   });
 
   it('v aktuálnej verzii sa nezvýrazňuje nič — „neviem" je legitímny východiskový stav', () => {
     const b = createEmptyBudova();
-    expect(jeNevyplneneNovePole(AKTUALNA_VERZIA_SCHEMY, b, 'hydraulickeVyregulovanie')).toBe(false);
+    expect(jeNevyplneneNovePole(AKTUALNA_VERZIA_SCHEMY, b, 'hydraulickeVyregulovanieUK')).toBe(false);
   });
 
   it('zodpovedané pole sa nezvýrazňuje ani v staršej relácii', () => {

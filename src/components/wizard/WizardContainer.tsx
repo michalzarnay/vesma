@@ -32,8 +32,6 @@ export function WizardContainer() {
     () => (zavretaPripomienkaPre === arealState.areal.id ? [] : chybajuceNovePolia(arealState.areal)),
     [arealState.areal, zavretaPripomienkaPre],
   );
-  const setPripomienkaZavreta = (zavreta: boolean) =>
-    setZavretaPripomienkaPre(zavreta ? arealState.areal.id : null);
   const recommendations = useRecommendations(arealState.areal);
   const step6Unlocked = recommendations.length > 0;
   const effectiveVisitedSteps = useMemo(() => {
@@ -162,7 +160,7 @@ export function WizardContainer() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
         <NovePoliaPripomienka
           chybajuce={chybajucePolia}
-          onZavriet={() => setPripomienkaZavreta(true)}
+          onZavriet={() => setZavretaPripomienkaPre(arealState.areal.id)}
           onPrejstNaBudovy={() => wizard.goToStep(3)}
         />
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">

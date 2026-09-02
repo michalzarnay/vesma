@@ -9,6 +9,7 @@ import { Areal, Budova, Pozemok, BGOpatrenie } from '../types/areal';
 import { AreaComparisonRow } from '../types/comparison';
 import { MZI_PARAMETERS, ENERGIA_PARAMETERS } from '../data/comparisonWeights';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
+import { getParagraf11 } from './paragraf11';
 
 function sheetVahy(): (string | number)[][] {
   const header = ['Oblasť', 'Parameter', 'Váha – sucho', 'Váha – horúčavy', 'Váha – voda'];
@@ -126,7 +127,8 @@ const BUDOVA_HEADER = [
   'Odvod – kanalizácia (%)', 'Odvod – vodný tok (%)', 'Odvod – retenčná nádrž (%)', 'Odvod – neriešený (%)',
   'Zateplenie fasády', 'Termoizolačné okná (%)', 'LED osvetlenie (%)',
   'Počet svietidiel (ks)', 'Z toho LED (ks)',
-  'Hydraulicky vyregulovaná sústava', 'Izolácia rozvodov',
+  'Hydraulicky vyregulované ÚK', 'Hydraulicky vyregulované rozvody TV',
+  'Zaizolované rozvody tepla a TV', 'Dopadá § 11 ods. 1',
   'Kúrenie plynom', 'Kúrenie elektrinou', 'Tepelné čerpadlo', 'Kúrenie peletami', 'Kúrenie CZT',
   'Celková spotreba (kWh)',
   'Fotovoltika', 'Plocha FV (m²)', 'Batériové úložisko (kWh)',
@@ -135,7 +137,7 @@ const BUDOVA_HEADER = [
 
 function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | number)[] {
   const yn = (v: 0 | 1) => v ? 'áno' : 'nie';
-  const ann = (v?: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
+  const ynu = (v: 0 | 1 | 2) => v === 1 ? 'áno' : v === 0 ? 'nie' : 'neviem';
   const typStrechy = (t: number) => t === 1 ? 'plochá' : t === 2 ? 'šikmá' : 'strmá';
   const zateplenie = (z: number) => z === 1 ? 'áno' : z === 2 ? 'čiastočne' : 'nie';
   return [
@@ -147,7 +149,8 @@ function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | numbe
     b.budovaOdvodVodyKanalizacia, b.budovaOdvodVodyVodnyTok, b.budovaOdvodVodyRetencnaNadrz, b.budovaOdvodVodyNerieseny,
     zateplenie(b.zateplenieFasady), b.termoizolacneOkna, b.osvetlenieLED,
     b.osvetleniePocetSvietidiel ?? 0, b.osvetleniePocetSvietidielLED ?? 0,
-    ann(b.hydraulickeVyregulovanie), ann(b.izolaciaRozvodov),
+    ynu(b.hydraulickeVyregulovanieUK), ynu(b.hydraulickeVyregulovanieTV),
+    ynu(b.izolaciaRozvodov), getParagraf11(b).dopada ? 'áno' : 'nie',
     yn(b.kurenePlynom), yn(b.kurenieElektrinou), yn(b.tepelneCerpadlo), yn(b.kureniePeletami), yn(b.kurenieCZT),
     b.celkovaSpotreba ?? 0,
     yn(b.fotovoltika), b.fotovoltikaPlocha, b.bateriovyUlozisko,
