@@ -1,5 +1,5 @@
 import { Budova } from '../../../types/areal';
-import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS, YES_NO_UNKNOWN } from '../../../data/constants';
+import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS } from '../../../data/constants';
 import { TextInput } from '../../ui/TextInput';
 import { NumberInput } from '../../ui/NumberInput';
 import { SelectCard } from '../../ui/SelectCard';
@@ -9,7 +9,6 @@ import { Tooltip } from '../../ui/Tooltip';
 import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
 import { budovaUpdatesFromDocument } from '../../../utils/documentToBudova';
-import { getParagraf11, PARAGRAF_11_PLOCHA_M2 } from '../../../utils/paragraf11';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
 import { computeBudovaEnPI } from '../../../utils/energyIndicators';
 import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
@@ -24,56 +23,6 @@ interface BudovaFormProps {
   arealAdresa?: { adresa: string; obec: string };
   /** Verzia schémy načítanej relácie — podľa nej sa zvýraznia nové nevyplnené polia (issue #177). */
   verziaRelacie?: number;
-}
-
-/**
- * Upozornenie na povinnosti podľa § 11 ods. 1 zákona č. 321/2014 Z. z.
- * Zobrazí sa len pri budovách, na ktoré povinnosti dopadajú (issue #177).
- */
-function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
-  const vysledok = getParagraf11(budova);
-  if (!vysledok.dopada) return null;
-
-  const { nesplnene, nezname } = vysledok;
-  if (nesplnene.length === 0 && nezname.length === 0) {
-    return (
-      <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
-        Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
-        takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> Podľa zadaných
-        údajov sú všetky štyri povinnosti splnené.
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-      <p>
-        Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
-        takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> — vlastník je
-        povinný zabezpečiť:
-      </p>
-      {nesplnene.length > 0 && (
-        <>
-          <p className="mt-2 font-medium">Podľa zadaných údajov nesplnené:</p>
-          <ul className="list-disc list-inside">
-            {nesplnene.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
-          </ul>
-        </>
-      )}
-      {nezname.length > 0 && (
-        <>
-          <p className="mt-2 font-medium">Neviete posúdiť — oplatí sa overiť u správcu budovy:</p>
-          <ul className="list-disc list-inside">
-            {nezname.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
-          </ul>
-        </>
-      )}
-      <p className="mt-2 text-xs">
-        Upozornenie je orientačné. Zákon počíta celkovú podlahovú plochu z vonkajších rozmerov,
-        VESMA pracuje s úžitkovou, a teplovodné vykurovanie odvodzuje zo zadaného zdroja tepla.
-      </p>
-    </div>
-  );
 }
 
 function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>) => void) {

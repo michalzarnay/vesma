@@ -333,12 +333,6 @@ export interface Budova {
   rozdelenieDozOn: 0 | 1;
   kurenieHarmonogram: 0 | 1;
 
-  // Povinnosti podľa § 11 ods. 1 zákona č. 321/2014 Z. z. a bodu 7 prílohy č. 1
-  // vyhlášky č. 179/2015 Z. z. (issue #177). 0 = nie, 1 = áno, 2 = neviem.
-  hydraulickeVyregulovanieUK: 0 | 1 | 2;  // vykurovací systém
-  hydraulickeVyregulovanieTV: 0 | 1 | 2;  // rozvody teplej vody
-  izolaciaRozvodov: 0 | 1 | 2;            // tepelná izolácia rozvodov tepla a TV
-
   // Elektrická energia
   spotrebaElektriny: number;
   spotrebaElektrinyNakladyRok: number; // EUR/rok (issue #173)
@@ -571,9 +565,6 @@ export function createEmptyBudova(): Budova {
     automatickaRegulacia: 0,
     rozdelenieDozOn: 0,
     kurenieHarmonogram: 0,
-    hydraulickeVyregulovanieUK: 2,
-    hydraulickeVyregulovanieTV: 2,
-    izolaciaRozvodov: 2,
     spotrebaElektriny: 0,
     spotrebaElektrinyNakladyRok: 0,
     vyrobaElektriny: 0,
