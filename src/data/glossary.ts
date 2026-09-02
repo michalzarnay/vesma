@@ -80,6 +80,18 @@ export const glossary: Record<string, GlossaryEntry> = {
     example: 'Budova kúrená elektrinou má vyššiu primárnu energiu než rovnaká budova na drevo, hoci v budove spotrebujú rovnako — elektrina má vyššie straty pri výrobe.',
     whereToFind: 'Nájdete ju v energetickom certifikáte v riadku globálneho ukazovateľa.',
   },
+  hydraulickeVyregulovanieDef: {
+    term: 'Hydraulické vyregulovanie',
+    definition: 'Nastavenie prietoku vody vo vykurovacom systéme tak, aby sa teplo dostalo rovnomerne do všetkých miestností. Bez neho býva pri kotolni prekúrené a na konci rozvodov zima — a kúri sa zbytočne viac, aby aj tie vzdialené miestnosti boli teplé.',
+    example: 'Poznáte to podľa toho, že v niektorých miestnostiach musíte mať radiátor stále naplno a inde ho zaškrcujete.',
+    whereToFind: 'Vie to správca budovy alebo kúrenár. Robí sa pomocou regulačných ventilov na stúpačkách a radiátoroch.',
+  },
+  izolaciaRozvodovDef: {
+    term: 'Izolácia rozvodov',
+    definition: 'Tepelná izolácia potrubí, ktorými sa rozvádza teplo a teplá voda. Neizolované potrubie v nevykurovanom priestore (suterén, šachta) odovzdáva teplo tam, kde ho nikto nevyužije.',
+    example: 'Holé kovové potrubie v suteréne je neizolované; potrubie obalené sivým penovým alebo minerálnym púzdrom izolované je.',
+    whereToFind: 'Vidno pohľadom v kotolni, suteréne alebo v technických šachtách.',
+  },
   retenciaVodyDef: {
     term: 'Retencia vody',
     definition: 'Schopnosť areálu zadržať dažďovú vodu a spomaliť jej odtok do kanalizácie alebo vodného toku.',
