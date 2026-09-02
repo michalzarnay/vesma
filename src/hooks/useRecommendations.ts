@@ -3,6 +3,7 @@ import { Areal } from '../types/areal';
 import { Odporucanie, Priorita } from '../types/catalog';
 import { katalogOpatreni } from '../data/catalog';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
+import { pocetNieLedSvietidiel, podielLED } from '../utils/lighting';
 
 function findOpatrenie(id: string) {
   return katalogOpatreni.find((o) => o.id === id);
@@ -60,6 +61,7 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     let hasStareKurenie = false;
     let hasUhlieDrevo = false;
     let hasBezLED = false;
+    let totalNieLedSvietidiel = 0;
     let hasBezTermohlavic = false;
     let hasPoorEnergyClass = false;
     let poorEnergyClassLabel = '';
@@ -79,7 +81,9 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
       if (b.termoizolacneOkna < 50) hasStareOkna = true;
       if (b.rekuperacia === 0) hasBezRekuperacie = true;
       if (b.kurenieUhlimDrevom > 0) hasUhlieDrevo = true;
-      if (b.osvetlenieLED < 50) hasBezLED = true;
+      // Podiel LED z počtu svietidiel, keď je zadaný, inak z percenta (issue #183)
+      if (podielLED(b) < 0.5) hasBezLED = true;
+      totalNieLedSvietidiel += pocetNieLedSvietidiel(b);
       if (b.termohlavice === 0 && (b.kurenePlynom === 1 || b.tepelneCerpadlo === 1)) hasBezTermohlavic = true;
       // Staršia budova na plyne bez biomasy — kotol na biomasu je alternatíva k TČ (issue #182)
       if (b.kurenePlynom === 1 && b.vystavbaPred1980 === 1 && b.kureniePeletami === 0 && b.kurenieStiepkou === 0) {
@@ -191,7 +195,13 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     }
 
     if (hasBezLED) {
-      addRec(recs, 'led-osvetlenie', 'nízka', 'Niektoré budovy majú menej ako 50% LED osvetlenia.');
+      addRec(
+        recs, 'led-osvetlenie', 'nízka',
+        'Niektoré budovy majú menej ako 50 % LED osvetlenia.',
+        totalNieLedSvietidiel > 0
+          ? `Na výmenu je ${totalNieLedSvietidiel} ${totalNieLedSvietidiel === 1 ? 'svietidlo' : totalNieLedSvietidiel < 5 ? 'svietidlá' : 'svietidiel'}.`
+          : undefined,
+      );
     }
 
     // Sort by priority

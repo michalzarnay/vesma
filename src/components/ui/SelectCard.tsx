@@ -15,17 +15,23 @@ interface SelectCardProps {
   tooltipKey?: string;
   tooltipText?: string;
   layout?: 'horizontal' | 'vertical';
+  /** Nevyplnené nové pole po načítaní staršej relácie — orámuje sa červeno (issue #177). */
+  highlight?: boolean;
 }
 
 export function SelectCard({
   label, options, value, onChange, tooltipKey, tooltipText, layout = 'horizontal',
+  highlight = false,
 }: SelectCardProps) {
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${highlight ? 'border-2 border-red-400 rounded-xl p-3 bg-red-50/40' : ''}`}>
       <label className="block text-sm font-medium text-gray-700 flex items-center">
         {label}
         {(tooltipKey || tooltipText) && <Tooltip glossaryKey={tooltipKey} text={tooltipText} />}
         <FeedbackButton fieldLabel={label} />
+        {highlight && (
+          <span className="ml-2 text-xs font-normal text-red-600">nové pole — doplňte</span>
+        )}
       </label>
       <div className={`flex gap-2 ${layout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}>
         {options.map((option) => {

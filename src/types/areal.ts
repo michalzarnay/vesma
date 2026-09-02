@@ -10,6 +10,16 @@ export interface MediaItem {
   datumNahratia: string;
 }
 
+/**
+ * Verzia schémy uloženej relácie (issue #177).
+ * Zvýš ju vždy, keď pribudnú polia, ktoré má používateľ v starších reláciách doplniť,
+ * a doplň ich zoznam do `NOVE_POLIA_VO_VERZII` v `src/utils/schemaVersion.ts`.
+ *
+ * 1 = stav pred zavedením verziovania (relácie bez poľa `schemaVersion`)
+ * 2 = otázky o rozvodoch tepla (hydraulické vyregulovanie ÚK a TV, izolácia rozvodov)
+ */
+export const AKTUALNA_VERZIA_SCHEMY = 2;
+
 export interface ScoringWeights {
   mzi: number;
   oze: number;
@@ -61,6 +71,8 @@ export const FIRMA_TYPY_S_KAPACITOU = ['gastro', 'hotel', 'obchod'] as const;
 
 export interface Areal {
   id: string;
+  /** Verzia schémy, v ktorej bola relácia naposledy uložená (issue #177). */
+  schemaVersion?: number;
   nazov: string;
   adresa: string;
   krajina: string;
@@ -244,7 +256,11 @@ export interface Budova {
   celkovaPlochaPresklenia: number;       // m2, nové
   termoizolacneOkna: number;            // %
   vekTermoizolacnychOkien: number;      // rok (vážený priemer), nové
-  osvetlenieLED: number;                // %
+  osvetlenieLED: number;                // %, záložný údaj — použije sa, keď počet svietidiel nie je známy
+  // Počet svietidiel je presnejší než percento (issue #183). Nepovinné —
+  // v reláciách uložených pred touto zmenou polia chýbajú.
+  osvetleniePocetSvietidiel?: number;    // ks celkom
+  osvetleniePocetSvietidielLED?: number; // z toho LED, ks
   objemVyvetranehoPrezduchu: number;    // m3/deň, nové
 
   // Rekuperácia — detailná (v2_4)
@@ -508,6 +524,8 @@ export function createEmptyBudova(): Budova {
     termoizolacneOkna: 0,
     vekTermoizolacnychOkien: 0,
     osvetlenieLED: 0,
+    osvetleniePocetSvietidiel: 0,
+    osvetleniePocetSvietidielLED: 0,
     objemVyvetranehoPrezduchu: 0,
     rekuperacia: 0,
     rekuperaciaCentralnaUcinnost: 0,
@@ -619,6 +637,7 @@ export function createEmptyBGOpatrenie(): BGOpatrenie {
 export function createEmptyAreal(): Areal {
   return {
     id: crypto.randomUUID(),
+    schemaVersion: AKTUALNA_VERZIA_SCHEMY,
     nazov: '',
     adresa: '',
     krajina: 'Slovensko',

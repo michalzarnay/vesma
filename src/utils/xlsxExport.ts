@@ -131,7 +131,7 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     // Úspory
     'Materiál obvodových stien', 'Zateplenie fasády', 'Materiál zateplenia fasády',
     'Plocha presklenia (m²)', 'Termoizolačné okná (%)', 'Vek termoizol. okien (rok)',
-    'LED osvetlenie (%)', 'Objem vetrávania (m³/deň)',
+    'LED osvetlenie (%)', 'Počet svietidiel (ks)', 'Z toho LED (ks)', 'Objem vetrávania (m³/deň)',
     // Rekuperácia
     'Rekuperácia', 'Centrálna – účinnosť (%)',
     'Lokálne do 75% (ks)', 'Lokálne 76–89% (ks)', 'Lokálne 90%+ (ks)',
@@ -173,7 +173,8 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
     yn(b.vyuzitieDazdovejVodyVObjekte),
     b.obvodoveStenyMaterial, zateplenie(b.zateplenieFasady), b.zateplenieFasadyMaterial,
     b.celkovaPlochaPresklenia, b.termoizolacneOkna, b.vekTermoizolacnychOkien || '',
-    b.osvetlenieLED, b.objemVyvetranehoPrezduchu,
+    b.osvetlenieLED, b.osvetleniePocetSvietidiel ?? 0, b.osvetleniePocetSvietidielLED ?? 0,
+    b.objemVyvetranehoPrezduchu,
     yn(b.rekuperacia), b.rekuperaciaCentralnaUcinnost,
     b.rekuperaciaLokalnaDo75, b.rekuperaciaLokalnaOd76do89, b.rekuperaciaLokalnaOd90,
     ynu(b.hydraulickeVyregulovanieUK), ynu(b.hydraulickeVyregulovanieTV),

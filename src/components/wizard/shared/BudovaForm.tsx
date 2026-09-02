@@ -12,6 +12,8 @@ import { budovaUpdatesFromDocument } from '../../../utils/documentToBudova';
 import { getParagraf11, PARAGRAF_11_PLOCHA_M2 } from '../../../utils/paragraf11';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
 import { computeBudovaEnPI } from '../../../utils/energyIndicators';
+import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
+import { jeNevyplneneNovePole } from '../../../utils/schemaVersion';
 import { apiUrl } from '../../../utils/apiUrl';
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -20,6 +22,8 @@ interface BudovaFormProps {
   budova: Budova;
   onChange: (data: Partial<Budova>) => void;
   arealAdresa?: { adresa: string; obec: string };
+  /** Verzia schémy načítanej relácie — podľa nej sa zvýraznia nové nevyplnené polia (issue #177). */
+  verziaRelacie?: number;
 }
 
 /**
@@ -79,7 +83,9 @@ function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>)
 
 const fmt = (n: number, digits = 0) => n.toLocaleString('sk', { maximumFractionDigits: digits });
 
-export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
+export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: BudovaFormProps) {
+  const zvyrazniNovePole = (pole: keyof Budova) =>
+    verziaRelacie !== undefined && jeNevyplneneNovePole(verziaRelacie, budova, pole);
   const [svpLoading, setSvpLoading] = useState(false);
   const [svpMsg, setSvpMsg] = useState<string | null>(null);
   const enpi = computeBudovaEnPI(budova);
@@ -473,6 +479,23 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           placeholder="napr. 2015"
           tooltipText="Rok, kedy boli termoizolačné okná namontované (vážený priemer pri viacerých etapách)."
         />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NumberInput
+            label="Počet svietidiel celkom"
+            value={budova.osvetleniePocetSvietidiel ?? 0}
+            onChange={(v) => onChange({ osvetleniePocetSvietidiel: v })}
+            unit="ks"
+            tooltipText="Presnejší údaj než percento LED. Ak počet nepoznáte, nechajte 0 a vyplňte percento LED nižšie — aplikácia si potom príkon osvetlenia odhadne z plochy budovy."
+          />
+          <NumberInput
+            label="Z toho LED svietidiel"
+            value={budova.osvetleniePocetSvietidielLED ?? 0}
+            onChange={(v) => onChange({ osvetleniePocetSvietidielLED: v })}
+            unit="ks"
+            max={budova.osvetleniePocetSvietidiel || undefined}
+            tooltipText="Koľko z celkového počtu svietidiel je už LED."
+          />
+        </div>
         <NumberInput
           label="LED osvetlenie (% zo všetkých svietidiel)"
           value={budova.osvetlenieLED}
@@ -480,8 +503,15 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           unit="%"
           max={100}
           step={10}
-          tooltipText="Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30%."
+          disabled={maPocetSvietidiel(budova)}
+          tooltipText="Záložný údaj pre prípad, že počet svietidiel nepoznáte. Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30%."
         />
+        {maPocetSvietidiel(budova) && (
+          <p className="text-xs text-gray-500 -mt-2">
+            Podiel LED sa počíta z počtu svietidiel: <span className="font-medium">{fmt(podielLED(budova) * 100)} %</span>.
+            Percento vyššie sa nepoužije.
+          </p>
+        )}
         <NumberInput
           label="Objem vyvetrávaného vzduchu"
           value={budova.objemVyvetranehoPrezduchu}
@@ -772,6 +802,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.hydraulickeVyregulovanieUK}
             onChange={(v) => onChange({ hydraulickeVyregulovanieUK: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieUK')}
             tooltipKey="hydraulickeVyregulovanieDef"
           />
           <SelectCard
@@ -779,6 +810,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.hydraulickeVyregulovanieTV}
             onChange={(v) => onChange({ hydraulickeVyregulovanieTV: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieTV')}
             tooltipKey="hydraulickeVyregulovanieDef"
           />
           <SelectCard
@@ -786,6 +818,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             options={YES_NO_UNKNOWN}
             value={budova.izolaciaRozvodov}
             onChange={(v) => onChange({ izolaciaRozvodov: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('izolaciaRozvodov')}
             tooltipKey="izolaciaRozvodovDef"
           />
         </div>
