@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Areal } from '../types/areal';
 import { ScoreResult, MZIScore, OZEScore, EnergiaScore } from '../types/scoring';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
+import { podielLED } from '../utils/lighting';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -218,8 +219,8 @@ function calculateEnergia(areal: Areal): EnergiaScore {
   let vetScore = 0;
   for (const b of budovy) {
     if (b.rekuperacia === 1) vetScore += 15;
-    // LED
-    const ledBonus = (b.osvetlenieLED / 100) * 10;
+    // LED — podiel z počtu svietidiel, keď je zadaný, inak z percenta (issue #183)
+    const ledBonus = podielLED(b) * 10;
     vetScore += ledBonus;
   }
   const vetranie = clamp(Math.round(vetScore / budovy.length), 0, 25);

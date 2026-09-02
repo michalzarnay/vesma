@@ -166,6 +166,42 @@ describe('computeAreaComparisonScore', () => {
     const score = computeAreaComparisonScore(areal);
     expect(score.energia).toBe(500 * 3);
   });
+
+  it('osvetlenie sa počíta z odhadu príkonu vo wattoch, nie z m² (issue #183)', () => {
+    const areal = createEmptyAreal();
+    areal.typObjektu = 'urad'; // kategória kancelárie → 6 W/m²
+    areal.budovy[0].uzitkovaPlochaNUS = 1000;
+    areal.budovy[0].osvetlenieLED = 0;
+
+    // 1000 m² × 6 W/m² = 6000 W príkonu, celý nie-LED, váha 0,5
+    expect(prispevokEnergia(areal, 'energia_osvetlenie_nie_led')).toBeCloseTo(6000 * 0.5);
+    expect(prispevokEnergia(areal, 'energia_odratat_led')).toBeCloseTo(0);
+  });
+
+  it('typ objektu mení odhad príkonu osvetlenia — hala a predajňa rovnakej plochy nie sú rovnaké (issue #183)', () => {
+    const hala = createEmptyAreal();
+    hala.typObjektu = 'sklad'; // 5 W/m²
+    hala.budovy[0].uzitkovaPlochaNUS = 1000;
+
+    const predajna = createEmptyAreal();
+    predajna.typObjektu = 'obchod'; // 12 W/m²
+    predajna.budovy[0].uzitkovaPlochaNUS = 1000;
+
+    expect(prispevokEnergia(hala, 'energia_osvetlenie_nie_led')).toBeCloseTo(5000 * 0.5);
+    expect(prispevokEnergia(predajna, 'energia_osvetlenie_nie_led')).toBeCloseTo(12000 * 0.5);
+  });
+
+  it('podiel LED z počtu svietidiel má prednosť pred percentom (issue #183)', () => {
+    const areal = createEmptyAreal();
+    areal.typObjektu = 'urad';
+    areal.budovy[0].uzitkovaPlochaNUS = 1000;
+    areal.budovy[0].osvetlenieLED = 100;              // percento tvrdí 100 % LED
+    areal.budovy[0].osvetleniePocetSvietidiel = 40;   // počet tvrdí 25 % LED
+    areal.budovy[0].osvetleniePocetSvietidielLED = 10;
+
+    expect(prispevokEnergia(areal, 'energia_osvetlenie_nie_led')).toBeCloseTo(6000 * 0.75 * 0.5);
+    expect(prispevokEnergia(areal, 'energia_odratat_led')).toBeCloseTo(6000 * 0.25 * -0.17);
+  });
 });
 
 describe('rankAreaComparisons', () => {

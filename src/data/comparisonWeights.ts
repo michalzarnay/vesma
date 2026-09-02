@@ -34,6 +34,7 @@
 import { Areal, Budova, Pozemok } from '../types/areal';
 import { Hrozba } from '../types/comparison';
 import { getPlochaObvodovehoPlasta, getPlochaStrechyPreFV, getVykurovanaPlocha } from '../utils/calculations';
+import { prikonLedOsvetleniaW, prikonNieLedOsvetleniaW } from '../utils/lighting';
 
 export interface MziParameter {
   key: string;
@@ -222,11 +223,20 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     vaha: 4,
     getValue: (areal) => sum(areal.budovy, (b) => b.vystavbaPred1980 === 1 ? plochaBudovy(b) : 0),
   },
+  // Osvetlenie (issue #183) — veličinou je odhad inštalovaného príkonu vo wattoch,
+  // nie m² úžitkovej plochy. Podiel LED sa berie z počtu svietidiel, keď je zadaný,
+  // inak z percenta. Príkon odhaduje konfiguračná tabuľka W/m² podľa typu objektu
+  // (src/data/lightingPowerDensity.ts).
+  //
+  // PREPOČET VÁHY podľa novej veličiny: pôvodná váha 3 platila pre m². Pri
+  // predvolenej hustote 6 W/m² je hodnota parametra šesťnásobná, preto 3 ÷ 6 = 0,5.
+  // Vplyv parametra na poradie areálov teda ostáva rovnaký ako predtým;
+  // zmenila sa jednotka, nie dôležitosť. Na doladenie expertom.
   {
     key: 'energia_osvetlenie_nie_led',
-    nazov: 'Osvetlenie nie-LED → potenciál výmeny (aproximácia cez užitkovú plochu)',
-    vaha: 3,
-    getValue: (areal) => sum(areal.budovy, (b) => b.uzitkovaPlochaNUS * ((100 - b.osvetlenieLED) / 100)),
+    nazov: 'Osvetlenie nie-LED → potenciál výmeny (odhad inštalovaného príkonu, W)',
+    vaha: 0.5,
+    getValue: (areal) => sum(areal.budovy, (b) => prikonNieLedOsvetleniaW(b, areal.typObjektu)),
   },
   {
     key: 'energia_odratat_fv',
@@ -252,9 +262,10 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     getValue: (areal) => sum(areal.budovy, (b) => b.tepelneCerpadlo === 1 ? plochaBudovy(b) : 0),
   },
   {
+    // Prepočet váhy rovnako ako pri parametri vyššie: −1 ÷ 6 W/m² ≈ −0,17.
     key: 'energia_odratat_led',
-    nazov: 'Odrátať existujúce riešenia: LED osvetlenie (aproximácia cez užitkovú plochu)',
-    vaha: -1,
-    getValue: (areal) => sum(areal.budovy, (b) => b.uzitkovaPlochaNUS * (b.osvetlenieLED / 100)),
+    nazov: 'Odrátať existujúce riešenia: LED osvetlenie (odhad inštalovaného príkonu, W)',
+    vaha: -0.17,
+    getValue: (areal) => sum(areal.budovy, (b) => prikonLedOsvetleniaW(b, areal.typObjektu)),
   },
 ];
