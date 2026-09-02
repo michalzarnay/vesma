@@ -178,6 +178,9 @@ export interface Pozemok {
 
   // Prekoreniteľný priestor
   prekorenetelnyPriestorPreStromy: number;        // m2
+
+  // Potenciál OZE na pozemku (issue #184)
+  plochaVhodnaPreFV: number; // m2 — plocha pozemku vhodná pre FV alebo solárne kolektory
 }
 
 export interface Budova {
@@ -187,6 +190,7 @@ export interface Budova {
   listVlastnictva: string;
   plochaPodorysu: number;    // m2
   uzitkovaPlochaNUS: number; // m2
+  vykurovanaPlocha: number;  // m2 — vykurovaná plocha (issue #181); predvypĺňa sa z úžitkovej, 0 = použije sa úžitková
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
 
   // Využitie objektu
@@ -219,6 +223,7 @@ export interface Budova {
   potencialZelenejStrechy?: number; // m2, auto
   strechaOrientovanaPlochaNaJuh: number; // m2
   fasadaOrientovanaNaJuh: number; // m2
+  plochaObvodovehoPlasta: number; // m2 — celá fasáda (všetky orientácie, vrátane otvorov), issue #176; 0 = odhad z pôdorysu
   strechaTvarKrovu?: string;
 
   // Voda a splašky
@@ -249,23 +254,29 @@ export interface Budova {
   rekuperaciaLokalnaOd76do89: number;    // počet
   rekuperaciaLokalnaOd90: number;        // počet
 
+  // Rok, za ktorý sú uvedené ročné spotreby a náklady (issue #172); 0 = neuvedené
+  spotrebaRok: number;
+
   // Vykurovanie - Plyn
   kurenePlynom: 0 | 1;
   kureniePlynRokInstalacie: number;
   kureniePlynVykon: number;
   kureniePlynSpotreba: number;
+  kureniePlynNakladyRok: number; // EUR/rok (issue #173)
 
   // Vykurovanie - Elektrina
   kurenieElektrinou: 0 | 1;
   kurenieElektrinaRokInstalacie: number;
   kurenieElektrinaVykon: number;
   kurenieElektrinaSpotreba: number;
+  kurenieElektrinaNakladyRok: number; // EUR/rok
 
   // Vykurovanie - TČ
   tepelneCerpadlo: 0 | 1;
   tepelneCerpadloRokInstalacie: number;
   tepelneCerpadloVykon: number;
   tepelneCerpadloSpotreba: number;
+  tepelneCerpadloNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Pelety
   kureniePeletami: 0 | 1;
@@ -273,6 +284,7 @@ export interface Budova {
   kureniePeletyVykon: number;
   kureniePeletySpotreba_kg: number;
   kureniePeletySpotreba_kWh?: number; // auto
+  kureniePeletyNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Štiepka
   kurenieStiepkou: 0 | 1;
@@ -280,6 +292,7 @@ export interface Budova {
   kurenieStiepkaVykon: number;
   kurenieStiepkaSpotreba_kg: number;
   kurenieStiepkaSpotreba_kWh?: number; // auto
+  kurenieStiepkaNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Uhlie/Drevo
   kurenieUhlimDrevom: 0 | 1 | 2;
@@ -287,13 +300,15 @@ export interface Budova {
   kurenieUhlimDrevomVykon: number;
   kurenieUhlimDrevomSpotreba_kg: number;
   kurenieUhlimDrevomSpotreba_kWh?: number; // auto
+  kurenieUhlimDrevomNakladyRok: number; // EUR/rok
 
   // Vykurovanie - CZT
   kurenieCZT: 0 | 1;
   kurenieCZTSpotreba: number;
-  kurenieCZTCenaKWh: number;
+  kurenieCZTCenaKWh: number; // EUR/kWh — ročné náklady CZT sa počítajú ako spotreba × cena
 
-  celkovaSpotreba?: number; // auto
+  celkovaSpotreba?: number; // auto, kWh/rok — súčet všetkých zdrojov kúrenia
+  celkoveNakladyKurenie?: number; // auto, EUR/rok — súčet ročných nákladov všetkých zdrojov kúrenia
 
   // Vykurovacie telesá
   vykurovacieTelesaDruh: string;
@@ -304,6 +319,7 @@ export interface Budova {
 
   // Elektrická energia
   spotrebaElektriny: number;
+  spotrebaElektrinyNakladyRok: number; // EUR/rok (issue #173)
   vyrobaElektriny: number;
   fotovoltika: 0 | 1;
   fotovoltikaPlocha: number;
@@ -334,9 +350,8 @@ export interface Budova {
   zelenaStenaBudov: number;
   solarnePanelyPlocha: number;
 
-  // Expert / computed
-  normovanaSpotreba?: number;
-  kategoriaEnergetickejNarocnosti?: string;
+  // Merná spotreba (kWh/(m²·rok)) sa nepersistuje — počíta ju
+  // src/utils/energyIndicators.ts z nameranej spotreby a vykurovanej plochy (issue #171).
 }
 
 export interface InaStavba {
@@ -425,6 +440,7 @@ export function createEmptyPozemok(): Pozemok {
     vsakovaciaPrehlbenaBezpecnostnyPrepad: 0,
     vsakovaciaPrehlbenaRegulovanyOdtok: 0,
     prekorenetelnyPriestorPreStromy: 0,
+    plochaVhodnaPreFV: 0,
   };
 }
 
@@ -436,6 +452,7 @@ export function createEmptyBudova(): Budova {
     listVlastnictva: '',
     plochaPodorysu: 0,
     uzitkovaPlochaNUS: 0,
+    vykurovanaPlocha: 0,
     vyuzitieDniVRoku: 0,
     vyuzitieMesiacovVRoku: 0,
     vyuzitieHodinDenne: 0,
@@ -460,6 +477,7 @@ export function createEmptyBudova(): Budova {
     strechaProblemy: 0,
     strechaOrientovanaPlochaNaJuh: 0,
     fasadaOrientovanaNaJuh: 0,
+    plochaObvodovehoPlasta: 0,
     splaskovod: 1,
     zvodyDazdovejVody: 1,
     budovaOdvodVodyKanalizacia: 0,
@@ -482,30 +500,37 @@ export function createEmptyBudova(): Budova {
     rekuperaciaLokalnaDo75: 0,
     rekuperaciaLokalnaOd76do89: 0,
     rekuperaciaLokalnaOd90: 0,
+    spotrebaRok: 0,
     kurenePlynom: 0,
     kureniePlynRokInstalacie: 0,
     kureniePlynVykon: 0,
     kureniePlynSpotreba: 0,
+    kureniePlynNakladyRok: 0,
     kurenieElektrinou: 0,
     kurenieElektrinaRokInstalacie: 0,
     kurenieElektrinaVykon: 0,
     kurenieElektrinaSpotreba: 0,
+    kurenieElektrinaNakladyRok: 0,
     tepelneCerpadlo: 0,
     tepelneCerpadloRokInstalacie: 0,
     tepelneCerpadloVykon: 0,
     tepelneCerpadloSpotreba: 0,
+    tepelneCerpadloNakladyRok: 0,
     kureniePeletami: 0,
     kureniePeletyRokInstalacie: 0,
     kureniePeletyVykon: 0,
     kureniePeletySpotreba_kg: 0,
+    kureniePeletyNakladyRok: 0,
     kurenieStiepkou: 0,
     kurenieStiepkaRokInstalacie: 0,
     kurenieStiepkaVykon: 0,
     kurenieStiepkaSpotreba_kg: 0,
+    kurenieStiepkaNakladyRok: 0,
     kurenieUhlimDrevom: 0,
     kurenieUhlimDrevomRokInstalacie: 0,
     kurenieUhlimDrevomVykon: 0,
     kurenieUhlimDrevomSpotreba_kg: 0,
+    kurenieUhlimDrevomNakladyRok: 0,
     kurenieCZT: 0,
     kurenieCZTSpotreba: 0,
     kurenieCZTCenaKWh: 0,
@@ -515,6 +540,7 @@ export function createEmptyBudova(): Budova {
     rozdelenieDozOn: 0,
     kurenieHarmonogram: 0,
     spotrebaElektriny: 0,
+    spotrebaElektrinyNakladyRok: 0,
     vyrobaElektriny: 0,
     fotovoltika: 0,
     fotovoltikaPlocha: 0,

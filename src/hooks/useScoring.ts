@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
 import { ScoreResult, MZIScore, OZEScore, EnergiaScore } from '../types/scoring';
+import { getPlochaStrechyPreFV } from '../utils/calculations';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -92,26 +93,27 @@ export function calculateMZI(areal: Areal): MZIScore {
   return { celkove, podielPriepustnychPloch, existujuceOpatrenia, stavZelene, potencialZlepsenia };
 }
 
-function calculateOZE(areal: Areal): OZEScore {
+export function calculateOZE(areal: Areal): OZEScore {
   const budovy = areal.budovy;
   if (budovy.length === 0) return { celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0, potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0 };
 
-  // 1. Vhodnost strechy pre solar (0-30)
-  let totalJuznaPlochaBudov = 0;
+  // 1. Vhodnost strechy pre solar (0-30) — iba ploché / málo šikmé strechy do 15° (issue #179)
+  let totalPlochaPreFV = 0;
   let totalPlochaBudov = 0;
   let goodRoofCount = 0;
 
   for (const b of budovy) {
-    totalJuznaPlochaBudov += b.strechaOrientovanaPlochaNaJuh;
+    const plochaPreFV = getPlochaStrechyPreFV(b);
+    totalPlochaPreFV += plochaPreFV;
     totalPlochaBudov += b.plochaPodorysu;
-    if (b.strechaOrientovanaPlochaNaJuh > 0 && b.strechaProblemy === 0) {
+    if (plochaPreFV > 0 && b.strechaProblemy === 0) {
       goodRoofCount++;
     }
   }
 
   let solarScore = 0;
   if (totalPlochaBudov > 0) {
-    solarScore += (totalJuznaPlochaBudov / totalPlochaBudov) * 15;
+    solarScore += (totalPlochaPreFV / totalPlochaBudov) * 15;
   }
   if (goodRoofCount > 0) solarScore += Math.min(goodRoofCount * 5, 15);
   const vhodnostStrechyPreSolar = clamp(Math.round(solarScore), 0, 30);
@@ -146,10 +148,10 @@ function calculateOZE(areal: Areal): OZEScore {
   // 4. Potencial dalsich OZE (0-25)
   let dalsieOZE = 0;
   for (const b of budovy) {
-    // Unused south-facing roof area
-    const unusedJuh = b.strechaOrientovanaPlochaNaJuh - b.fotovoltikaPlocha - b.solarnePanelyPlocha;
-    if (unusedJuh > 50) dalsieOZE += 8;
-    else if (unusedJuh > 20) dalsieOZE += 4;
+    // Unused flat-roof area suitable for FV (issue #179)
+    const unusedFV = getPlochaStrechyPreFV(b) - b.fotovoltikaPlocha - b.solarnePanelyPlocha;
+    if (unusedFV > 50) dalsieOZE += 8;
+    else if (unusedFV > 20) dalsieOZE += 4;
 
     // PC network = smart grid ready
     if (b.pocitacovaSiet === 1) dalsieOZE += 3;

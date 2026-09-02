@@ -114,6 +114,58 @@ describe('computeAreaComparisonScore', () => {
 
     expect(prispevokEnergia(areal, 'energia_odratat_tc')).toBe(300 * -1);
   });
+
+  it('FV potenciál striech počíta iba z plochých / málo šikmých striech do 15° (issue #179)', () => {
+    const plocha = createEmptyAreal();
+    plocha.budovy[0].strechaTyp = 1;
+    plocha.budovy[0].strechaOrientovanaPlochaNaJuh = 200;
+    plocha.budovy[0].strechaZateplenie = 1;
+    plocha.budovy[0].zateplenieFasady = 1;
+    expect(computeAreaComparisonScore(plocha).energia).toBe(200 * 10);
+
+    const sikma = createEmptyAreal();
+    sikma.budovy[0].strechaTyp = 2;
+    sikma.budovy[0].strechaOrientovanaPlochaNaJuh = 200;
+    sikma.budovy[0].strechaZateplenie = 1;
+    sikma.budovy[0].zateplenieFasady = 1;
+    expect(computeAreaComparisonScore(sikma).energia).toBe(0);
+  });
+
+  it('nezateplená obálka sa počíta z celého obvodového plášťa, nie z južnej fasády (issue #176)', () => {
+    const areal = createEmptyAreal();
+    areal.budovy[0].zateplenieFasady = 0;
+    areal.budovy[0].strechaZateplenie = 1; // strecha zateplená → do parametra ide iba fasáda
+    areal.budovy[0].plochaObvodovehoPlasta = 900;
+    areal.budovy[0].fasadaOrientovanaNaJuh = 100;
+
+    const score = computeAreaComparisonScore(areal);
+    // váha 8 pre nezateplenú obálku, −2 za zateplenú strechu s pôdorysom 0 → 0
+    expect(score.energia).toBe(900 * 8);
+  });
+
+  it('rovnaká obálka s inou južnou orientáciou dáva rovnaký potenciál (issue #176)', () => {
+    const a = createEmptyAreal();
+    a.budovy[0].zateplenieFasady = 0;
+    a.budovy[0].strechaZateplenie = 1;
+    a.budovy[0].plochaObvodovehoPlasta = 900;
+    a.budovy[0].fasadaOrientovanaNaJuh = 400;
+
+    const b = createEmptyAreal();
+    b.budovy[0].zateplenieFasady = 0;
+    b.budovy[0].strechaZateplenie = 1;
+    b.budovy[0].plochaObvodovehoPlasta = 900;
+    b.budovy[0].fasadaOrientovanaNaJuh = 50;
+
+    expect(computeAreaComparisonScore(a).energia).toBe(computeAreaComparisonScore(b).energia);
+  });
+
+  it('plocha pozemku vhodná pre FV vstupuje do energetického skóre s váhou 3 (issue #184)', () => {
+    const areal = createEmptyAreal();
+    areal.pozemky[0].plochaVhodnaPreFV = 500;
+
+    const score = computeAreaComparisonScore(areal);
+    expect(score.energia).toBe(500 * 3);
+  });
 });
 
 describe('rankAreaComparisons', () => {

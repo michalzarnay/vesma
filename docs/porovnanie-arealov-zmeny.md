@@ -35,24 +35,35 @@ Implementované 2026-08-13 na základe zadania a dvoch priložených súborov:
 2. **Aproximácie pri energetických parametroch** (kde presné pole
    neexistuje, ale dá sa rozumne odvodiť z existujúcich polí — bez zmeny
    dátového modelu):
-   - „Plocha striech vhodných pre FV (orientácia J/V/Z/JV/JZ)" →
-     použité `strechaOrientovanaPlochaNaJuh` (appka eviduje iba orientáciu
-     na juh, nie ostatné svetové strany).
-   - „Nezateplená fasáda/strecha" a jej odpočet → odvodené zo
-     `strechaZateplenie`/`zateplenieFasady` (0/1/2) krát `plochaPodorysu`
-     resp. `fasadaOrientovanaNaJuh` (čiastočné zateplenie = 50 %).
+   - ~~„Plocha striech vhodných pre FV (orientácia J/V/Z/JV/JZ)" →
+     použité `strechaOrientovanaPlochaNaJuh`~~ — **zmenené (issue #179,
+     pripomienka energetického experta):** započítava sa iba plochá / málo
+     šikmá strecha do 15° (`strechaTyp === 1`), kde pole
+     `strechaOrientovanaPlochaNaJuh` znamená „využiteľná plocha strechy".
+     Šikmé a strmé strechy sa nezapočítavajú bez ohľadu na orientáciu.
+     Rovnaký filter platí v skóre OZE (`useScoring.calculateOZE`)
+     a v odporúčaniach fotovoltiky a solárnych kolektorov.
+   - ~~„Nezateplená fasáda/strecha" a jej odpočet → `fasadaOrientovanaNaJuh`~~
+     — **opravené (issue #176):** fasáda sa počíta z celého obvodového
+     plášťa — nové pole `Budova.plochaObvodovehoPlasta`; ak nie je
+     vyplnené, odhadne sa ako obvod štvorcového pôdorysu (4·√pôdorys) ×
+     počet podlaží (úžitková / pôdorys, min. 1) × 3,3 m
+     (`getPlochaObvodovehoPlasta` v `src/utils/calculations.ts`).
+     Strecha zostáva `plochaPodorysu`, čiastočné zateplenie = 50 %.
    - „Osvetlenie nie-LED" a jeho odpočet → `uzitkovaPlochaNUS × (1 −
      osvetlenieLED %)` ako m² proxy (appka eviduje LED iba ako %, nie m²
      ani počet svietidiel).
 
 3. **Vynechané parametre** oproti zdrojovej tabuľke váh (OZE+energetika):
-   - „Plocha pozemkov vhodná pre FV alebo solárne kolektory" — `Pozemok`
-     nemá žiadny údaj o orientácii/vhodnosti pre FV.
+   - ~~„Plocha pozemkov vhodná pre FV alebo solárne kolektory"~~ —
+     **doplnené (issue #184):** nové pole `Pozemok.plochaVhodnaPreFV`
+     a parameter `energia_pozemky_fv` s váhou 3 podľa tabuľky; vo formulári
+     je pri otázke upozornenie na regulačnú neistotu umiestňovania FVE
+     na zelených plochách.
    - „Spotreba energie nad referenčnou hodnotou [kWh/m²/rok]" — referenčná
      (benchmark) hodnota nie je nikde v appke definovaná; vymyslieť si ju
-     bez podkladu by bolo riskantné.
-   - Tieto dva zostávajú mimo výpočtu; keď pribudnú podklady, dá sa doplniť
-     ako ďalší riadok v `ENERGIA_PARAMETERS`.
+     bez podkladu by bolo riskantné. Zostáva mimo výpočtu; keď pribudnú
+     podklady, dá sa doplniť ako ďalší riadok v `ENERGIA_PARAMETERS`.
 
 4. **Energetické váhy nie sú finálne** (potvrdené v zadaní) — momentálne sa
    používa jedna spoločná váha na parameter (bez delenia na podoblasti).
@@ -99,10 +110,10 @@ dvojité započítanie za neželané, treba sa rozhodnúť medzi znížením vá
 
 ### Použitá plocha
 
-Expert žiadal „úžitkovú **plochu/vykurovanú**". Vykurovanú plochu dátový model
-zatiaľ neeviduje (dopĺňa ju issue #181), preto sa dočasne používa
-`uzitkovaPlochaNUS` cez pomocnú funkciu `plochaBudovy()` v
-`comparisonWeights.ts` — po #181 stačí zmeniť túto jednu funkciu.
+Expert žiadal „úžitkovú **plochu/vykurovanú**". Od issue #181 model eviduje
+`Budova.vykurovanaPlocha` (predvyplnená z úžitkovej, používateľ ju môže
+upraviť) a pomocná funkcia `plochaBudovy()` v `comparisonWeights.ts` ju
+používa; ak nie je vyplnená, použije sa úžitková plocha.
 
 ### Ceny v katalógu
 

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Areal } from '../types/areal';
 import { Odporucanie, Priorita } from '../types/catalog';
 import { katalogOpatreni } from '../data/catalog';
+import { getPlochaStrechyPreFV } from '../utils/calculations';
 
 function findOpatrenie(id: string) {
   return katalogOpatreni.find((o) => o.id === id);
@@ -52,7 +53,7 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     let hasExistingSolar = false;
     let hasTC = false;
     let hasBateria = false;
-    let totalJuznaPlochaBudov = 0;
+    let totalPlochaStrechPreFV = 0; // iba ploché / málo šikmé strechy do 15° (issue #179)
     let hasBezZateplenia = false;
     let hasStareOkna = false;
     let hasBezRekuperacie = false;
@@ -65,7 +66,7 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     let hasStarsiaBudovaNaPlyne = false;
 
     for (const b of areal.budovy) {
-      totalJuznaPlochaBudov += b.strechaOrientovanaPlochaNaJuh;
+      totalPlochaStrechPreFV += getPlochaStrechyPreFV(b);
 
       if (b.strechaTyp === 1 && b.zelenaStrechaPlocha === 0) {
         totalGreenRoofPotential += b.plochaPodorysu;
@@ -120,13 +121,13 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     }
 
     // OZE recommendations
-    if (!hasExistingFV && totalJuznaPlochaBudov > 20) {
-      const kWp = Math.round(totalJuznaPlochaBudov * 0.15);
+    if (!hasExistingFV && totalPlochaStrechPreFV > 20) {
+      const kWp = Math.round(totalPlochaStrechPreFV * 0.15);
       const kWhRok = kWp * 1050;
-      addRec(recs, 'fotovoltika', 'vysoká', `${Math.round(totalJuznaPlochaBudov)} m² strechy orientovanej na juh bez fotovoltiky.`, `Potenciál: ${kWp} kWp, cca ${kWhRok.toLocaleString('sk')} kWh/rok.`);
+      addRec(recs, 'fotovoltika', 'vysoká', `${Math.round(totalPlochaStrechPreFV)} m² plochej strechy (do 15°) bez fotovoltiky.`, `Potenciál: ${kWp} kWp, cca ${kWhRok.toLocaleString('sk')} kWh/rok.`);
     }
 
-    if (!hasExistingSolar && totalJuznaPlochaBudov > 10) {
+    if (!hasExistingSolar && totalPlochaStrechPreFV > 10) {
       addRec(recs, 'solarne-kolektory', 'stredná', 'Areál nevyužíva solárne kolektory na ohrev vody.');
     }
 
