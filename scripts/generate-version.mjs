@@ -35,8 +35,9 @@
 //     2. BASE_COMMIT = HEAD vetvy `main`, BASE_VERSION = to číslo z kroku 1
 //   Verzia potom vyjde rovnaká ako predtým a postupnosť nikde neklesne.
 //
-//   Trvalé riešenie (aby sa posúvanie nemuselo opakovať) je predmetom
-//   samostatného issue — pozri docs/verziovanie.md.
+//   Aby posun kotvy neprekvapil uprostred inej práce, `check-version-anchor.mjs`
+//   beží v CI pri každom PR a push do `main` a zlyhá skôr, než sa kotva
+//   dostane mimo hĺbky klonu — pozri docs/verziovanie.md.
 //
 //   História kotiev:
 //     cd36452 / 160 — zavedenie tohto pravidla (predtým 23 + všetky commity)
@@ -104,15 +105,14 @@ function najdiKotvu(cwd) {
 }
 
 /**
- * Spočíta verziu pre repozitár v `cwd`.
- * Parametre `baseCommit` a `baseVersion` sú kvôli testom.
+ * Počet commitov v hlavnej línii `main` od kotvy (`baseCommit`) po bod,
+ * z ktorého sa počíta verzia (`merge-base(HEAD, main)`).
+ *
+ * Zdieľané medzi `vypocitajVerziu` (tu) a kontrolou kotvy v CI
+ * (`check-version-anchor.mjs`), ktorá zlyhá skôr, než sa kotva dostane mimo
+ * hĺbky plytkého klonu na Verceli — pozri docs/verziovanie.md.
  */
-export function vypocitajVerziu({
-  cwd = process.cwd(),
-  baseCommit = BASE_COMMIT,
-  baseVersion = BASE_VERSION,
-  dotiahnut = true,
-} = {}) {
+export function pocetMergeovOdKotvy({ cwd = process.cwd(), baseCommit = BASE_COMMIT, dotiahnut = true } = {}) {
   if (gitOrNull(['rev-parse', '--is-inside-work-tree'], cwd) !== 'true') {
     throw new Error('Nie je to git repozitár — verziu sa nedá spočítať.');
   }
@@ -129,10 +129,10 @@ export function vypocitajVerziu({
   }
 
   // Kotva v histórii je, ale build je zo staršieho commitu (napr. rollback
-  // na Verceli). Vtedy je základná verzia správna odpoveď — starší kód
+  // na Verceli). Vtedy je 0 commitov od kotvy správna odpoveď — starší kód
   // objektívne neobsahuje žiadny z merge-ov započítaných od kotvy.
   if (gitOrNull(['merge-base', '--is-ancestor', baseCommit, kotva], cwd) === null) {
-    return baseVersion;
+    return 0;
   }
 
   const vystup = git(['rev-list', '--count', '--first-parent', `${baseCommit}..${kotva}`], cwd);
@@ -141,7 +141,20 @@ export function vypocitajVerziu({
     throw new Error(`Neplatný počet commitov od kotvy: "${vystup}".`);
   }
 
-  return baseVersion + pocet;
+  return pocet;
+}
+
+/**
+ * Spočíta verziu pre repozitár v `cwd`.
+ * Parametre `baseCommit` a `baseVersion` sú kvôli testom.
+ */
+export function vypocitajVerziu({
+  cwd = process.cwd(),
+  baseCommit = BASE_COMMIT,
+  baseVersion = BASE_VERSION,
+  dotiahnut = true,
+} = {}) {
+  return baseVersion + pocetMergeovOdKotvy({ cwd, baseCommit, dotiahnut });
 }
 
 /** Zapíše src/version.ts a vráti zapísanú verziu. */

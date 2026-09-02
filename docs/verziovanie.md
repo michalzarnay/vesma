@@ -77,9 +77,12 @@ neskočí.
 | `cd36452` | 160 | Zavedenie tohto pravidla. Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže 160 zaručilo, že postupnosť pri prechode neklesla. |
 | `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). Verzia `main` bola v tom čase 170, takže sa nezmenila. |
 
-### Trvalé riešenie
+### Automatické upozornenie na CI
 
-Posúvanie kotvy je náplasť — o ďalších ~10 merge-ov sa problém zopakuje.
-Trvalé riešenie (napríklad počítať číslo v GitHub Actions s `fetch-depth: 0`
-a odovzdať ho Vercelu, alebo držať počítadlo v sledovanom súbore) je otvorené
-a vedie sa ako samostatné issue.
+Posúvanie kotvy je náplasť a bude sa opakovať. Aby to neprekvapilo uprostred
+inej práce, `scripts/check-version-anchor.mjs` beží v CI (workflow
+`.github/workflows/version-anchor-check.yml`) pri každom PR aj push do
+`main` a **zlyhá**, keď je kotva viac než `PRAH_MERGEOV` (6) merge-ov za
+`main` — teda skôr, než sa dostane mimo hĺbky plytkého klonu na Verceli
+(pád nastal pri 10 merge-och). Keď tento krok zlyhá, kotvu posuň podľa
+postupu vyššie.
