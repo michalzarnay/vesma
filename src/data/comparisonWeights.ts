@@ -16,11 +16,24 @@
 // Pripomienky energetického experta (docs/energetika-poziadavky.md, kap. D0) zapracované:
 //  - FV potenciál striech iba zo striech do 15° (issue #179),
 //  - nezateplená obálka z celej fasády, nie zo južnej (issue #176),
-//  - plocha pozemkov vhodná pre FV s váhou 3 (issue #184).
+//  - plocha pozemkov vhodná pre FV s váhou 3 (issue #184),
+//  - parametre viazané na budovy počítajú vykurovanú plochu (issues #180 a #181).
+//
+// ENERGETICKÉ VÁHY SÚ NÁVRH, NIE FINÁLNE HODNOTY (issues #180 a #182).
+// Energetický expert žiadal parametre viazané na počet budov previesť na plochu.
+// Prevod jednotky nemá meniť to, ako dôležitý parameter je, preto zostávajú pôvodné
+// čísla (6, 6, 4, −1) a mení sa len veličina, na ktorú sa aplikujú. Až touto zmenou
+// začnú tieto parametre v súčte reálne vážiť: pri počte budov prispievali jednotkami,
+// kým plošné parametre tisíckami, takže boli prakticky neviditeľné.
+//
+// Nový parameter "prechod plyn → biomasa" má váhu 3, teda polovicu váhy prechodu na
+// tepelné čerpadlo. Dôvod: ide o alternatívnu cestu pre tie isté budovy, nie o ďalší
+// nezávislý potenciál — plocha plynom kúrenej budovy sa započíta do oboch parametrov.
+// Nižšia váha to má kompenzovať. Expert obe hodnoty doladí.
 
 import { Areal, Budova, Pozemok } from '../types/areal';
 import { Hrozba } from '../types/comparison';
-import { getPlochaObvodovehoPlasta, getPlochaStrechyPreFV } from '../utils/calculations';
+import { getPlochaObvodovehoPlasta, getPlochaStrechyPreFV, getVykurovanaPlocha } from '../utils/calculations';
 
 export interface MziParameter {
   key: string;
@@ -42,6 +55,16 @@ function sum<T>(items: T[], fn: (item: T) => number): number {
 
 function plochaPozemku(p: Pozemok): number {
   return p.plochaBezBudov || p.celkovaVymera;
+}
+
+/**
+ * Plocha budovy použitá pri energetických parametroch viazaných na vykurovanie.
+ *
+ * Energetický expert žiada „celkovú úžitkovú plochu/vykurovanú" (issue #180).
+ * Používa sa vykurovaná plocha (issue #181); ak nie je vyplnená, úžitková.
+ */
+function plochaBudovy(b: Budova): number {
+  return getVykurovanaPlocha(b);
 }
 
 /** Rovnaká podmienka ako v useScoring.ts calculateMZIPotencial — strecha, ktorú treba obnoviť. */
@@ -175,21 +198,29 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
   },
   {
     key: 'energia_plyn_potencial_tc',
-    nazov: 'Vykurovanie plynom → potenciál prechodu na tepelné čerpadlo (počet budov)',
+    nazov: 'Vykurovanie plynom → potenciál prechodu na tepelné čerpadlo (m² plochy budov)',
     vaha: 6,
-    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenePlynom === 1 && b.tepelneCerpadlo === 0) ? 1 : 0),
+    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenePlynom === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
+  },
+  {
+    key: 'energia_plyn_potencial_biomasa',
+    nazov: 'Vykurovanie plynom → potenciál prechodu na biomasu (pelety/štiepka, m² plochy budov)',
+    vaha: 3,
+    getValue: (areal) => sum(areal.budovy, (b) =>
+      (b.kurenePlynom === 1 && b.kureniePeletami === 0 && b.kurenieStiepkou === 0) ? plochaBudovy(b) : 0
+    ),
   },
   {
     key: 'energia_elektrina_potencial_tc',
-    nazov: 'Vykurovanie elektrinou (priamotopy) → potenciál tepelného čerpadla (počet budov)',
+    nazov: 'Vykurovanie elektrinou (priamotopy) → potenciál tepelného čerpadla (m² plochy budov)',
     vaha: 6,
-    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenieElektrinou === 1 && b.tepelneCerpadlo === 0) ? 1 : 0),
+    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenieElektrinou === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
   },
   {
     key: 'energia_vystavba_pred_1980',
-    nazov: 'Rok výstavby pred rokom 1980 (počet budov)',
+    nazov: 'Rok výstavby pred rokom 1980 (m² plochy budov)',
     vaha: 4,
-    getValue: (areal) => sum(areal.budovy, (b) => b.vystavbaPred1980 === 1 ? 1 : 0),
+    getValue: (areal) => sum(areal.budovy, (b) => b.vystavbaPred1980 === 1 ? plochaBudovy(b) : 0),
   },
   {
     key: 'energia_osvetlenie_nie_led',
@@ -216,9 +247,9 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
   },
   {
     key: 'energia_odratat_tc',
-    nazov: 'Odrátať existujúce riešenia: tepelné čerpadlo (počet budov)',
+    nazov: 'Odrátať existujúce riešenia: tepelné čerpadlo (m² plochy budov)',
     vaha: -1,
-    getValue: (areal) => sum(areal.budovy, (b) => b.tepelneCerpadlo === 1 ? 1 : 0),
+    getValue: (areal) => sum(areal.budovy, (b) => b.tepelneCerpadlo === 1 ? plochaBudovy(b) : 0),
   },
   {
     key: 'energia_odratat_led',

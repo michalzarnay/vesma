@@ -63,6 +63,7 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
     let hasBezTermohlavic = false;
     let hasPoorEnergyClass = false;
     let poorEnergyClassLabel = '';
+    let hasStarsiaBudovaNaPlyne = false;
 
     for (const b of areal.budovy) {
       totalPlochaStrechPreFV += getPlochaStrechyPreFV(b);
@@ -80,6 +81,10 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
       if (b.kurenieUhlimDrevom > 0) hasUhlieDrevo = true;
       if (b.osvetlenieLED < 50) hasBezLED = true;
       if (b.termohlavice === 0 && (b.kurenePlynom === 1 || b.tepelneCerpadlo === 1)) hasBezTermohlavic = true;
+      // Staršia budova na plyne bez biomasy — kotol na biomasu je alternatíva k TČ (issue #182)
+      if (b.kurenePlynom === 1 && b.vystavbaPred1980 === 1 && b.kureniePeletami === 0 && b.kurenieStiepkou === 0) {
+        hasStarsiaBudovaNaPlyne = true;
+      }
       if (b.energetickaTrieda && ['D', 'E', 'F', 'G'].includes(b.energetickaTrieda)) {
         hasPoorEnergyClass = true;
         poorEnergyClassLabel = b.energetickaTrieda;
@@ -133,6 +138,13 @@ export function useRecommendations(areal: Areal): Odporucanie[] {
           ? 'Vykurovací systém je starší ako 15 rokov.'
           : `Budova je podľa energetického certifikátu v triede ${poorEnergyClassLabel}.`;
       addRec(recs, 'tepelne-cerpadlo-vzduch', 'vysoká', dovod);
+    }
+
+    if (hasStarsiaBudovaNaPlyne) {
+      addRec(
+        recs, 'kotol-na-biomasu', 'stredná',
+        'Staršia budova vykurovaná plynom — kotol na pelety alebo štiepku býva v takých budovách realizovateľnejší než tepelné čerpadlo, lebo pokrýva širší rozsah výkonu a nevyžaduje nízkoteplotnú sústavu.',
+      );
     }
 
     if (hasExistingFV && !hasBateria) {
