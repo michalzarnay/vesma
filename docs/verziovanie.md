@@ -3,7 +3,7 @@
 ## Pravidlo
 
 ```
-verzia = 160 + počet merge-ov do `main` od commitu cd36452
+verzia = 170 + počet merge-ov do `main` od commitu 8959835
 ```
 
 Technicky: `BASE_VERSION + git rev-list --count --first-parent BASE_COMMIT..merge-base(HEAD, main)`.
@@ -48,9 +48,38 @@ k histórii.
   `VESMA_VERSION=<číslo>`. Na Verceli sa dá nastaviť v Project Settings →
   Environment Variables. Je to dočasná náplasť, nie riešenie.
 
-## Prečo 160
+## Kotva sa musí občas posunúť
 
-Nová kotva je na commite `cd36452` (HEAD `main` v čase zavedenia pravidla).
-Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže
-`BASE_VERSION = 160` zaručuje, že postupnosť ani pri prechode na nové pravidlo
-neklesla.
+**Vercel klonuje plytko a fetch v jeho build kontajneri neprejde.** Keď sa kotva
+dostane mimo hĺbky klonu, skript ju nenájde, dotiahnuť ju nedokáže a build
+spadne — na preview aj na produkcii.
+
+Presne to sa stalo 2. 9. 2026: pôvodná kotva `cd36452` sa dostala 10 merge-ov za
+`main` a nasadenia začali padať s hláškou „Kotviaci commit … nie je v histórii
+(plytký klon?)". Predchádzajúce nasadenia prešli len preto, že kotva bola ešte
+v okne — je to teda časovaná nálož, nie náhodná chyba.
+
+### Ako kotvu posunúť
+
+1. Zisti aktuálnu verziu `main`: `node scripts/generate-version.mjs`
+2. V `scripts/generate-version.mjs` nastav `BASE_COMMIT` na HEAD vetvy `main`
+   a `BASE_VERSION` na číslo z kroku 1.
+3. Aktualizuj vzorec na začiatku tohto dokumentu a doplň riadok do histórie
+   kotiev v komentári skriptu.
+
+Verzia potom vyjde rovnaká ako predtým, takže postupnosť nikde neklesne ani
+neskočí.
+
+### História kotiev
+
+| Kotva | Základná verzia | Dôvod |
+|---|---|---|
+| `cd36452` | 160 | Zavedenie tohto pravidla. Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže 160 zaručilo, že postupnosť pri prechode neklesla. |
+| `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). Verzia `main` bola v tom čase 170, takže sa nezmenila. |
+
+### Trvalé riešenie
+
+Posúvanie kotvy je náplasť — o ďalších ~10 merge-ov sa problém zopakuje.
+Trvalé riešenie (napríklad počítať číslo v GitHub Actions s `fetch-depth: 0`
+a odovzdať ho Vercelu, alebo držať počítadlo v sledovanom súbore) je otvorené
+a vedie sa ako samostatné issue.
