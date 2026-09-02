@@ -22,17 +22,32 @@
 //      ani agentom.
 //
 // KOTVA
-//   BASE_COMMIT = HEAD vetvy `main` v čase zavedenia tohto pravidla.
-//   BASE_VERSION = 160 je zvolené zámerne vyššie než najvyššie číslo, aké mohla
-//   vypísať predchádzajúca logika (23 + 135 = 158), aby postupnosť ani pri
-//   prechode na nové pravidlo neklesla.
+//   BASE_COMMIT = commit na `main`, od ktorého sa počíta.
+//   BASE_VERSION = verzia platná v čase tohto commitu.
+//
+//   POZOR — kotvu treba občas posunúť. Vercel klonuje plytko a keď sa kotva
+//   dostane mimo hĺbky klonu, `cat-file` ju nenájde, dotiahnuť sa nedá (fetch
+//   na Verceli neprejde) a build spadne. Presne to sa stalo 2. 9. 2026, keď sa
+//   pôvodná kotva cd36452 dostala 10 merge-ov za `main`.
+//
+//   Ako kotvu posunúť bez toho, aby verzia skočila:
+//     1. zisti aktuálnu verziu `main`  →  node scripts/generate-version.mjs
+//     2. BASE_COMMIT = HEAD vetvy `main`, BASE_VERSION = to číslo z kroku 1
+//   Verzia potom vyjde rovnaká ako predtým a postupnosť nikde neklesne.
+//
+//   Trvalé riešenie (aby sa posúvanie nemuselo opakovať) je predmetom
+//   samostatného issue — pozri docs/verziovanie.md.
+//
+//   História kotiev:
+//     cd36452 / 160 — zavedenie tohto pravidla (predtým 23 + všetky commity)
+//     8959835 / 170 — posun kvôli plytkému klonu na Verceli (2. 9. 2026)
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-export const BASE_VERSION = 160;
-export const BASE_COMMIT = 'cd3645218b4ec15c402ae378f690ecf66896ed86';
+export const BASE_VERSION = 170;
+export const BASE_COMMIT = '8959835ae07c2001085fd7bbaf45bb98edae9082';
 
 /** Vetvy, ktoré považujeme za `main` — v poradí, v akom ich skúšame. */
 const MAIN_REFS = ['refs/remotes/origin/main', 'refs/heads/main', 'refs/remotes/upstream/main'];
