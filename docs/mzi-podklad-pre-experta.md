@@ -23,15 +23,21 @@ Aby sa expertka nepýtala dvakrát na to isté:
 | Objem verzus plocha pri dažďovej záhrade a jazierku | Metodika pracuje s plochou; objem má zmysel pri nádržiach a ten B-AD10 počíta |
 | Prahy odporúčaní: spevnená plocha nad 15 %, jazierko od 500 m², pokryvnosť korunami pod 30 %, ponuka opatrení | Expertná revízia pravidiel z 1. 9. 2026 ([#156](https://github.com/michalzarnay/vesma/pull/156)) |
 
+VESMA navyše pri každom komponente skóre ukazuje **rozpis výpočtu** — tabuľku
+plôch s kódmi metodiky, koeficientmi a príspevkami, a pod ňou výpočet výsledného
+koeficientu. Dá sa skopírovať do Wordu alebo Excelu, takže kontrola zaradenia
+povrchov (hárok 1) sa dá robiť priamo nad konkrétnym areálom.
+
 ## Čo zostáva
 
 | Čo chýba | Kde v kóde | Dôsledok, kým to chýba |
 |---|---|---|
 | Zaradenie povrchov, ktoré metodika nepozná | `KOEF_OKOLIE.neurcenyPolopriepustny` v `src/utils/mziKlimasken.ts` | Polovegetačné tvárnice, „iný povrch" a nešpecifikovaný zvyšok polopriepustnej plochy sme zaradili medzi kódy B a C hodnotou 0,3. Rovnako sme sami rozhodli, že jazierko je plošný objekt HDV (k = 1,0), že nezdravé stromy sa hodnotia ako mladé (k = 0,4) a že zelená strecha na streche 16 – 35° patrí pod E2 (0,3), hoci metodika E2 definuje „od 35°". |
-| Váhy komponentov skóre | `MZI_VAHY` v `src/utils/mziKlimasken.ts` | Klimasken hodnotí každý indikátor samostatným štítkom A – E a váhu medzi indikátormi nedáva. Rozdelenie 45 / 25 / 15 / 15 je naše. Otvorené je aj to, či má byť súčasťou skóre štvrtý komponent „zadržanie odtoku na mieste", ktorý je doplnkom VESMA nad rámec metodiky. |
-| Dva vstupy výpočtu B-AD10 | `KOEF_ODTOKU_STRECHY`, `akumulaciaPercent` v `src/utils/mziKlimasken.ts` | Koeficient odtoku strechy `fs = 0,8` je typická hodnota — metodika ho odvodzuje z krytiny, VESMA má krytinu len ako voľný text. Počet osôb `n` berieme z počtu zamestnancov, čo v škole nie sú žiaci ani v kultúrnom dome návštevníci. Ostatné parametre (`ff`, `Sd`, `R`, `z`) sú z metodického listu. |
+| Váhy komponentov skóre | `MZI_VAHY` v `src/utils/mziKlimasken.ts` | Klimasken hodnotí každý indikátor samostatným štítkom A – E a váhu medzi indikátormi nedáva. Rozdelenie 45 / 25 / 15 / 15 je naše. Otvorené je aj to, či má byť súčasťou skóre štvrtý komponent „odtok zo spevnených plôch", ktorý je doplnkom VESMA nad rámec metodiky. |
+| Tri rozhodnutia vo výpočte B-AD10 | `KOEF_ODTOKU_STRECHY`, `detailAkumulacie` v `src/utils/mziKlimasken.ts` | Koeficient odtoku strechy `fs = 0,8` je typická hodnota — metodika ho odvodzuje z krytiny, VESMA má krytinu len ako voľný text. Počet osôb `n` berieme z počtu zamestnancov, čo v škole nie sú žiaci ani v kultúrnom dome návštevníci. Tretie rozhodnutie je **odchýlka od metodiky**: keď nádrž na areáli nie je možné inštalovať, komponent z hodnotenia vynechávame, kým metodika objekt zaraďuje do najhoršej kategórie (viac nižšie). Ostatné parametre (`ff`, `Sd`, `R`, `z`) sú z metodického listu. |
 | Štyri čísla v odporúčaniach | `src/hooks/useRecommendations.ts`, `src/data/catalog.ts` | Veta „Potenciál zachytiť X m³ dažďovej vody ročne" počíta X ako plochu plochých striech × 0,3 — koeficient bez zdroja a s nesediacimi jednotkami (z m² vyjde m³/rok bez zrážok). Ďalej „nahradiť až 50 %" spevnenej plochy a katalógové „min. 3 m³" a „min. 30 – 50 m²". |
 | Ceny a návratnosť 14 opatrení MZI | `src/data/catalog.ts` | V repozitári nie je zaznamenané, odkiaľ ceny pochádzajú. Navyše pri opatreniach ako dažďová záhrada či kvitnúca lúka nie je zrejmé, čo má „návratnosť" znamenať — priamy finančný výnos nemajú. |
+| Tri nové opatrenia pre obrábanú pôdu | zatiaľ nie sú v katalógu, návrh v [#200](https://github.com/michalzarnay/vesma/issues/200) | Mulčovanie, krycie plodiny a obmedzenie orby. Pribudli k nim ceny a návratnosť ako návrh a bez potvrdenia ich nezaradíme. Rovnaký typ otázky ako pri 14 existujúcich opatreniach, preto sú v tom istom hárku. |
 
 ## Otvorené rozhodnutia
 
@@ -42,6 +48,22 @@ Tri veci mimo skóre, kde nejde o číslo, ale o pravidlo.
 | Má voda odvedená do delenej zrážkovej kanalizácie vážiť rovnako ako voda do jednotnej stokovej siete? | Pri porovnaní areálov sa tri polia sčítavajú do jednej hodnoty s váhami 7 / 5 / 10 (`pozemky_odvod_kanalizacia` v `comparisonWeights.ts`). Otvorené od augusta 2026, pozri [`porovnanie-arealov-zmeny.md`](porovnanie-arealov-zmeny.md), bod 1. |
 | Ako má do hodnotenia vstúpiť povodňové riziko budovy? | `Budova.povodnovoRiziko` (1 – 5) sa zisťuje a vie sa načítať z máp SVP, ale nepoužíva sa v skóre, v odporúčaniach ani pri porovnaní areálov. |
 | Platia váhy 15 parametrov MZI pri porovnaní areálov aj naďalej? | Pochádzajú z tabuľky „MZI — spoločná dohoda" (august 2026). Zmenil sa im jeden vstup: pravidelne obrábaná pôda sa už nezapočítava do potenciálu na výsadbu stromov. |
+
+## Poznámka k nádrži, ktorú nie je možné inštalovať
+
+Metodický list B-AD10 hovorí, že „ak inštalácia nádrže nie je možná alebo je
+vylúčená… budova je v tomto indikátore označená v najhoršej kategórii". VESMA sa
+od toho odchyľuje: areál má príznak, že nádrž nie je možná (s povinným dôvodom),
+a komponent sa potom do skóre nezapočíta — skóre sa normalizuje cez zvyšné tri
+a nádrž sa ani neodporúča.
+
+Dôvod odchýlky: Klimasken je štítok, ktorý popisuje stav objektu. Hodnotenie
+areálu vo VESMA k stavu **navrhuje aj opatrenia**, takže komponent, na ktorý sa
+nedá reagovať, by skóre len skresľoval a nástroj by navyše odporúčal
+nerealizovateľné opatrenie. Informácia sa nestráca — vo výsledkoch aj v exporte
+je uvedené „nehodnotí sa" spolu so zadaným dôvodom.
+
+Prosíme potvrdiť, či je táto odchýlka v poriadku, alebo sa máme držať metodiky.
 
 ## Poznámka k vete o zádrži zelenej strechy
 
