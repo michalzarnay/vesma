@@ -22,6 +22,8 @@ export interface OZEScore {
   existujuceOZE: number; // 0-20
   potencialTepelnehoCerpadla: number; // 0-25
   potencialDalsichOZE: number; // 0-25
+  /** Počet budov, z ktorých sa OZE skóre počítalo. */
+  hodnotenychBudov: number;
 }
 
 export interface EnergiaScore {
@@ -55,16 +57,42 @@ export function dovodNehodnoteniaEnergetiky(energia: EnergiaScore): 'bezBudov' |
 }
 
 /**
- * Vážené celkové skóre. Ak sa energetika nehodnotí, jej váha sa do súčtu
- * nezapočíta — inak by nulové skóre nehodnotenej oblasti stiahlo celý areál dole.
+ * Má sa OZE skóre brať do úvahy? (issue #205)
+ *
+ * Celé stojí na budovách — vhodnosť strechy pre solár, existujúce OZE, potenciál
+ * tepelného čerpadla aj potenciál ďalších OZE. Bez jedinej budovy nie je z čoho
+ * počítať a nula by sa čítala ako zlý stav.
+ *
+ * Sezónne nevykurované stavby sa tu NEvynechávajú — z OZE ich netýka len podiel
+ * „potenciál tepelného čerpadla" (pozri src/utils/sezonnaStavba.ts); strecha
+ * chaty je pre fotovoltiku rovnako použiteľná ako ktorákoľvek iná.
+ */
+export function saHodnotiOZE(oze: OZEScore): boolean {
+  return oze.hodnotenychBudov > 0;
+}
+
+/**
+ * Oblasti, ktoré do celkového skóre vstupujú. Nehodnotená oblasť sa vynecháva —
+ * jej nula by inak stiahla celý areál dole (issues #203, #204, #205).
+ */
+export function hodnoteneOblasti(score: ScoreResult): Array<{ oblast: 'mzi' | 'oze' | 'energia'; skore: number }> {
+  const oblasti: Array<{ oblast: 'mzi' | 'oze' | 'energia'; skore: number }> = [
+    { oblast: 'mzi', skore: score.mzi.celkove },
+  ];
+  if (saHodnotiOZE(score.oze)) oblasti.push({ oblast: 'oze', skore: score.oze.celkove });
+  if (saHodnotiEnergetika(score.energia)) oblasti.push({ oblast: 'energia', skore: score.energia.celkove });
+  return oblasti;
+}
+
+/**
+ * Vážené celkové skóre. Váhy nehodnotených oblastí sa do súčtu nezapočítajú.
  */
 export function vazeneCelkoveSkore(score: ScoreResult, vahy: ScoringWeights): number {
-  const vahaEnergia = saHodnotiEnergetika(score.energia) ? vahy.energia : 0;
-  const sumVah = vahy.mzi + vahy.oze + vahaEnergia;
+  const hodnotene = hodnoteneOblasti(score);
+  const sucet = hodnotene.reduce((acc, o) => acc + o.skore * vahy[o.oblast], 0);
+  const sumVah = hodnotene.reduce((acc, o) => acc + vahy[o.oblast], 0);
   if (sumVah === 0) return 0;
-  return Math.round(
-    (score.mzi.celkove * vahy.mzi + score.oze.celkove * vahy.oze + score.energia.celkove * vahaEnergia) / sumVah,
-  );
+  return Math.round(sucet / sumVah);
 }
 
 export type ScoreLevel = 'cervena' | 'oranzova' | 'zlta' | 'zelena' | 'tmavaZelena';

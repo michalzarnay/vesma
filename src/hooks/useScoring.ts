@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
-import { ScoreResult, MZIScore, OZEScore, EnergiaScore, saHodnotiEnergetika } from '../types/scoring';
+import { ScoreResult, MZIScore, OZEScore, EnergiaScore, hodnoteneOblasti } from '../types/scoring';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
 import { podielLED } from '../utils/lighting';
 import { budovyNaEnergetickeHodnotenie } from '../utils/sezonnaStavba';
@@ -96,8 +96,12 @@ export function calculateMZI(areal: Areal): MZIScore {
 }
 
 export function calculateOZE(areal: Areal): OZEScore {
+  // Bez jedinej budovy sa OZE nehodnotí — celé skóre stojí na budovách
+  // a nula by sa čítala ako zlý stav (issue #205).
   const budovy = areal.budovy;
-  if (budovy.length === 0) return { celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0, potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0 };
+  if (budovy.length === 0) {
+    return { celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0, potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0, hodnotenychBudov: 0 };
+  }
 
   // 1. Vhodnost strechy pre solar (0-30) — iba ploché / málo šikmé strechy do 15° (issue #179)
   let totalPlochaPreFV = 0;
@@ -171,7 +175,7 @@ export function calculateOZE(areal: Areal): OZEScore {
 
   const celkove = vhodnostStrechyPreSolar + existujuceOZE + potencialTepelnehoCerpadla + potencialDalsichOZE;
 
-  return { celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE };
+  return { celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE, hodnotenychBudov: budovy.length };
 }
 
 export function calculateEnergia(areal: Areal): EnergiaScore {
@@ -281,14 +285,15 @@ export function computeScore(areal: Areal): ScoreResult {
   const mzi = calculateMZI(areal);
   const oze = calculateOZE(areal);
   const energia = calculateEnergia(areal);
-  // Keď sú všetky budovy areálu sezónne nevykurované stavby, energetika sa
-  // nehodnotí a do priemeru nevstupuje — nula by sa inak čítala ako zlý stav.
-  const celkove = saHodnotiEnergetika(energia)
-    ? Math.round((mzi.celkove + oze.celkove + energia.celkove) / 3)
-    : Math.round((mzi.celkove + oze.celkove) / 2);
   const mziPotencial = calculateMZIPotencial(areal);
+  const ciastkove: ScoreResult = { celkove: 0, mzi, oze, energia, mziPotencial };
 
-  return { celkove, mzi, oze, energia, mziPotencial };
+  // Do priemeru vstupujú len oblasti, ktoré sa naozaj hodnotia — nula
+  // nehodnotenej oblasti by inak stiahla celý areál dole (#203, #204, #205).
+  const hodnotene = hodnoteneOblasti(ciastkove);
+  const celkove = Math.round(hodnotene.reduce((acc, o) => acc + o.skore, 0) / hodnotene.length);
+
+  return { ...ciastkove, celkove };
 }
 
 export function useScoring(areal: Areal): ScoreResult {

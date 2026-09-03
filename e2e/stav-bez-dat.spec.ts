@@ -25,11 +25,11 @@ test('Výsledky s prázdnym areálom sa vykreslia bez pádu', async ({ page }) =
 });
 
 /**
- * Areál bez jedinej budovy (issue #204). Energetiku nie je z čoho počítať,
- * tak sa nehodnotí — namiesto ukazovateľa je vysvetlenie a do celkového skóre
- * nevstupuje nula.
+ * Areál bez jedinej budovy (issues #204 a #205). OZE ani energetiku nie je
+ * z čoho počítať — obe stoja na budovách — tak sa nehodnotia: namiesto
+ * ukazovateľa je vysvetlenie a do celkového skóre nevstupuje nula.
  */
-test('areál bez budov nezobrazí energetiku ako nulu, ale ako nehodnotenú', async ({ page }) => {
+test('areál bez budov nezobrazí OZE ani energetiku ako nulu, ale ako nehodnotené', async ({ page }) => {
   // Test appku načíta dvakrát (podstrčenie areálu do localStorage + reload),
   // čo v dev serveri prekračuje predvolený limit — rovnako ako nove-polia-verzia.spec.ts.
   test.setTimeout(90_000);
@@ -46,7 +46,8 @@ test('areál bez budov nezobrazí energetiku ako nulu, ale ako nehodnotenú', as
   await page.reload();
   await goToResults(page);
 
-  await expect(page.getByText('nehodnotí sa')).toBeVisible();
-  await expect(page.getByText(/nemá zadanú žiadnu budovu/)).toBeVisible();
+  await expect(page.getByText('nehodnotí sa')).toHaveCount(2);
+  await expect(page.getByText(/OZE skóre stojí na strechách a zdrojoch tepla budov/)).toBeVisible();
+  await expect(page.getByText(/Energetickú efektívnosť nie je z čoho počítať/)).toBeVisible();
   expect(consoleErrors, `Nezachytené chyby: ${consoleErrors.join('\n')}`).toHaveLength(0);
 });
