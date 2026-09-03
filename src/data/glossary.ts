@@ -94,9 +94,15 @@ export const glossary: Record<string, GlossaryEntry> = {
   },
   sezonnaNevykurovanaDef: {
     term: 'Sezónna nevykurovaná stavba',
-    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chata, altánok, sklad náradia. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia.',
-    example: 'Záhradná chata, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
+    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chatka, domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
+    example: 'Záhradná chatka, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
     whereToFind: 'Rozhodnite podľa toho, či sa v stavbe v zime kúri. Ak áno čo i len občas, odpovedzte „nie".',
+  },
+  kamPatriStavbaDef: {
+    term: 'Budova alebo iná stavba?',
+    definition: 'Rozhoduje strecha a vnútorný priestor. Objekt so strechou a využiteľným vnútrajškom zadajte medzi Budovy — aj keď je malý a nevykurovaný (vtedy ho označte ako sezónnu nevykurovanú stavbu). Objekt bez strechy alebo bez uzavretého vnútorného priestoru patrí medzi Iné stavby.',
+    example: 'Medzi Budovy: záhradná chatka, domček na náradie, garáž, prístrešok so stenami. Medzi Iné stavby: oplotenie, chodník, terasa, parkovisko, altánok a pergola bez stien, trafostanica, studňa.',
+    whereToFind: 'Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia. Medzi Inými stavbami sa tieto veci nezisťujú.',
   },
   retenciaVodyDef: {
     term: 'Retencia vody',

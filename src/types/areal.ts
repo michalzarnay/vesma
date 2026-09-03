@@ -206,7 +206,7 @@ export interface Budova {
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
 
   /**
-   * Sezónna nevykurovaná stavba — záhradná chata, altánok, sklad náradia.
+   * Sezónna nevykurovaná stavba — záhradná chatka, domček na náradie, nevykurovaná garáž.
    * Užíva sa len v teplej časti roka, nevykuruje sa a nespáva sa v nej, takže
    * zateplenie ani obnova vykurovania v nej nemajú zmysel. Taká stavba sa
    * vynecháva z hodnotenia obálky a vykurovania, z návrhov opatrení v tomto

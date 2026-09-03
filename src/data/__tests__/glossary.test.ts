@@ -24,6 +24,23 @@ describe('glossary', () => {
     expect(glossary.kurenieElektrinouDef.definition).toContain('NEPOVAŽUJE');
   });
 
+  it('deliaca čiara budova/iná stavba je strecha a vnútorný priestor — chatka patrí medzi budovy', () => {
+    const { definition, example } = glossary.kamPatriStavbaDef;
+    expect(definition).toContain('strech');
+    expect(definition).toContain('vnútorn');
+    // Chatka je uvedená na strane budov, altánok na strane iných stavieb.
+    const budovy = example!.split('Medzi Iné stavby')[0];
+    const ineStavby = example!.split('Medzi Iné stavby')[1];
+    expect(budovy).toContain('chatka');
+    expect(ineStavby).toContain('ltánok');
+    expect(budovy).not.toContain('ltánok');
+  });
+
+  it('sezónna nevykurovaná stavba neuvádza altánok — ten patrí medzi iné stavby', () => {
+    expect(glossary.sezonnaNevykurovanaDef.definition).toContain('chatka');
+    expect(glossary.sezonnaNevykurovanaDef.definition).not.toContain('ltánok');
+  });
+
   it('trieda energetickej hospodárnosti má vysvetlivku so škálou A0–G (issue #117)', () => {
     expect(glossary.energetickaTriedaDef.term).toBe('Trieda energetickej hospodárnosti');
     expect(glossary.energetickaTriedaDef.definition).toContain('A0');
