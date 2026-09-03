@@ -39,13 +39,19 @@ export interface EnergiaScore {
 /**
  * Má sa energetické skóre vôbec brať do úvahy?
  *
- * Nie, keď areál budovy má, ale všetky sú sezónne nevykurované stavby — vtedy
- * nie je čo hodnotiť a nula by sa čítala ako „veľký priestor na zlepšenie".
- * Areál úplne bez budov sa správa ako doteraz (skóre 0 sa započíta), aby sa
- * hodnotenie existujúcich relácií touto zmenou neposunulo.
+ * Nie, keď do hodnotenia nevstúpila ani jedna budova — či už preto, že areál
+ * budovy nemá (issue #204), alebo preto, že sú všetky sezónne nevykurované
+ * stavby (issue #203). Oba prípady sú to isté: nie je čo hodnotiť a nula by sa
+ * čítala ako „veľký priestor na zlepšenie".
  */
 export function saHodnotiEnergetika(energia: EnergiaScore): boolean {
-  return energia.hodnotenychBudov > 0 || energia.vynechanychSezonnych === 0;
+  return energia.hodnotenychBudov > 0;
+}
+
+/** Prečo sa energetika nehodnotí — rozlišuje texty pre používateľa. */
+export function dovodNehodnoteniaEnergetiky(energia: EnergiaScore): 'bezBudov' | 'lenSezonne' | null {
+  if (saHodnotiEnergetika(energia)) return null;
+  return energia.vynechanychSezonnych > 0 ? 'lenSezonne' : 'bezBudov';
 }
 
 /**

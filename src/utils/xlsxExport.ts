@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
-import { ScoreResult, saHodnotiEnergetika, vazeneCelkoveSkore } from '../types/scoring';
+import { ScoreResult, dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, vazeneCelkoveSkore } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
@@ -65,7 +65,9 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['DETAIL ENERGIA'],
     ...(saHodnotiEnergetika(score.energia)
       ? []
-      : [['Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.', '', '']]),
+      : [[dovodNehodnoteniaEnergetiky(score.energia) === 'bezBudov'
+        ? 'Energetika sa nehodnotí — areál nemá zadanú žiadnu budovu.'
+        : 'Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.', '', '']]),
     ['Zateplenie', score.energia.zateplenie, '/ 30'],
     ['Kvalita okien', score.energia.kvalitaOkien, '/ 20'],
     ['Vykurovací systém', score.energia.vykurovaciSystem, '/ 25'],
