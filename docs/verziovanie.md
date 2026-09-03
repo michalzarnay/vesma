@@ -3,95 +3,103 @@
 ## Pravidlo
 
 ```
-verzia = 186 + počet merge-ov do `main` od commitu fb10457
+verzia = číslo zapísané vo `version.json` v koreni repozitára
 ```
 
-Technicky: `BASE_VERSION + git rev-list --count --first-parent BASE_COMMIT..merge-base(HEAD, main)`.
-Počíta to `scripts/generate-version.mjs`, ktorý zapíše `src/version.ts`.
+Súbor vyzerá takto:
+
+```json
+{
+  "verzia": 190,
+  "commit": "ca4631144343fe330c22bc44a815d3e60fe8d0eb"
+}
+```
+
+`scripts/generate-version.mjs` ho len prečíta a zapíše `src/version.ts`.
+**Nepočíta nič a git vôbec nepotrebuje.**
+
+Číslo zvyšuje workflow `.github/workflows/verzia.yml` po každom push do `main`,
+teda po každom zlúčenom PR. Volá `scripts/bump-version.mjs`, ktorý pripočíta
+jedna a zapíše sha commitu, ktorý to spôsobil.
 
 Z toho vyplýva:
 
-- **Jeden zlúčený PR = presne +1.** Nezáleží, či mal PR jeden commit alebo dvadsať
-  a či sa zlúčil squashom alebo merge commitom — `--first-parent` ide len po
-  hlavnej línii `main`.
-- **Číslo nezávisí od toho, kto build spustil.** Vercel produkcia, Vercel preview,
-  GitHub Actions aj lokálny `npm run dev` počítajú z tej istej histórie `main`.
-- **Číslo nikdy neklesne.** Build z rozrobenej vetvy ukáže verziu `main`, z ktorej
-  vetva vychádza; keď sa vetva zlúči, `main` sa posunie o +1.
-- **Číslo sa nedá prepísať.** `src/version.ts` je v `.gitignore` a generuje sa
-  pred každým `dev`, `build`, `preview` aj `test` behom.
+- **Jeden zlúčený PR = presne +1.** Nezáleží, či mal PR jeden commit alebo
+  dvadsať a či sa zlúčil squashom alebo merge commitom.
+- **Číslo nezávisí od toho, kto build spustil.** Vercel produkcia, Vercel
+  preview, GitHub Actions aj lokálny `npm run dev` čítajú ten istý súbor.
+  Build z vetvy ukáže verziu `main`, z ktorej vetva vychádza.
+- **Číslo nikdy neklesne.**
+- **Číslo sa nedá prepísať ručne.** `src/version.ts` je v `.gitignore`
+  a generuje sa pred každým `dev`, `build`, `preview` aj `test` behom.
+  Do `version.json` nepíš — prepíše ťa najbližší merge.
+
+## Čo očakávať po zlúčení PR
+
+Číslo sa na `main` objaví až commitom `chore: verzia N`, ktorý ho zvýši —
+teda desiatky sekúnd po zlúčení. Vercel medzitým môže stihnúť nasadiť merge
+commit ešte so starým číslom; nasadenie z commitu s novým číslom ho vzápätí
+nahradí.
+
+Prakticky to znamená: keď hneď po zlúčení vidíš v hlavičke staré číslo,
+počkaj minútu a obnov stránku. Keď je tam staré číslo aj po niekoľkých
+minútach, pozri, či workflow „Číslo verzie" prebehol.
+
+## Keď build spadne na verzii
+
+Skript zámerne **skončí chybou** namiesto tichého fallbacku — zlé číslo vo
+verzii nie je vidieť, spadnutý build áno. Príčinou je chýbajúci alebo
+poškodený `version.json`.
+
+Núdzový východ (napr. build z tarballu bez repozitára): premenná prostredia
+`VESMA_VERSION=<číslo>`. Na Verceli sa dá nastaviť v Project Settings →
+Environment Variables. Je to dočasná náplasť, nie riešenie.
 
 ## Čo sa dialo predtým
 
-Pôvodná logika bola `BASE_VERSION(23) + git rev-list --count BASE..HEAD` a mala
-tri chyby naraz:
+### Prvá logika: všetky commity od kotvy
 
-1. Počítala **všetky** commity, nielen hlavnú líniu. PR zlúčený merge commitom
+`BASE_VERSION(23) + git rev-list --count BASE..HEAD` malo tri chyby naraz:
+
+1. Počítalo **všetky** commity, nielen hlavnú líniu. PR zlúčený merge commitom
    pridal toľko čísel, koľko mal commitov. (V praxi: 135 započítaných commitov
    oproti 70 skutočným merge-om.)
-2. Počítala od `HEAD`, nie od `main`. Build z vetvy dal iné číslo než build z `main`.
-3. Pri plytkom (shallow) klone výpočet zlyhal a skript **ticho** vypísal
-   `BASE_VERSION`, teda 23. Odtiaľ skoky typu 145 → 23.
+2. Počítalo od `HEAD`, nie od `main`. Build z vetvy dal iné číslo než build
+   z `main`.
+3. Pri plytkom klone výpočet zlyhal a skript **ticho** vypísal `BASE_VERSION`,
+   teda 23. Odtiaľ skoky typu 145 → 23.
 
 Naviac bol `src/version.ts` verzovaný v gite, takže sa doň dalo ručne (aj
-agentom) zapísať ľubovoľné číslo — a pri `npm run dev` sa práve tá zapísaná
-hodnota aj zobrazovala, lebo generátor sa spúšťal len pri `build`.
+agentom) zapísať ľubovoľné číslo.
 
-## Keď build spadne na výpočte verzie
+### Druhá logika: kotva a jej posúvanie
 
-Skript zámerne **skončí chybou** namiesto tichého fallbacku — zlé číslo vo verzii
-nie je vidieť, spadnutý build áno. Typická príčina je plytký klon bez prístupu
-k histórii.
+Opravou bolo `BASE_VERSION + git rev-list --count --first-parent BASE_COMMIT..merge-base(HEAD, main)`.
+Číslovanie sedelo, ale výpočet potreboval históriu `main` až po kotviaci commit —
+a **Vercel klonuje plytko, pričom fetch v jeho build kontajneri neprejde**.
+Keď sa kotva dostala mimo hĺbky klonu, build spadol na preview aj na produkcii.
 
-- V GitHub Actions: `actions/checkout@v4` s `fetch-depth: 0`.
-- Núdzový východ (napr. build z tarballu bez gitu): premenná prostredia
-  `VESMA_VERSION=<číslo>`. Na Verceli sa dá nastaviť v Project Settings →
-  Environment Variables. Je to dočasná náplasť, nie riešenie.
+Kotvu bolo preto treba občas ručne posunúť. Stálo to šesť PR-ov — #164, #189,
+#191, #192, #199 a časť #208 — a dve spadnuté nasadenia (2. 9. 2026). Pribudla
+aj kontrola `check-version-anchor.mjs`, ktorá mala posun ohlásiť skôr, než
+zhodí build; tá sama prvýkrát nezafungovala, lebo súbor workflowu nemal príponu
+`.yml` (#192).
 
-## Kotva sa musí občas posunúť
-
-**Vercel klonuje plytko a fetch v jeho build kontajneri neprejde.** Keď sa kotva
-dostane mimo hĺbky klonu, skript ju nenájde, dotiahnuť ju nedokáže a build
-spadne — na preview aj na produkcii.
-
-Presne to sa stalo 2. 9. 2026: pôvodná kotva `cd36452` sa dostala 10 merge-ov za
-`main` a nasadenia začali padať s hláškou „Kotviaci commit … nie je v histórii
-(plytký klon?)". Predchádzajúce nasadenia prešli len preto, že kotva bola ešte
-v okne — je to teda časovaná nálož, nie náhodná chyba.
-
-### Ako kotvu posunúť
-
-1. Zisti aktuálnu verziu `main`: `node scripts/generate-version.mjs`
-2. V `scripts/generate-version.mjs` nastav `BASE_COMMIT` na HEAD vetvy `main`
-   a `BASE_VERSION` na číslo z kroku 1.
-3. Aktualizuj vzorec na začiatku tohto dokumentu a doplň riadok do histórie
-   kotiev v komentári skriptu.
-
-Verzia potom vyjde rovnaká ako predtým, takže postupnosť nikde neklesne ani
-neskočí.
-
-### História kotiev
+História kotiev, kým existovali:
 
 | Kotva | Základná verzia | Dôvod |
 |---|---|---|
-| `cd36452` | 160 | Zavedenie tohto pravidla. Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže 160 zaručilo, že postupnosť pri prechode neklesla. |
-| `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). Verzia `main` bola v tom čase 170, takže sa nezmenila. |
-| `062dfcf` | 179 | Druhý posun z rovnakého dôvodu (2. 9. 2026), po deviatich merge-och. Kontrola kotvy vtedy nebežala — pozri nižšie. |
-| `fb10457` | 186 | Tretí posun (3. 9. 2026), preventívny. Kontrola kotvy nahlásila, že je presne na prahu (6 merge-ov), takže najbližší merge by CI zhodil. Prvý posun, ktorý nebol reakciou na spadnutý build — mechanizmus zafungoval tak, ako mal. |
+| `cd36452` | 160 | Zavedenie počítania po prvej rodičovskej línii. |
+| `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). |
+| `062dfcf` | 179 | Druhý posun z rovnakého dôvodu (2. 9. 2026). |
+| `fb10457` | 186 | Tretí posun (3. 9. 2026), preventívny. |
 
-### Automatické upozornenie na CI
+### Prečo súbor namiesto výpočtu
 
-Posúvanie kotvy je náplasť a bude sa opakovať. Aby to neprekvapilo uprostred
-inej práce, `scripts/check-version-anchor.mjs` beží v CI (workflow
-`.github/workflows/kontrola-kotvy-verzie.yml`) pri každom PR aj push do
-`main` a **zlyhá**, keď je kotva viac než `PRAH_MERGEOV` (6) merge-ov za
-`main` — teda skôr, než sa dostane mimo hĺbky plytkého klonu na Verceli
-(pád nastal pri 10 merge-och). Keď tento krok zlyhá, kotvu posuň podľa
-postupu vyššie.
+Kotva bola časovaná nálož: fungovala, kým sa nevzdialila, a potom zhodila
+nasadenie uprostred inej práce. Číslo zapísané v súbore žiadnu históriu
+nepotrebuje, takže s kotvou zaniká celá tá trieda pádov — aj kontrola, ktorá
+ju strážila.
 
-**Pozor na príponu súboru.** Pri prvom zavedení mal workflow názov
-`kontrolaKotvyVerzie` bez prípony `.yml`. GitHub Actions načítava z
-`.github/workflows/` len súbory s príponou `.yml` alebo `.yaml`, takže sa
-kontrola nikdy nespustila a kotva sa druhýkrát dostala mimo okna bez
-varovania. Ak sa upozornenie neozve ani po prekročení prahu, over najprv,
-či workflow v záložke Actions vôbec existuje.
+Cena je jeden commit navyše na `main` po každom merge a krátky okamih, keď je
+na produkcii ešte staré číslo. Oboje je vidieť a nič nerozbíja.

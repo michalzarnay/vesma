@@ -1,57 +1,31 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 // @ts-expect-error – generátor je čistý ESM skript bez typov.
-import { vypocitajVerziu } from '../generate-version.mjs';
+import { nacitajVerziu, zapisVerziu, SUBOR_VERZIE } from '../generate-version.mjs';
 
 /**
- * Regresné testy k nekonzistentnému číslovaniu verzií.
+ * Verzia sa už nepočíta z histórie `main`, ale číta z `version.json`.
+ * Dôvod je v hlavičke generate-version.mjs: výpočet z histórie padal na
+ * plytkom klone Vercelu a kotvu bolo treba ručne posúvať.
  *
- * Pôvodná logika počítala `git rev-list --count BASE..HEAD`, čo spôsobovalo:
- *  - skok o toľko čísel, koľko commitov mal zlúčený PR (merge commit),
- *  - iné číslo pri builde z vetvy než z `main`,
- *  - tichý pád na BASE_VERSION (23) pri plytkom klone.
- *
- * Testy nižšie držia všetky tri veci na uzde.
+ * Testy držia dve veci:
+ *  - číslo sa prečíta presne také, aké je v súbore,
+ *  - pri chýbajúcom alebo poškodenom súbore sa padá, nie mlčky pokračuje.
+ *    Tichý fallback bol pôvodná príčina skokov typu 145 → 23.
  */
 
-const ZAKLAD = 100;
 const docasneAdresare: string[] = [];
 
-function git(args: string[], cwd: string): string {
-  return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-}
-
-function vytvorRepo(): string {
+function vytvorKoren(obsahSuboru?: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'vesma-verzia-'));
   docasneAdresare.push(dir);
-  git(['init', '-b', 'main'], dir);
-  git(['config', 'user.email', 'test@example.com'], dir);
-  git(['config', 'user.name', 'Test VESMA'], dir);
-  git(['config', 'commit.gpgsign', 'false'], dir);
+  if (obsahSuboru !== undefined) {
+    writeFileSync(join(dir, SUBOR_VERZIE), obsahSuboru);
+  }
   return dir;
-}
-
-function commit(dir: string, sprava: string): string {
-  writeFileSync(join(dir, 'subor.txt'), `${sprava}\n`);
-  git(['add', '-A'], dir);
-  git(['commit', '-m', sprava], dir);
-  return git(['rev-parse', 'HEAD'], dir);
-}
-
-/** Vetva s `pocet` commitmi, zlúčená do `main` merge commitom (ako PR z GitHubu). */
-function zlucVetvu(dir: string, nazov: string, pocet: number): void {
-  git(['checkout', '-b', nazov], dir);
-  for (let i = 1; i <= pocet; i += 1) commit(dir, `${nazov} commit ${i}`);
-  git(['checkout', 'main'], dir);
-  git(['merge', '--no-ff', '-m', `Merge pull request ${nazov}`, nazov], dir);
-}
-
-function verzia(dir: string, baseCommit: string): number {
-  return vypocitajVerziu({ cwd: dir, baseCommit, baseVersion: ZAKLAD, dotiahnut: false }) as number;
 }
 
 afterEach(() => {
@@ -60,108 +34,60 @@ afterEach(() => {
   }
 });
 
-describe('vypocitajVerziu', () => {
-  it('pri kotviacom commite vráti presne základnú verziu', () => {
-    const dir = vytvorRepo();
-    const zaklad = commit(dir, 'kotva');
+describe('nacitajVerziu', () => {
+  it('prečíta číslo zo súboru', () => {
+    const dir = vytvorKoren('{ "verzia": 190, "commit": "abc123" }');
 
-    expect(verzia(dir, zaklad)).toBe(ZAKLAD);
+    expect(nacitajVerziu(dir)).toBe(190);
   });
 
-  it('zlúčený PR posunie verziu o 1 bez ohľadu na počet commitov vo vetve', () => {
-    const dir = vytvorRepo();
-    const zaklad = commit(dir, 'kotva');
+  it('sha commitu na číslo nemá vplyv', () => {
+    const dir = vytvorKoren('{ "verzia": 7 }');
 
-    zlucVetvu(dir, 'vetva-a', 7);
-
-    // Stará logika (`rev-list --count`) by tu vrátila 100 + 8 = 108.
-    expect(verzia(dir, zaklad)).toBe(ZAKLAD + 1);
+    expect(nacitajVerziu(dir)).toBe(7);
   });
 
-  it('squash merge posunie verziu tiež presne o 1', () => {
-    const dir = vytvorRepo();
-    const zaklad = commit(dir, 'kotva');
+  it('pri chýbajúcom súbore padne', () => {
+    const dir = vytvorKoren();
 
-    git(['checkout', '-b', 'vetva-squash'], dir);
-    commit(dir, 'vetva commit 1');
-    commit(dir, 'vetva commit 2');
-    git(['checkout', 'main'], dir);
-    git(['merge', '--squash', 'vetva-squash'], dir);
-    git(['commit', '-m', 'fix: nieco (#1)'], dir);
-
-    expect(verzia(dir, zaklad)).toBe(ZAKLAD + 1);
+    expect(() => nacitajVerziu(dir)).toThrow(/nedá prečítať/);
   });
 
-  it('viac zlúčení dáva rastúcu postupnosť po jednotkách', () => {
-    const dir = vytvorRepo();
-    const zaklad = commit(dir, 'kotva');
+  it('pri poškodenom JSON-e padne', () => {
+    const dir = vytvorKoren('{ "verzia": ');
 
-    const postupnost: number[] = [];
-    for (let i = 1; i <= 3; i += 1) {
-      zlucVetvu(dir, `vetva-${i}`, i * 2);
-      postupnost.push(verzia(dir, zaklad));
-    }
-
-    expect(postupnost).toEqual([ZAKLAD + 1, ZAKLAD + 2, ZAKLAD + 3]);
+    expect(() => nacitajVerziu(dir)).toThrow(/platný JSON/);
   });
 
-  it('build z nezlúčenej vetvy ukáže verziu main, z ktorej vetva vychádza', () => {
-    const dir = vytvorRepo();
-    const zaklad = commit(dir, 'kotva');
-    zlucVetvu(dir, 'vetva-a', 2);
-    const verziaMain = verzia(dir, zaklad);
+  it('pri chýbajúcom čísle padne namiesto tichej nuly', () => {
+    const dir = vytvorKoren('{ "commit": "abc123" }');
 
-    git(['checkout', '-b', 'rozrobena-vetva'], dir);
-    commit(dir, 'rozrobene 1');
-    commit(dir, 'rozrobene 2');
-    commit(dir, 'rozrobene 3');
-
-    // Kľúčové: vetva NESMIE vyskočiť nad main, inak by číslo po squash merge kleslo.
-    expect(verzia(dir, zaklad)).toBe(verziaMain);
+    expect(() => nacitajVerziu(dir)).toThrow(/platné číslo verzie/);
   });
 
-  it('build zo staršieho commitu než kotva vráti základnú verziu', () => {
-    const dir = vytvorRepo();
-    const stary = commit(dir, 'kotva-1');
-    zlucVetvu(dir, 'vetva-a', 2);
-    const kotva = git(['rev-parse', 'HEAD'], dir);
-
-    // Napr. rollback deploy na Verceli – kotva je v histórii, ale nie je
-    // predchodcom buildovaného commitu.
-    git(['checkout', stary], dir);
-
-    expect(verzia(dir, kotva)).toBe(ZAKLAD);
+  it('desatinné ani záporné číslo neprejde', () => {
+    expect(() => nacitajVerziu(vytvorKoren('{ "verzia": 1.5 }'))).toThrow(/platné číslo verzie/);
+    expect(() => nacitajVerziu(vytvorKoren('{ "verzia": -1 }'))).toThrow(/platné číslo verzie/);
   });
+});
 
-  it('chýbajúci kotviaci commit skončí chybou, nie tichým nižším číslom', () => {
-    const dir = vytvorRepo();
-    commit(dir, 'kotva');
-    zlucVetvu(dir, 'vetva-a', 2);
+describe('zapisVerziu', () => {
+  it('zapíše APP_VERSION a upozorní, že súbor je generovaný', () => {
+    const dir = vytvorKoren('{ "verzia": 190 }');
+    const outFile = join(dir, 'version.ts');
 
-    // Presne toto sa dialo pri plytkom klone: kotva chýbala a stará logika
-    // ticho vypísala BASE_VERSION (23), hoci reálna verzia bola v stovkách.
-    expect(() => verzia(dir, '0'.repeat(40))).toThrow();
+    zapisVerziu(190, outFile);
+
+    const obsah = readFileSync(outFile, 'utf8');
+    expect(obsah).toContain('export const APP_VERSION = 190;');
+    expect(obsah).toContain('generovaný');
   });
+});
 
-  it('plytký klon nedá nižšie číslo — história sa najprv dotiahne', () => {
-    const zdroj = vytvorRepo();
-    const zaklad = commit(zdroj, 'kotva');
-    zlucVetvu(zdroj, 'vetva-a', 3);
-    zlucVetvu(zdroj, 'vetva-b', 3);
-    const ocakavana = verzia(zdroj, zaklad);
+describe('skutočný version.json v repozitári', () => {
+  it('je čitateľný a dáva kladné číslo', () => {
+    const koren = join(__dirname, '..', '..');
 
-    const cielovy = mkdtempSync(join(tmpdir(), 'vesma-verzia-klon-'));
-    docasneAdresare.push(cielovy);
-    const klon = join(cielovy, 'repo');
-    git(['clone', '--depth', '1', `file://${zdroj}`, klon], cielovy);
-    expect(git(['rev-parse', '--is-shallow-repository'], klon)).toBe('true');
-
-    const spocitana = vypocitajVerziu({
-      cwd: klon,
-      baseCommit: zaklad,
-      baseVersion: ZAKLAD,
-    }) as number;
-
-    expect(spocitana).toBe(ocakavana);
+    expect(nacitajVerziu(koren)).toBeGreaterThan(0);
   });
 });
