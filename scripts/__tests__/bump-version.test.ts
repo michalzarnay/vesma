@@ -1,30 +1,64 @@
 import { describe, it, expect, afterEach } from 'vitest';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 // @ts-expect-error – skript je čistý ESM bez typov.
-import { zvysVerziu } from '../bump-version.mjs';
+import { zvysVerziu, skontrolujVerziu, verziaNaMain } from '../bump-version.mjs';
 // @ts-expect-error – generátor je čistý ESM skript bez typov.
 import { SUBOR_VERZIE } from '../generate-version.mjs';
 
 /**
- * Verziu zvyšuje workflow po každom zlúčení do `main`. Dve veci sa nesmú
- * pokaziť: jeden merge nesmie pridať dve čísla (opakovaný beh workflowu)
- * a dva merge-y musia pridať dve.
+ * Číslo verzie prináša sama vetva a CI ho pri PR overí — push do `main`
+ * z Actions neprejde cez ruleset „Changes must be made through a pull request".
+ *
+ * Testy držia to podstatné: číslo sa počíta z `main`, nie prírastkom k tomu,
+ * čo je vo vetve. Inak by dva súbežne otvorené PR-y dostali rovnaké číslo
+ * a testeri by dve rôzne zostavy nerozlíšili.
  */
 
 const docasneAdresare: string[] = [];
 
-function vytvorKoren(obsahSuboru: string): string {
-  const dir = mkdtempSync(join(tmpdir(), 'vesma-bump-'));
+function git(args: string[], cwd: string): string {
+  return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
+function zapisVerziu(dir: string, verzia: number): void {
+  writeFileSync(join(dir, SUBOR_VERZIE), `${JSON.stringify({ verzia }, null, 2)}\n`);
+}
+
+function precitajVerziu(dir: string): number {
+  return JSON.parse(readFileSync(join(dir, SUBOR_VERZIE), 'utf8')).verzia;
+}
+
+/** Repozitár s vetvou `main`, na ktorej je zadaná verzia. */
+function vytvorRepo(verziaNaMaine: number): string {
+  const dir = mkdtempSync(join(tmpdir(), 'vesma-verzia-'));
   docasneAdresare.push(dir);
-  writeFileSync(join(dir, SUBOR_VERZIE), obsahSuboru);
+  git(['init', '-b', 'main'], dir);
+  git(['config', 'user.email', 'test@example.com'], dir);
+  git(['config', 'user.name', 'Test VESMA'], dir);
+  git(['config', 'commit.gpgsign', 'false'], dir);
+  zapisVerziu(dir, verziaNaMaine);
+  git(['add', '-A'], dir);
+  git(['commit', '-m', 'kotva'], dir);
   return dir;
 }
 
-function precitaj(dir: string): { verzia: number; commit?: string } {
-  return JSON.parse(readFileSync(join(dir, SUBOR_VERZIE), 'utf8'));
+/** Prejde na novú vetvu — `main` zostane tam, kde bol. */
+function novaVetva(dir: string, nazov: string): void {
+  git(['checkout', '-q', '-b', nazov], dir);
+}
+
+/** Posunie `main` o jeden zlúčený PR (ako keby sa medzitým niečo zlúčilo). */
+function zlucDoMain(dir: string, verzia: number): void {
+  const vetva = git(['rev-parse', '--abbrev-ref', 'HEAD'], dir);
+  git(['checkout', '-q', 'main'], dir);
+  zapisVerziu(dir, verzia);
+  git(['add', '-A'], dir);
+  git(['commit', '-m', `chore: verzia ${verzia}`], dir);
+  git(['checkout', '-q', vetva], dir);
 }
 
 afterEach(() => {
@@ -33,49 +67,80 @@ afterEach(() => {
   }
 });
 
+describe('verziaNaMain', () => {
+  it('prečíta číslo z vetvy main, nie z pracovného adresára', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
+    zapisVerziu(dir, 999); // nezacommitované
+
+    expect(verziaNaMain(dir)).toBe(190);
+  });
+});
+
 describe('zvysVerziu', () => {
-  it('zvýši číslo o jedna a zapíše sha commitu', () => {
-    const dir = vytvorKoren('{ "verzia": 190, "commit": "stary" }');
+  it('nastaví číslo na main + 1', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
 
-    const vysledok = zvysVerziu({ korenRepozitara: dir, sha: 'novy' });
-
-    expect(vysledok).toEqual({ zmenene: true, verzia: 191 });
-    expect(precitaj(dir)).toEqual({ verzia: 191, commit: 'novy' });
+    expect(zvysVerziu({ korenRepozitara: dir })).toEqual({ zmenene: true, verzia: 191 });
+    expect(precitajVerziu(dir)).toBe(191);
   });
 
-  it('ten istý commit druhýkrát číslo nezvýši', () => {
-    const dir = vytvorKoren('{ "verzia": 190, "commit": "stary" }');
+  it('druhé spustenie v tej istej vetve číslo nezvýši', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
 
-    zvysVerziu({ korenRepozitara: dir, sha: 'novy' });
-    const druhy = zvysVerziu({ korenRepozitara: dir, sha: 'novy' });
-
-    expect(druhy).toEqual({ zmenene: false, verzia: 191 });
-    expect(precitaj(dir).verzia).toBe(191);
+    zvysVerziu({ korenRepozitara: dir });
+    expect(zvysVerziu({ korenRepozitara: dir })).toEqual({ zmenene: false, verzia: 191 });
+    expect(precitajVerziu(dir)).toBe(191);
   });
 
-  it('dva rôzne commity pridajú dve čísla', () => {
-    const dir = vytvorKoren('{ "verzia": 190, "commit": "nulty" }');
+  it('po zlúčení cudzieho PR dá ďalšie číslo, nie to isté', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
+    zvysVerziu({ korenRepozitara: dir }); // 191
 
-    zvysVerziu({ korenRepozitara: dir, sha: 'prvy' });
-    zvysVerziu({ korenRepozitara: dir, sha: 'druhy' });
+    zlucDoMain(dir, 191); // niekto iný medzitým zlúčil svoj PR
 
-    expect(precitaj(dir)).toEqual({ verzia: 192, commit: 'druhy' });
+    expect(zvysVerziu({ korenRepozitara: dir })).toEqual({ zmenene: true, verzia: 192 });
+  });
+});
+
+describe('skontrolujVerziu', () => {
+  it('main + 1 prejde', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
+    zapisVerziu(dir, 191);
+
+    expect(skontrolujVerziu({ korenRepozitara: dir })).toMatchObject({ sedi: true, ocakavana: 191 });
   });
 
-  it('bez sha odmietne pracovať — inak by sa idempotencia stratila', () => {
-    const dir = vytvorKoren('{ "verzia": 190, "commit": "stary" }');
+  it('nezvýšená verzia neprejde — to je hlavný prípad, ktorý má kontrola chytiť', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
 
-    expect(() => zvysVerziu({ korenRepozitara: dir, sha: '' })).toThrow(/Chýba sha/);
-    expect(precitaj(dir).verzia).toBe(190);
+    expect(skontrolujVerziu({ korenRepozitara: dir })).toMatchObject({
+      sedi: false,
+      nezvysena: true,
+      ocakavana: 191,
+    });
   });
 
-  it('zapísaný súbor zostáva čitateľný pre generátor', () => {
-    const dir = vytvorKoren('{ "verzia": 190, "commit": "stary" }');
+  it('zabudnuté zvýšenie po zlúčení cudzieho PR neprejde', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
+    zapisVerziu(dir, 191);
+    zlucDoMain(dir, 191);
 
-    zvysVerziu({ korenRepozitara: dir, sha: 'novy' });
+    // 191 už je na main — vetva musí ísť na 192.
+    expect(skontrolujVerziu({ korenRepozitara: dir })).toMatchObject({ sedi: false, ocakavana: 192 });
+  });
 
-    const obsah = readFileSync(join(dir, SUBOR_VERZIE), 'utf8');
-    expect(obsah.endsWith('\n')).toBe(true);
-    expect(() => JSON.parse(obsah)).not.toThrow();
+  it('preskočené číslo neprejde', () => {
+    const dir = vytvorRepo(190);
+    novaVetva(dir, 'vetva');
+    zapisVerziu(dir, 195);
+
+    expect(skontrolujVerziu({ korenRepozitara: dir })).toMatchObject({ sedi: false, ocakavana: 191 });
   });
 });

@@ -1,62 +1,34 @@
 name: Číslo verzie
 
-# Po každom zlúčení do `main` zvýši číslo vo `version.json` o jedna.
-# Jeden zlúčený PR = presne +1 (pozri docs/verziovanie.md).
+# Overí, že `version.json` vo vetve je o jedna vyššie než na `main`.
+# Zlúčením PR sa tak `main` posunie o +1 — jeden zlúčený PR = jedna verzia.
 #
-# Prečo workflow a nie výpočet z histórie: Vercel klonuje plytko a fetch v jeho
-# build kontajneri neprejde, takže výpočet z histórie tam nespoľahlivo padal
-# a kotvu bolo treba ručne posúvať. Súbor s číslom históriu nepotrebuje.
+# Prečo to kontroluje PR a nezvyšuje to workflow po zlúčení: `main` má ruleset
+# „Changes must be made through a pull request", takže push z Actions doň
+# neprejde (GH013). Číslo preto prináša sama vetva.
 #
-# Slučka nehrozí: push spravený cez GITHUB_TOKEN zámerne nespúšťa ďalšie behy
-# workflowov. Keby sa predsa spustil, bump-version.mjs pri rovnakom sha číslo
-# nezvýši.
+# Keď kontrola zlyhá, stačí vo vetve spustiť `npm run verzia` a commitnúť
+# version.json. Podrobnosti sú v docs/verziovanie.md.
 
 on:
-  push:
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
-# Dva merge-y tesne za sebou sa nesmú prekryť — inak by obidva čítali to isté
-# číslo a jeden z nich by sa stratil. `cancel-in-progress: false` ich zaradí za sebou.
-concurrency:
-  group: verzia-main
-  cancel-in-progress: false
-
-permissions:
-  contents: write
-
 jobs:
-  zvys:
+  kontrola:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Zvýšiť číslo vo version.json
-        run: node scripts/bump-version.mjs "${{ github.sha }}"
+      # Kontrola porovnáva s `main`; plytký klon PR ho nemá.
+      - name: Dotiahnuť main
+        run: git fetch origin main --depth=1
 
-      - name: Zapísať zmenu do main
-        run: |
-          if git diff --quiet -- version.json; then
-            echo "version.json sa nezmenil — nie je čo commitovať."
-            exit 0
-          fi
-
-          VERZIA=$(node -p "require('./version.json').verzia")
-
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add version.json
-          git commit -m "chore: verzia ${VERZIA}" \
-                     -m "Zvýšené automaticky po zlúčení ${{ github.sha }}. Pozri docs/verziovanie.md."
-
-          # `main` sa mohol medzitým posunúť (ďalší merge). Rebase pred pushom,
-          # aby sa zmena nestratila ani nevyžadovala force.
-          git pull --rebase origin main
-          git push origin HEAD:main
+      - name: Verzia je o jedna vyššia než na main
+        run: node scripts/bump-version.mjs --kontrola
