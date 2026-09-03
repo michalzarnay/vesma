@@ -13,7 +13,10 @@ jobs:
   e2e:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-e2e') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Scenáre, ktoré prechádzajú celý dotazník, bežia rádovo pol minúty a v CI
+    # ide jeden worker. Limit je poistka proti zaseknutému behu, nie rozpočet —
+    # nech nezhodí sadu len preto, že do nej pribudol scenár.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
