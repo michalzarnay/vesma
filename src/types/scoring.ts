@@ -8,12 +8,43 @@ export interface ScoreResult {
   mziPotencial: number; // absolútny potenciál v m²·váha jednotkách (vyššie = viac možností)
 }
 
+/** Päťstupňová škála Klimaskenu — A = najlepší stav, E = najhorší. */
+export type KlimaskenStupen = 'A' | 'B' | 'C' | 'D' | 'E';
+
+/** Jeden komponent MZI skóre — získané body a maximum, ktoré mohol dosiahnuť. */
+export interface MZIKomponent {
+  body: number;
+  max: number;
+}
+
+/**
+ * MZI skóre podľa metodiky Klimaskenu (metodické listy B-GOV2, B-GOV3, B-AD10).
+ * Komponent má hodnotu `null`, ak preň v dotazníku nie sú údaje — do celkového
+ * skóre sa vtedy nezapočíta (pozri `calculateMZI` v `utils/mziKlimasken.ts`).
+ */
 export interface MZIScore {
-  celkove: number;
-  podielPriepustnychPloch: number; // 0-25
-  existujuceOpatrenia: number; // 0-25
-  stavZelene: number; // 0-25
-  potencialZlepsenia: number; // 0-25
+  celkove: number; // 0-100
+  /** B-GOV2 — priepustnosť a zeleň plôch areálu */
+  okolie: MZIKomponent | null;
+  /** B-GOV3 — zeleň a retencia na strechách a fasádach */
+  budovy: MZIKomponent | null;
+  /** B-AD10 — kapacita akumulácie zrážkovej vody */
+  akumulacia: MZIKomponent | null;
+  /** Podiel plôch, z ktorých voda ide do vsaku alebo retencie (doplnok VESMA) */
+  odtok: MZIKomponent | null;
+
+  /** Vážený koeficient MZI okolia (0–1) podľa B-GOV2 */
+  koefOkolie: number | null;
+  /** Vážený koeficient MZI budov (0–1) podľa B-GOV3 */
+  koefBudovy: number | null;
+  /** Naplnenie optimálneho objemu akumulačných nádrží (%) podľa B-AD10 */
+  akumulaciaPercent: number | null;
+  /** Podiel zadržaného odtoku (0–1) */
+  podielZadrzanehoOdtoku: number | null;
+
+  stupenOkolie: KlimaskenStupen | null;
+  stupenBudovy: KlimaskenStupen | null;
+  stupenAkumulacia: KlimaskenStupen | null;
 }
 
 export interface OZEScore {

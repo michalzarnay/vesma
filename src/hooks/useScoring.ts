@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
-import { ScoreResult, MZIScore, OZEScore, EnergiaScore, hodnoteneOblasti } from '../types/scoring';
+import { ScoreResult, OZEScore, EnergiaScore, hodnoteneOblasti } from '../types/scoring';
+import { calculateMZI } from '../utils/mziKlimasken';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
 import { podielLED } from '../utils/lighting';
 import { budovyNaEnergetickeHodnotenie } from '../utils/sezonnaStavba';
@@ -9,91 +10,8 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function calculateMZI(areal: Areal): MZIScore {
-  const pozemky = areal.pozemky;
-  if (pozemky.length === 0) return { celkove: 0, podielPriepustnychPloch: 0, existujuceOpatrenia: 0, stavZelene: 0, potencialZlepsenia: 0 };
-
-  // 1. Podiel priepustnych ploch (0-25)
-  let totalPlocha = 0;
-  let totalPriepustna = 0;
-  let totalPolopriepustna = 0;
-  let totalSpevnena = 0;
-
-  for (const p of pozemky) {
-    const plocha = p.plochaBezBudov || p.celkovaVymera;
-    totalPlocha += plocha;
-    totalPriepustna += p.priepustnaPlochaCelkom;
-    totalPolopriepustna += p.polopriepustnaPlochaCelkom;
-    totalSpevnena += p.spevnenaPlochaCelkom;
-  }
-
-  let podielPriepustnych = 0;
-  if (totalPlocha > 0) {
-    podielPriepustnych = (totalPriepustna + 0.5 * totalPolopriepustna) / totalPlocha;
-  }
-  const podielPriepustnychPloch = clamp(Math.round(podielPriepustnych * 25), 0, 25);
-
-  // 2. Existujuce opatrenia (0-25)
-  let opatreniaScore = 0;
-  for (const p of pozemky) {
-    if (p.dazdovaZahradaPlocha > 0) opatreniaScore += 5;
-    if (p.jazierkoPlocha > 0) opatreniaScore += 4;
-    if (p.nadzemneNadobyObjem > 0 || p.podzemneNadobyObjem > 0) opatreniaScore += 5;
-    if (p.zelenaStrechaPlocha > 0) opatreniaScore += 5;
-    // Bonus for water directed to vsakovanie/retention
-    if ((p.odvodVodyVsakovanie ?? 0) > 20) opatreniaScore += 3;
-    if ((p.odvodVodyRetencnaNadrzou ?? 0) > 0) opatreniaScore += 2;
-    if ((p.odvodVodyNerieseny ?? 0) < 30) opatreniaScore += 3;
-  }
-  const existujuceOpatrenia = clamp(Math.round(opatreniaScore / pozemky.length), 0, 25);
-
-  // 3. Stav zelene (0-25)
-  let zeleneScore = 0;
-  for (const p of pozemky) {
-    if (p.priepustnaPlochaCelkom > 0 && totalPriepustna > 0) {
-      const weight = p.priepustnaPlochaCelkom / totalPriepustna;
-      // Trees and shrubs bonus
-      zeleneScore += (p.priepustnaPlochaStromy / 100) * 8 * weight;
-      zeleneScore += (p.priepustnaPlochaKry / 100) * 5 * weight;
-      zeleneScore += ((p.priepustnaPlochaByliny + p.priepustnaPlochaHolaPoda) / 100) * 3 * weight;
-      // Young trees bonus
-      if (p.stromyPodielMladych > 20) zeleneScore += 3 * weight;
-      // Penalty for unhealthy trees
-      if (p.stromyPodielNezdravych > 30) zeleneScore -= 3 * weight;
-    }
-  }
-  const stavZelene = clamp(Math.round(zeleneScore + 5), 0, 25); // +5 base
-
-  // 4. Potencial zlepsenia (0-25) - higher if more room for improvement
-  let potencialScore = 0;
-  if (totalSpevnena > 0 && totalPlocha > 0) {
-    potencialScore += (totalSpevnena / totalPlocha) * 10; // More impervious = more potential
-  }
-  // Unresolved water drainage
-  let avgNerieseny = 0;
-  for (const p of pozemky) {
-    avgNerieseny += p.odvodVodyNerieseny ?? 0;
-  }
-  avgNerieseny /= pozemky.length;
-  if (avgNerieseny > 50) potencialScore += 8;
-  else if (avgNerieseny > 20) potencialScore += 4;
-
-  // Green roof potential on buildings
-  let totalGreenRoofPotential = 0;
-  for (const b of areal.budovy) {
-    if (b.strechaTyp === 1 && b.zelenaStrechaPlocha === 0) {
-      totalGreenRoofPotential += b.plochaPodorysu;
-    }
-  }
-  if (totalGreenRoofPotential > 500) potencialScore += 7;
-  else if (totalGreenRoofPotential > 100) potencialScore += 4;
-
-  const potencialZlepsenia = clamp(Math.round(potencialScore), 0, 25);
-
-  const celkove = podielPriepustnychPloch + existujuceOpatrenia + stavZelene + potencialZlepsenia;
-
-  return { celkove, podielPriepustnychPloch, existujuceOpatrenia, stavZelene, potencialZlepsenia };
-}
+// MZI sa hodnotí podľa metodiky Klimaskenu — pozri utils/mziKlimasken.ts.
+export { calculateMZI };
 
 export function calculateOZE(areal: Areal): OZEScore {
   // Bez jedinej budovy sa OZE nehodnotí — celé skóre stojí na budovách

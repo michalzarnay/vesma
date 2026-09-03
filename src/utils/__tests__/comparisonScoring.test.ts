@@ -38,6 +38,20 @@ describe('computeAreaComparisonScore', () => {
     expect(score.voda).toBe(Math.round(500 * 10));
   });
 
+  it('nepočíta pravidelne obrábanú pôdu ako plochu na výsadbu mladých stromov (issue #196)', () => {
+    // Na zeleninové hriadky ani na pole sa stromy spravidla nesadia — obrábaná pôda
+    // preto do parametra `pozemky_mlade_stromy_potencial` neprispieva.
+    const areal = createEmptyAreal();
+    areal.pozemky[0].plochaBezBudov = 1000;
+    areal.pozemky[0].priepustnaPlochaCelkom = 1000;
+    areal.pozemky[0].priepustnaPlochaObrabanaPoda = 100;
+
+    const score = computeAreaComparisonScore(areal);
+    expect(score.sucho).toBe(0);
+    expect(score.horucavy).toBe(0);
+    expect(score.voda).toBe(0);
+  });
+
   it('sčíta odvod z jednotnej, splaškovej aj zrážkovej kanalizácie', () => {
     const areal = createEmptyAreal();
     areal.pozemky[0].plochaBezBudov = 1000;

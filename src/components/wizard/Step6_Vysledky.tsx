@@ -4,7 +4,10 @@ import { Areal, ScoringWeights } from '../../types/areal';
 import { useScoring } from '../../hooks/useScoring';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
-import { EnergiaScore, dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore } from '../../types/scoring';
+import {
+  EnergiaScore, KlimaskenStupen, MZIKomponent,
+  dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
+} from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
@@ -291,11 +294,32 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         <ScoreDetail
           title="MZI"
           items={[
-            { label: 'Priepustné plochy', score: score.mzi.podielPriepustnychPloch, max: 25 },
-            { label: 'Existujúce opatrenia', score: score.mzi.existujuceOpatrenia, max: 25 },
-            { label: 'Stav zelene', score: score.mzi.stavZelene, max: 25 },
-            { label: 'Potenciál zlepšenia', score: score.mzi.potencialZlepsenia, max: 25 },
+            {
+              label: 'Priepustnosť a zeleň areálu',
+              ...komponentBody(score.mzi.okolie, 45),
+              hodnota: koeficientText(score.mzi.koefOkolie, score.mzi.stupenOkolie),
+            },
+            {
+              label: 'Zeleň a retencia na budovách',
+              ...komponentBody(score.mzi.budovy, 25),
+              hodnota: koeficientText(score.mzi.koefBudovy, score.mzi.stupenBudovy),
+            },
+            {
+              label: 'Akumulácia zrážkovej vody',
+              ...komponentBody(score.mzi.akumulacia, 15),
+              hodnota: score.mzi.akumulaciaPercent === null || score.mzi.stupenAkumulacia === null
+                ? null
+                : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
+            },
+            {
+              label: 'Odtok zo spevnených plôch',
+              ...komponentBody(score.mzi.odtok, 15),
+              hodnota: score.mzi.podielZadrzanehoOdtoku === null
+                ? null
+                : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} %`,
+            },
           ]}
+          poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
         />
         {hodnotiOZE && (
           <ScoreDetail
@@ -524,27 +548,60 @@ function EnergetikaNehodnotena({ energia }: { energia: EnergiaScore }) {
   return <OblastNehodnotena nazov="Energetická efektívnosť" vysvetlenie={vysvetlenie} />;
 }
 
-function ScoreDetail({ title, items }: { title: string; items: { label: string; score: number; max: number }[] }) {
+interface ScoreDetailItem {
+  label: string;
+  /** `null` = komponent sa nedal vypočítať, do skóre sa nezapočítal */
+  score: number | null;
+  max: number;
+  /** Doplnková hodnota indikátora (koeficient, percento, stupeň A–E) */
+  hodnota?: string | null;
+}
+
+/** Rozloží komponent MZI skóre na tvar, ktorý zobrazuje `ScoreDetail`. */
+function komponentBody(
+  komponent: MZIKomponent | null,
+  max: number,
+): { score: number | null; max: number } {
+  return komponent === null ? { score: null, max } : { score: komponent.body, max: komponent.max };
+}
+
+function koeficientText(koef: number | null, stupen: KlimaskenStupen | null): string | null {
+  if (koef === null || stupen === null) return null;
+  return `${koef.toFixed(2)} · ${stupen}`;
+}
+
+function ScoreDetail({ title, items, poznamka }: { title: string; items: ScoreDetailItem[]; poznamka?: string }) {
   return (
     <div className="bg-gray-50 rounded-xl p-4 space-y-2">
       <h4 className="text-sm font-semibold text-gray-700">{title}</h4>
-      {items.map((item) => (
-        <div key={item.label} className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-600">{item.label}</span>
-            <span className="font-medium">{item.score}/{item.max}</span>
+      {items.map((item) => {
+        const podiel = item.score === null ? 0 : item.score / item.max;
+        return (
+          <div key={item.label} className="space-y-1">
+            <div className="flex justify-between gap-2 text-xs">
+              <span className="text-gray-600">{item.label}</span>
+              {item.score === null ? (
+                <span className="text-gray-400 italic whitespace-nowrap">bez údajov</span>
+              ) : (
+                <span className="font-medium whitespace-nowrap">
+                  {item.hodnota && <span className="text-gray-400 font-normal mr-1.5">{item.hodnota}</span>}
+                  {item.score}/{item.max}
+                </span>
+              )}
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div
+                className="h-1.5 rounded-full transition-all duration-500"
+                style={{
+                  width: `${podiel * 100}%`,
+                  backgroundColor: getScoreLevel(podiel * 100).color,
+                }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div
-              className="h-1.5 rounded-full transition-all duration-500"
-              style={{
-                width: `${(item.score / item.max) * 100}%`,
-                backgroundColor: getScoreLevel((item.score / item.max) * 100).color,
-              }}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
+      {poznamka && <p className="text-[11px] text-gray-400 pt-1 leading-snug">{poznamka}</p>}
     </div>
   );
 }

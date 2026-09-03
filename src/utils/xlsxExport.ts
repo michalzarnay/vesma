@@ -1,10 +1,24 @@
 import * as XLSX from 'xlsx';
 import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
-import { ScoreResult, dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore } from '../types/scoring';
+import {
+  KlimaskenStupen, MZIKomponent, ScoreResult,
+  dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
+} from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
+
+/** Riadok detailu MZI — komponent bez údajov sa vypíše ako „bez údajov". */
+function mziRiadok(
+  nazov: string,
+  komponent: MZIKomponent | null,
+  hodnota: string | null,
+  stupen: KlimaskenStupen | null,
+): (string | number)[] {
+  if (komponent === null) return [nazov, 'bez údajov', '', '', ''];
+  return [nazov, komponent.body, komponent.max, hodnota ?? '', stupen ?? ''];
+}
 
 const weightedScore = vazeneCelkoveSkore;
 
@@ -53,11 +67,16 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Vážené celkové skóre', ws(areal.vahy)],
     ['Nevážené celkové skóre', score.celkove],
     [],
-    ['DETAIL MZI'],
-    ['Podiel priepustných plôch', score.mzi.podielPriepustnychPloch, '/ 25'],
-    ['Existujúce opatrenia', score.mzi.existujuceOpatrenia, '/ 25'],
-    ['Stav zelene', score.mzi.stavZelene, '/ 25'],
-    ['Potenciál zlepšenia', score.mzi.potencialZlepsenia, '/ 25'],
+    ['DETAIL MZI (metodika KLIMASKEN)'],
+    ['Komponent', 'Body', 'Maximum', 'Hodnota indikátora', 'Stupeň A–E'],
+    mziRiadok('Priepustnosť a zeleň areálu (B-GOV2)', score.mzi.okolie,
+      score.mzi.koefOkolie === null ? null : `koeficient MZI ${score.mzi.koefOkolie.toFixed(2)}`, score.mzi.stupenOkolie),
+    mziRiadok('Zeleň a retencia na budovách (B-GOV3)', score.mzi.budovy,
+      score.mzi.koefBudovy === null ? null : `koeficient MZI ${score.mzi.koefBudovy.toFixed(2)}`, score.mzi.stupenBudovy),
+    mziRiadok('Akumulácia zrážkovej vody (B-AD10)', score.mzi.akumulacia,
+      score.mzi.akumulaciaPercent === null ? null : `${Math.round(score.mzi.akumulaciaPercent)} % optimálneho objemu`, score.mzi.stupenAkumulacia),
+    mziRiadok('Odtok zo spevnených plôch', score.mzi.odtok,
+      score.mzi.podielZadrzanehoOdtoku === null ? null : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} % odtokovej plochy do vsaku alebo retencie`, null),
     [],
     ['DETAIL OZE'],
     ...(saHodnotiOZE(score.oze)

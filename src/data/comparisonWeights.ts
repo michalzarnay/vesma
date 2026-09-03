@@ -101,10 +101,12 @@ export const MZI_PARAMETERS: MziParameter[] = [
   },
   {
     key: 'pozemky_mlade_stromy_potencial',
-    nazov: 'Na lúku, holú pôdu, prípadne namiesto krov sa vysadia mladé stromy',
+    nazov: 'Na lúku, prípadne namiesto krov sa vysadia mladé stromy',
     vahy: { sucho: 2, horucavy: 6, voda: 4 },
+    // Pravidelne obrábaná pôda (hriadky, záhony, polia) sa nezapočítava — stromy sa
+    // na ňu spravidla nesadia, započítanie by nadhodnotilo potenciál areálu (#196).
     getValue: (areal) => sum(areal.pozemky, (p) =>
-      p.priepustnaPlochaCelkom * ((p.priepustnaPlochaHolaPoda + p.priepustnaPlochaByliny + p.priepustnaPlochaKry) / 100)
+      p.priepustnaPlochaCelkom * ((p.priepustnaPlochaByliny + p.priepustnaPlochaKry) / 100)
     ),
   },
   {

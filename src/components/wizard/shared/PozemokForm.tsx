@@ -125,17 +125,23 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
         />
         <ConditionalSection title="Rozdelenie prírodného (vsakovacieho) povrchu" show={pozemok.priepustnaPlochaCelkom > 0}>
           <PercentageGroup
-            title="Podiel typov vegetácie na prírodnom (vsakovacom) povrchu"
-            tooltipText="Rozdeľte prírodný (vsakovací) povrch podľa typu vegetácie. Súčet musí byť 100%."
+            title="Podiel typov povrchu na prírodnom (vsakovacom) povrchu"
+            tooltipText="Rozdeľte prírodný (vsakovací) povrch podľa typu povrchu. Súčet musí byť 100%."
             fields={[
-              { key: 'priepustnaPlochaByliny', label: 'byliny (trávnik, lúka, príp. holá pôda dočasne)' },
+              { key: 'priepustnaPlochaByliny', label: 'byliny (trávnik, lúka, príp. dočasne holé miesto)' },
               { key: 'priepustnaPlochaKry', label: 'kry' },
               { key: 'priepustnaPlochaStromy', label: 'stromy' },
+              {
+                key: 'priepustnaPlochaObrabanaPoda',
+                label: 'pravidelne obrábaná pôda bez mulča (aspoň 2× ročne)',
+                tooltipKey: 'obrabanaPodaDef',
+              },
             ]}
             values={{
               priepustnaPlochaByliny: pozemok.priepustnaPlochaByliny,
               priepustnaPlochaKry: pozemok.priepustnaPlochaKry,
               priepustnaPlochaStromy: pozemok.priepustnaPlochaStromy,
+              priepustnaPlochaObrabanaPoda: pozemok.priepustnaPlochaObrabanaPoda,
             }}
             onChange={(key, value) => onChange({ [key]: value })}
           />
