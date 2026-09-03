@@ -19,8 +19,9 @@ Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
 1. **Čísla, ktoré by si si musel vymyslieť.** Referenčné hodnoty
    kWh/(m²·rok), emisné faktory, výhrevnosti palív, ceny a návratnosti
    opatrení. Na výstupe nie je vidieť, že sú vymyslené — a nástroj pre
-   samosprávy tým začne klamať sebavedomo. Keď zdroj nie je, povedz to
-   a nechaj hodnotu prázdnu.
+   samosprávy tým začne klamať sebavedomo. Keď zdroj nie je, povedz to,
+   nechaj hodnotu prázdnu a **zapíš ju do `docs/chybajuce-hodnoty.md`** —
+   je to jediný zoznam toho, na čo sa čaká a od koho.
 2. **Pravidlá hodnotenia.** Skóre areálu (`useScoring.ts`) a váhy porovnania
    (`comparisonWeights.ts`). Menia poradie areálov, teda to, kam pôjdu peniaze.
    Prepočet jednotky alebo oprava zjavnej chyby vo vzorci sem nepatrí — tie
