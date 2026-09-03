@@ -607,3 +607,7 @@ začal klamať sebavedomo. Preto sú v kóde zámerne prázdne alebo označené 
 Podklad pre experta so všetkými piatimi tabuľkami naraz je v
 `docs/VESMA_podklad_pre_energetickeho_experta.xlsx` — žlté bunky sú na vyplnenie,
 pri každej tabuľke je vysvetlené, načo slúži a čo bez nej VESMA nevie.
+
+Tých päť hodnôt je zároveň vedených v `docs/chybajuce-hodnoty.md` spolu
+s hodnotami z ostatných oblastí. **Stav (čaká / návrh / potvrdené / zamietnuté)
+sa udržiava tam**, nie tu — tento dokument je rozbor, nie zoznam úloh.

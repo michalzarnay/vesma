@@ -1,0 +1,62 @@
+name: Číslo verzie
+
+# Po každom zlúčení do `main` zvýši číslo vo `version.json` o jedna.
+# Jeden zlúčený PR = presne +1 (pozri docs/verziovanie.md).
+#
+# Prečo workflow a nie výpočet z histórie: Vercel klonuje plytko a fetch v jeho
+# build kontajneri neprejde, takže výpočet z histórie tam nespoľahlivo padal
+# a kotvu bolo treba ručne posúvať. Súbor s číslom históriu nepotrebuje.
+#
+# Slučka nehrozí: push spravený cez GITHUB_TOKEN zámerne nespúšťa ďalšie behy
+# workflowov. Keby sa predsa spustil, bump-version.mjs pri rovnakom sha číslo
+# nezvýši.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Dva merge-y tesne za sebou sa nesmú prekryť — inak by obidva čítali to isté
+# číslo a jeden z nich by sa stratil. `cancel-in-progress: false` ich zaradí za sebou.
+concurrency:
+  group: verzia-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  zvys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Zvýšiť číslo vo version.json
+        run: node scripts/bump-version.mjs "${{ github.sha }}"
+
+      - name: Zapísať zmenu do main
+        run: |
+          if git diff --quiet -- version.json; then
+            echo "version.json sa nezmenil — nie je čo commitovať."
+            exit 0
+          fi
+
+          VERZIA=$(node -p "require('./version.json').verzia")
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git commit -m "chore: verzia ${VERZIA}" \
+                     -m "Zvýšené automaticky po zlúčení ${{ github.sha }}. Pozri docs/verziovanie.md."
+
+          # `main` sa mohol medzitým posunúť (ďalší merge). Rebase pred pushom,
+          # aby sa zmena nestratila ani nevyžadovala force.
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -19,8 +19,9 @@ Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
 1. **Čísla, ktoré by si si musel vymyslieť.** Referenčné hodnoty
    kWh/(m²·rok), emisné faktory, výhrevnosti palív, ceny a návratnosti
    opatrení. Na výstupe nie je vidieť, že sú vymyslené — a nástroj pre
-   samosprávy tým začne klamať sebavedomo. Keď zdroj nie je, povedz to
-   a nechaj hodnotu prázdnu.
+   samosprávy tým začne klamať sebavedomo. Keď zdroj nie je, povedz to,
+   nechaj hodnotu prázdnu a **zapíš ju do `docs/chybajuce-hodnoty.md`** —
+   je to jediný zoznam toho, na čo sa čaká a od koho.
 2. **Pravidlá hodnotenia.** Skóre areálu (`useScoring.ts`) a váhy porovnania
    (`comparisonWeights.ts`). Menia poradie areálov, teda to, kam pôjdu peniaze.
    Prepočet jednotky alebo oprava zjavnej chyby vo vzorci sem nepatrí — tie
@@ -41,11 +42,31 @@ Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
 - V PR napíš aj to, čo je otvorené alebo na potvrdenie — hodnoty, ktoré
   navrhuješ, a rozhodnutia, ktoré si spravil za niekoho.
 
+## Oprav triedu, nie výskyt
+Keď oprava mení podmienku alebo pravidlo — „areál bez budov sa nehodnotí",
+„sezónna stavba sa nevykuruje", „toto pole je nepovinné" — nájdi **všetky
+miesta, ktoré ten istý predikát používajú**, a oprav ich v jednom PR.
+Test píš na úrovni toho predikátu, nie na úrovni obrazovky, kde sa chyba
+náhodou ukázala.
+
+Ako to vyzerá, keď sa to nedodrží: #203 (sezónna stavba sa energeticky
+nehodnotí) → #206 (energetika ani pri areáli bez budov) → #208 (OZE ani pri
+areáli bez budov). Tri PR-y za necelý deň, tri verzie navyše pre testerov
+a tri kolá recenzie na jednu myšlienku.
+
+Toto nie je výnimka z pravidla „drž sa rozsahu zadania". Dokončiť opravu
+naprieč miestami, kde platí to isté pravidlo, je stále ten istý rozsah;
+zmena „pri tom" je niečo iné.
+
+Keď je oprava celej triedy priveľká na jeden PR, sprav najmenšiu zmysluplnú
+časť a v popise PR **vymenuj zvyšné miesta**, aby sa nestratili.
+
 ## Číslo verzie — nikdy neupravuj ručne
 `src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
-Číslo počíta `scripts/generate-version.mjs` z histórie vetvy `main`
-(pozri `docs/verziovanie.md`). Nikdy doň nezapisuj číslo ručne a nikdy ho
-nepridávaj do gitu — verzia sa posunie sama tým, že sa PR zlúči do `main`.
+Číslo číta `scripts/generate-version.mjs` z `version.json` v koreni repozitára
+(pozri `docs/verziovanie.md`). Do `version.json` nezapisuj — zvyšuje ho
+workflow „Číslo verzie" po každom zlúčení do `main`. Verzia sa teda posunie
+sama tým, že sa PR zlúči; ručný zásah ju len rozhodí.
 
 ## UI a interakčné chyby — zvýšená opatrnosť
 Nevidíš vykreslenú stránku ani na ňu nevieš kliknúť — pri vizuálnych
