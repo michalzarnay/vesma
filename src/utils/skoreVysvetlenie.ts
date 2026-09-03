@@ -8,15 +8,22 @@
 // tisícov), aby ich Excel po vložení prevzal ako čísla, nie ako text.
 
 import { Areal } from '../types/areal';
-import { MZIScore } from '../types/scoring';
+import {
+  EnergiaScore, MZIScore, OZEScore, RozpisPodskore, saHodnotiEnergetika, saHodnotiOZE,
+} from '../types/scoring';
 import {
   Plocha, detailAkumulacie, detailOdtoku, plochyBudov, plochyOkolia, zluceneRiadky,
 } from './mziKlimasken';
 
+/** Kľúč komponentu, ktorého sa vysvetlenie týka. */
+export type KlucKomponentu =
+  | 'okolie' | 'budovy' | 'akumulacia' | 'odtok'
+  | 'vhodnostStrechyPreSolar' | 'existujuceOZE' | 'potencialTepelnehoCerpadla' | 'potencialDalsichOZE'
+  | 'zateplenie' | 'kvalitaOkien' | 'vykurovaciSystem' | 'vetranie';
+
 /** Vysvetlenie jedného komponentu skóre — veta na kartu a tabuľka do modálu. */
 export interface VysvetlenieKomponentu {
-  /** Kľúč komponentu v `MZIScore` */
-  kluc: 'okolie' | 'budovy' | 'akumulacia' | 'odtok';
+  kluc: KlucKomponentu;
   nadpis: string;
   /** Odkaz na metodický list, ak komponent z metodiky vychádza */
   metodika?: string;
@@ -200,6 +207,102 @@ export function vysvetleniaMZI(areal: Areal, score: MZIScore): VysvetlenieKompon
     vysvetlenieAkumulacie(areal, score),
     vysvetlenieOdtoku(areal, score),
   ].filter((v): v is VysvetlenieKomponentu => v !== null);
+}
+
+// ───────────────────────── OZE a energetika (etapa 2) ─────────────────────────
+
+/**
+ * Vysvetlenie podskóre, ktoré vzniká zbieraním bodových položiek.
+ *
+ * Body sa počítajú ako `orez(round(sucet / delenePoctom) + pausal)`, takže
+ * tabuľka vypíše položky a záver ukáže celý ten reťazec vrátane orezania na
+ * maximum, ak k nemu došlo.
+ */
+function vysvetleniePodskore(
+  kluc: KlucKomponentu,
+  nadpis: string,
+  r: RozpisPodskore,
+  poznamka?: string,
+): VysvetlenieKomponentu {
+  const riadky = r.polozky.map((p) => [p.nazov, p.budova ?? '—', znamienko(p.body)]);
+  riadky.push(['Súčet položiek', '', znamienko(r.sucet)]);
+
+  const kroky: string[] = [`Súčet ${cislo(r.sucet, 1)} b`];
+  if (r.delenePoctom > 0) {
+    kroky.push(`delené počtom hodnotených budov (${r.delenePoctom}) = ${cislo(r.sucet / r.delenePoctom, 1)} b`);
+  }
+  if (r.pausal !== 0) kroky.push(`paušál ${znamienko(r.pausal)} b`);
+
+  const predOrezanim = Math.round(r.delenePoctom > 0 ? r.sucet / r.delenePoctom : r.sucet) + r.pausal;
+  if (predOrezanim !== r.body) {
+    kroky.push(`orezané na rozsah 0–${r.max}`);
+  }
+
+  return {
+    kluc,
+    nadpis,
+    sumar: sumarPodskore(nadpis, r, poznamka),
+    hlavicka: ['Položka', 'Budova', 'Body'],
+    riadky,
+    zaver: `${kroky.join(' → ')} → ${r.body} z ${r.max} bodov`,
+  };
+}
+
+function znamienko(n: number): string {
+  const zaokruhlene = Math.round(n * 10) / 10;
+  return zaokruhlene > 0 ? `+${cislo(zaokruhlene, zaokruhlene % 1 === 0 ? 0 : 1)}` : cislo(zaokruhlene, zaokruhlene % 1 === 0 ? 0 : 1);
+}
+
+function sumarPodskore(nadpis: string, r: RozpisPodskore, poznamka?: string): string {
+  const zaklad = `${nadpis}: ${r.body} z ${r.max} b.`;
+  if (r.polozky.length === 0) {
+    return `${zaklad} Žiadna položka do skóre neprispela.${poznamka ? ` ${poznamka}` : ''}`;
+  }
+
+  const zoradene = [...r.polozky].sort((a, b) => Math.abs(b.body) - Math.abs(a.body));
+  const kladne = zoradene.filter((p) => p.body > 0).slice(0, 2);
+  const zaporne = zoradene.filter((p) => p.body < 0);
+
+  const casti: string[] = [];
+  if (kladne.length > 0) {
+    casti.push(`Najviac pridáva ${kladne.map((p) => `${p.nazov.toLowerCase()} (${znamienko(p.body)})`).join(' a ')}.`);
+  }
+  if (zaporne.length > 0) {
+    const unikatne = [...new Set(zaporne.map((p) => p.nazov.toLowerCase()))];
+    casti.push(`Body odoberá ${unikatne.join(', ')}.`);
+  }
+  if (poznamka) casti.push(poznamka);
+  return [zaklad, ...casti].join(' ');
+}
+
+/** Vysvetlenia podskóre OZE. Prázdne, keď sa OZE nehodnotí (areál bez budov). */
+export function vysvetleniaOZE(score: OZEScore): VysvetlenieKomponentu[] {
+  if (!saHodnotiOZE(score)) return [];
+  const r = score.rozpis;
+  return [
+    vysvetleniePodskore('vhodnostStrechyPreSolar', 'Vhodnosť strechy pre solár', r.vhodnostStrechyPreSolar,
+      'Počítajú sa len ploché a málo šikmé strechy do 15°.'),
+    vysvetleniePodskore('existujuceOZE', 'Existujúce OZE', r.existujuceOZE),
+    vysvetleniePodskore('potencialTepelnehoCerpadla', 'Potenciál tepelného čerpadla', r.potencialTepelnehoCerpadla,
+      'Sezónne nevykurované stavby sa sem nezapočítavajú — tepelné čerpadlo tam nedáva zmysel.'),
+    vysvetleniePodskore('potencialDalsichOZE', 'Potenciál ďalších OZE', r.potencialDalsichOZE),
+  ];
+}
+
+/** Vysvetlenia podskóre energetiky. Prázdne, keď sa energetika nehodnotí. */
+export function vysvetleniaEnergetiky(score: EnergiaScore): VysvetlenieKomponentu[] {
+  if (!saHodnotiEnergetika(score)) return [];
+  const r = score.rozpis;
+  const sezonne = score.vynechanychSezonnych > 0
+    ? `${score.vynechanychSezonnych === 1 ? 'Jedna sezónna nevykurovaná stavba je' : `${score.vynechanychSezonnych} sezónnych nevykurovaných stavieb je`} z hodnotenia vynechaná.`
+    : undefined;
+
+  return [
+    vysvetleniePodskore('zateplenie', 'Zateplenie', r.zateplenie, sezonne),
+    vysvetleniePodskore('kvalitaOkien', 'Kvalita okien', r.kvalitaOkien, sezonne),
+    vysvetleniePodskore('vykurovaciSystem', 'Vykurovací systém', r.vykurovaciSystem, sezonne),
+    vysvetleniePodskore('vetranie', 'Vetranie a LED', r.vetranie, sezonne),
+  ];
 }
 
 /**
