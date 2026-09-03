@@ -109,16 +109,26 @@ oddelený tabulátormi**, takže Word aj Excel z nej spravia skutočnú tabuľku
 (Word: Vložiť → Previesť text na tabuľku). Čísla sú v slovenskom formáte
 s desatinnou čiarkou, aby ich Excel prevzal ako čísla, nie ako text.
 
-To isté je v XLSX exporte na hárku **„Výpočet MZI"**.
+To isté je v XLSX exporte na hárku **„Výpočet skóre"**.
 
-Implementácia: `src/utils/mziVysvetlenie.ts` (skladá vetu a tabuľku),
+Vysvetlenie majú **všetky tri oblasti** — MZI, OZE aj energetika. Pri MZI je
+tabuľka rozpisom plôch podľa kódov metodiky; pri OZE a energetike vypisuje
+jednotlivé bodové položky s budovou, ktorej sa týkajú, a záver ukáže celý
+reťazec výpočtu:
+
+> Súčet +24 b → delené počtom hodnotených budov (2) = +12 b → paušál +5 b →
+> 17 z 30 bodov
+
+Ak sa niektoré budovy do hodnotenia nedostali (sezónne nevykurované stavby
+podľa #203), veta to povie.
+
+Implementácia: `src/utils/skoreVysvetlenie.ts` (skladá vetu a tabuľku),
 `src/components/wizard/VypocetDialog.tsx` (modálne okno),
-`src/components/ui/CopyButton.tsx` (kopírovanie). Rozpis plôch
-a medzivýsledky poskytujú `plochyOkolia()`, `plochyBudov()`,
-`detailAkumulacie()` a `detailOdtoku()` v `src/utils/mziKlimasken.ts`.
-
-Rovnaké vysvetlenie pre OZE a energetiku rieši druhá etapa issue #213 —
-tam si vyžaduje prepis bodovej logiky, ktorá dnes prirážky nikde nezaznamenáva.
+`src/components/ui/CopyButton.tsx` (kopírovanie). Rozpis plôch a medzivýsledky
+MZI poskytujú `plochyOkolia()`, `plochyBudov()`, `detailAkumulacie()`
+a `detailOdtoku()` v `src/utils/mziKlimasken.ts`; bodové položky OZE
+a energetiky zbiera `calculateOZE()` a `calculateEnergia()`
+v `src/hooks/useScoring.ts` do poľa `rozpis`.
 
 ## Zámerné odchýlky od metodiky
 
@@ -139,6 +149,15 @@ v komentári na začiatku `src/utils/mziKlimasken.ts`.
 5. **Jazierko** metodika nepozná; hodnotí sa ako plošný objekt HDV (k = 1,0).
 6. **Zelená strecha bez rozpisu na typy** sa odhadne z tvaru strechy — plochá
    ako E1, šikmá a strmá ako E2.
+7. **Nádrž, ktorú nie je možné inštalovať.** Metodika B-AD10 hovorí, že „ak
+   inštalácia nádrže nie je možná alebo je vylúčená… budova je v tomto
+   indikátore označená v najhoršej kategórii“. VESMA komponent namiesto toho
+   **vynecháva** (`areal.nadrzNieJeMozna`). Dôvod: Klimasken je štítok, ktorý
+   popisuje stav objektu, kým hodnotenie areálu vo VESMA k stavu **navrhuje aj
+   opatrenia** — komponent, na ktorý sa nedá reagovať, by skóre len skresľoval
+   a nástroj by navyše odporúčal nerealizovateľné opatrenie. Vo výsledkoch sa
+   preto nezobrazí „bez údajov“, ale „nehodnotí sa“ spolu so zadaným dôvodom,
+   takže informácia sa nestratí (issue #215).
 
 ## Zmena oproti pôvodnému hodnoteniu
 

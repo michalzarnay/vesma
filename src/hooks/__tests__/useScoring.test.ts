@@ -180,6 +180,47 @@ describe('calculateMZI – akumulácia zrážkovej vody (metodika KLIMASKEN B-AD
   });
 });
 
+describe('calculateMZI – nádrž nie je možná (issue #215)', () => {
+  /** Areál, kde by akumulácia inak vyšla na 50 % (Vv = 14 m³, nádrže 7 m³). */
+  function arealSNadrzou() {
+    const areal = createEmptyAreal();
+    areal.budovy = [];
+    areal.pocetZamestnancov = 10;
+    const p = createEmptyPozemok();
+    p.podzemneNadobyObjem = 7;
+    areal.pozemky = [p];
+    return areal;
+  }
+
+  it('bez príznaku sa akumulácia hodnotí', () => {
+    const skore = calculateMZI(arealSNadrzou());
+    expect(skore.akumulaciaPercent).toBeCloseTo(50, 5);
+    expect(skore.akumulacia).not.toBeNull();
+  });
+
+  it('s príznakom sa komponent nezapočíta, hoci vstupy sú známe', () => {
+    const areal = arealSNadrzou();
+    areal.nadrzNieJeMozna = 1;
+    areal.nadrzNemoznaDovod = 'pamiatková zóna';
+
+    const skore = calculateMZI(areal);
+    expect(skore.akumulaciaPercent).toBeNull();
+    expect(skore.akumulacia).toBeNull();
+    expect(skore.stupenAkumulacia).toBeNull();
+  });
+
+  it('vynechaný komponent areál nepenalizuje — skóre je ako bez zadaných vstupov', () => {
+    const sPriznakom = arealSNadrzou();
+    sPriznakom.nadrzNieJeMozna = 1;
+
+    const bezVstupov = arealSNadrzou();
+    bezVstupov.pocetZamestnancov = 0;
+    bezVstupov.pozemky[0].podzemneNadobyObjem = 0;
+
+    expect(calculateMZI(sPriznakom).celkove).toBe(calculateMZI(bezVstupov).celkove);
+  });
+});
+
 describe('calculateMZI – odtok zo spevnených plôch', () => {
   it('podiel plôch so vsakom a retenciou tvorí samostatný komponent', () => {
     const areal = arealSPozemkom((p) => {

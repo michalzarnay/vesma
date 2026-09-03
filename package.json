@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "version:generate": "node scripts/generate-version.mjs",
+    "verzia": "git fetch origin main --quiet || true && node scripts/bump-version.mjs",
     "predev": "npm run version:generate",
     "dev": "vite",
     "prebuild": "npm run version:generate",

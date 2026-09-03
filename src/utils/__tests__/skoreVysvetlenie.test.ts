@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyAreal, createEmptyPozemok, createEmptyBudova } from '../../types/areal';
 import { calculateMZI } from '../mziKlimasken';
-import { vysvetleniaMZI, tabulkaAkoText } from '../mziVysvetlenie';
+import { calculateOZE, calculateEnergia } from '../../hooks/useScoring';
+import {
+  vysvetleniaMZI, vysvetleniaOZE, vysvetleniaEnergetiky, tabulkaAkoText,
+} from '../skoreVysvetlenie';
 
 /** Areál s jedným pozemkom a bez budov — izoluje komponent B-GOV2. */
 function arealSPozemkom(uprav: (p: ReturnType<typeof createEmptyPozemok>) => void) {
@@ -158,5 +161,102 @@ describe('tabulkaAkoText', () => {
     const text = tabulkaAkoText(vysvetlenie(areal, 'okolie')!);
     expect(text).toContain('0,70'); // desatinná čiarka, nie bodka
     expect(text).toMatch(/2\s000 m²/); // medzera ako oddeľovač tisícov
+  });
+});
+
+describe('vysvetleniaOZE / vysvetleniaEnergetiky (etapa 2)', () => {
+  /** Areál s jednou budovou, na ktorej je čo hodnotiť. */
+  function arealSBudovou(uprav: (b: ReturnType<typeof createEmptyBudova>) => void) {
+    const areal = createEmptyAreal();
+    areal.pozemky = [];
+    const b = createEmptyBudova();
+    b.nazov = 'Hlavná budova';
+    b.plochaPodorysu = 400;
+    b.uzitkovaPlochaNUS = 800;
+    uprav(b);
+    areal.budovy = [b];
+    return areal;
+  }
+
+  it('rozpíše položky OZE s názvom budovy a body sedia so skóre', () => {
+    const areal = arealSBudovou((b) => {
+      b.fotovoltika = 1;
+      b.tepelneCerpadlo = 1;
+    });
+    const skore = calculateOZE(areal);
+    const v = vysvetleniaOZE(skore).find((x) => x.kluc === 'existujuceOZE')!;
+
+    expect(v.hlavicka).toEqual(['Položka', 'Budova', 'Body']);
+    expect(v.riadky).toContainEqual(['Fotovoltika', 'Hlavná budova', '+6']);
+    expect(v.riadky).toContainEqual(['Tepelné čerpadlo', 'Hlavná budova', '+6']);
+    // Súčtový riadok je posledný a zodpovedá súčtu položiek.
+    expect(v.riadky[v.riadky.length - 1]).toEqual(['Súčet položiek', '', '+12']);
+    expect(v.zaver).toContain(`${skore.existujuceOZE} z 20 bodov`);
+  });
+
+  it('záver ukáže delenie počtom budov aj paušál', () => {
+    const areal = arealSBudovou((b) => { b.zateplenieFasady = 1; });
+    const v = vysvetleniaEnergetiky(calculateEnergia(areal)).find((x) => x.kluc === 'zateplenie')!;
+
+    expect(v.zaver).toContain('delené počtom hodnotených budov (1)');
+    expect(v.zaver).toContain('paušál +5 b');
+  });
+
+  it('sumár vymenuje aj položku, ktorá body odoberá', () => {
+    const areal = arealSBudovou((b) => { b.kurenieUhlimDrevom = 1; });
+    const v = vysvetleniaEnergetiky(calculateEnergia(areal)).find((x) => x.kluc === 'vykurovaciSystem')!;
+
+    expect(v.sumar).toContain('odoberá');
+    expect(v.sumar).toContain('vykurovanie uhlím alebo drevom');
+  });
+
+  it('záver spomenie orezanie, keď súčet prekročí maximum', () => {
+    const areal = arealSBudovou((b) => {
+      b.rekuperacia = 1;   // +15
+      b.osvetlenieLED = 100; // +10 → spolu 25, bez orezania
+      b.tepelneCerpadlo = 1;
+    });
+    const v = vysvetleniaEnergetiky(calculateEnergia(areal)).find((x) => x.kluc === 'vykurovaciSystem')!;
+    // Tepelné čerpadlo (+10) + paušál (+10) = 20, teda bez orezania.
+    expect(v.zaver).not.toContain('orezané');
+
+    const zateplene = arealSBudovou((b) => {
+      b.zateplenieFasady = 1;   // +10
+      b.strechaZateplenie = 1;  // +10
+    });
+    // 20 + paušál 5 = 25, maximum je 30 — tiež bez orezania.
+    const vz = vysvetleniaEnergetiky(calculateEnergia(zateplene)).find((x) => x.kluc === 'zateplenie')!;
+    expect(vz.zaver).toContain('25 z 30 bodov');
+  });
+
+  it('nehodnotená oblasť nemá vysvetlenia', () => {
+    const bezBudov = createEmptyAreal();
+    bezBudov.budovy = [];
+
+    expect(vysvetleniaOZE(calculateOZE(bezBudov))).toHaveLength(0);
+    expect(vysvetleniaEnergetiky(calculateEnergia(bezBudov))).toHaveLength(0);
+  });
+
+  it('sumár energetiky spomenie vynechané sezónne stavby', () => {
+    const areal = createEmptyAreal();
+    areal.pozemky = [];
+    const vykurovana = createEmptyBudova();
+    vykurovana.nazov = 'Škola';
+    vykurovana.plochaPodorysu = 400;
+    vykurovana.zateplenieFasady = 1;
+    const chata = createEmptyBudova();
+    chata.nazov = 'Záhradná chata';
+    chata.plochaPodorysu = 20;
+    chata.sezonnaNevykurovana = 1;
+    areal.budovy = [vykurovana, chata];
+
+    const skore = calculateEnergia(areal);
+    expect(skore.vynechanychSezonnych).toBe(1);
+    expect(skore.hodnotenychBudov).toBe(1);
+
+    const v = vysvetleniaEnergetiky(skore).find((x) => x.kluc === 'zateplenie')!;
+    expect(v.sumar).toContain('Jedna sezónna nevykurovaná stavba je z hodnotenia vynechaná');
+    // Chata sa nedostane ani do rozpisu položiek.
+    expect(v.riadky.some((r) => r[1] === 'Záhradná chata')).toBe(false);
   });
 });

@@ -64,9 +64,15 @@ Keď je oprava celej triedy priveľká na jeden PR, sprav najmenšiu zmysluplnú
 ## Číslo verzie — nikdy neupravuj ručne
 `src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
 Číslo číta `scripts/generate-version.mjs` z `version.json` v koreni repozitára
-(pozri `docs/verziovanie.md`). Do `version.json` nezapisuj — zvyšuje ho
-workflow „Číslo verzie" po každom zlúčení do `main`. Verzia sa teda posunie
-sama tým, že sa PR zlúči; ručný zásah ju len rozhodí.
+(pozri `docs/verziovanie.md`).
+
+**Číslo vo `version.json` nepíš ručne — spusti `npm run verzia`.** Nastaví ho
+na (verzia na `main`) + 1 a ten súbor commitni spolu so zmenou. Kontrola pri
+PR zlyhá, keď to nesedí; vtedy spusti príkaz znova (medzitým sa zrejme zlúčil
+iný PR) a commitni.
+
+Platí to pre **každý** PR, aj čisto dokumentačný — jeden zlúčený PR = jedna
+verzia, inak tester nahlási podnet k zostave, ktorú nemá ako pomenovať.
 
 ## UI a interakčné chyby — zvýšená opatrnosť
 Nevidíš vykreslenú stránku ani na ňu nevieš kliknúť — pri vizuálnych
