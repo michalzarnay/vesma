@@ -10,17 +10,22 @@ Súbor vyzerá takto:
 
 ```json
 {
-  "verzia": 190,
-  "commit": "ca4631144343fe330c22bc44a815d3e60fe8d0eb"
+  "verzia": 191
 }
 ```
 
 `scripts/generate-version.mjs` ho len prečíta a zapíše `src/version.ts`.
 **Nepočíta nič a git vôbec nepotrebuje.**
 
-Číslo zvyšuje workflow `.github/workflows/verzia.yml` po každom push do `main`,
-teda po každom zlúčenom PR. Volá `scripts/bump-version.mjs`, ktorý pripočíta
-jedna a zapíše sha commitu, ktorý to spôsobil.
+Číslo prináša **sama vetva**: pred otvorením PR spusti
+
+```bash
+npm run verzia
+```
+
+Nastaví `version.json` na (verzia na `main`) + 1 a ty ho commitneš spolu so
+zmenou. Workflow `.github/workflows/verzia.yml` pri každom PR overí, že to
+sedí. Zlúčením PR sa `main` posunie o +1.
 
 Z toho vyplýva:
 
@@ -29,21 +34,31 @@ Z toho vyplýva:
 - **Číslo nezávisí od toho, kto build spustil.** Vercel produkcia, Vercel
   preview, GitHub Actions aj lokálny `npm run dev` čítajú ten istý súbor.
   Build z vetvy ukáže verziu `main`, z ktorej vetva vychádza.
-- **Číslo nikdy neklesne.**
+- **Číslo nikdy neklesne** a dve zostavy nedostanú to isté číslo. Práve preto
+  sa počíta z `main`, nie prírastkom k tomu, čo je vo vetve — dva súbežne
+  otvorené PR-y by inak dostali rovnaké číslo a tester by dve rôzne zostavy
+  nerozlíšil.
 - **Číslo sa nedá prepísať ručne.** `src/version.ts` je v `.gitignore`
   a generuje sa pred každým `dev`, `build`, `preview` aj `test` behom.
-  Do `version.json` nepíš — prepíše ťa najbližší merge.
+  Do `version.json` píš len cez `npm run verzia`.
 
-## Čo očakávať po zlúčení PR
+## Keď kontrola verzie pri PR zlyhá
 
-Číslo sa na `main` objaví až commitom `chore: verzia N`, ktorý ho zvýši —
-teda desiatky sekúnd po zlúčení. Vercel medzitým môže stihnúť nasadiť merge
-commit ešte so starým číslom; nasadenie z commitu s novým číslom ho vzápätí
-nahradí.
+```
+[verzia] version.json má 191, ale na main je 191 — očakáva sa 192.
+```
 
-Prakticky to znamená: keď hneď po zlúčení vidíš v hlavičke staré číslo,
-počkaj minútu a obnov stránku. Keď je tam staré číslo aj po niekoľkých
-minútach, pozri, či workflow „Číslo verzie" prebehol.
+Znamená to, že sa medzitým zlúčil iný PR. Spusti `npm run verzia`, commitni
+`version.json` a je to. Nie je to chyba, len poradie.
+
+Druhá hláška hovorí, že vetva verziu nezvýšila vôbec:
+
+```
+[verzia] version.json má 191 — rovnako ako main. Táto zmena verziu nezvýšila.
+```
+
+Rieši sa rovnako. Kontrola je zámerne prísna — pripustiť zhodu s `main` by
+znamenalo prepustiť práve ten PR, ktorý na verziu zabudol.
 
 ## Keď build spadne na verzii
 
