@@ -121,10 +121,6 @@ function vazenyKoeficient(plochy: Plocha[]): number | null {
   return celkom > 0 ? funkcia / celkom : null;
 }
 
-function plochaPozemku(p: Pozemok): number {
-  return p.plochaBezBudov || p.celkovaVymera;
-}
-
 /**
  * Koeficient MZI priepustnej plochy pozemku — vážený priemer podľa podielu
  * obrábanej pôdy, bylín, krov a stromov (kódy C, H, L, J/K metodiky B-GOV2).
@@ -297,18 +293,35 @@ export function akumulaciaPercent(areal: Areal): number | null {
 }
 
 /**
- * Podiel plôch, z ktorých zrážková voda smeruje do vsaku alebo retencie namiesto
- * kanalizácie, vodného toku či neriešeného odtoku (0–1).
+ * Odtoková plocha pozemku (m²) — spevnená a polopriepustná plocha.
+ *
+ * Z priepustného povrchu zrážka vsiakne tam, kde spadne. „Neriešený" odvod na
+ * ňom preto nie je nedostatok, ale práve žiaduci stav — záhrada s celou plochou
+ * v tráve vodu zadrží lepšie než akékoľvek technické riešenie. Otázka „kam
+ * odteká voda" má zmysel len pre povrchy, ktoré odtok naozaj tvoria.
+ */
+function odtokovaPlocha(p: Pozemok): number {
+  return p.spevnenaPlochaCelkom + p.polopriepustnaPlochaCelkom;
+}
+
+/**
+ * Podiel odtokovej plochy, z ktorej zrážková voda smeruje do vsaku alebo
+ * retencie namiesto kanalizácie, vodného toku či neriešeného odtoku (0–1).
  *
  * Nejde o indikátor Klimaskenu — dopĺňa koeficienty MZI o údaj, ktorý dotazník
  * VESMA zbiera a ktorý rozhoduje o tom, či voda z areálu vôbec zostane na mieste.
+ *
+ * Počíta sa len zo spevnených a polopriepustných plôch pozemkov a zo striech
+ * budov (pozri `odtokovaPlocha`). Areál bez takých plôch vráti `null` —
+ * komponent sa do skóre nezapočíta, lebo nie je čo hodnotiť. Priepustná plocha
+ * je ocenená koeficientom MZI v indikátore B-GOV2, tam sa jej kvalita prejaví.
  */
 export function podielZadrzanehoOdtoku(areal: Areal): number | null {
   let vazenaPlocha = 0;
   let vazenyPodiel = 0;
 
   for (const p of areal.pozemky) {
-    const plocha = plochaPozemku(p);
+    const plocha = odtokovaPlocha(p);
     if (plocha <= 0) continue;
     const zadrzane = p.odvodVodyVsakovanie + p.odvodVodyRetencnaNadrzou;
     const spolu =
@@ -363,9 +376,13 @@ export function stupenAkumulacie(percent: number): KlimaskenStupen {
   return 'E';
 }
 
+function clamp01(podiel: number): number {
+  return Math.max(0, Math.min(1, podiel));
+}
+
 function komponent(podiel: number | null, max: number): MZIKomponent | null {
   if (podiel === null) return null;
-  return { body: Math.round(Math.max(0, Math.min(1, podiel)) * max), max };
+  return { body: Math.round(clamp01(podiel) * max), max };
 }
 
 /** Vypočíta MZI skóre areálu (0–100) podľa metodiky Klimaskenu. */
@@ -374,6 +391,13 @@ export function calculateMZI(areal: Areal): MZIScore {
   const koefBudovy = koeficientBudov(areal);
   const akumulacia = akumulaciaPercent(areal);
   const odtok = podielZadrzanehoOdtoku(areal);
+
+  const podiely: Array<{ podiel: number | null; max: number }> = [
+    { podiel: koefOkolie, max: MZI_VAHY.okolie },
+    { podiel: koefBudovy, max: MZI_VAHY.budovy },
+    { podiel: akumulacia === null ? null : akumulacia / 100, max: MZI_VAHY.akumulacia },
+    { podiel: odtok, max: MZI_VAHY.odtok },
+  ];
 
   const komponenty = {
     okolie: komponent(koefOkolie, MZI_VAHY.okolie),
@@ -384,9 +408,14 @@ export function calculateMZI(areal: Areal): MZIScore {
 
   // Skóre sa normalizuje len cez komponenty, ktoré sa dali vypočítať — chýbajúci
   // údaj tak areál nepenalizuje, len zväčší váhu ostatných komponentov.
-  const dostupne = Object.values(komponenty).filter((k): k is MZIKomponent => k !== null);
-  const bodySpolu = dostupne.reduce((acc, k) => acc + k.body, 0);
-  const maxSpolu = dostupne.reduce((acc, k) => acc + k.max, 0);
+  //
+  // Počíta sa z nezaokrúhlených podielov, nie zo zobrazovaných bodov: `body` sú
+  // zaokrúhlené na celé číslo pre výpis a ich chyba by sa preniesla do skóre
+  // (napr. koeficient 0,7 dá v pohyblivej rádovej čiarke 31,4999… → 31 bodov
+  // a skóre 69 namiesto 70).
+  const dostupne = podiely.filter((p): p is { podiel: number; max: number } => p.podiel !== null);
+  const bodySpolu = dostupne.reduce((acc, p) => acc + clamp01(p.podiel) * p.max, 0);
+  const maxSpolu = dostupne.reduce((acc, p) => acc + p.max, 0);
 
   return {
     celkove: maxSpolu > 0 ? Math.round((bodySpolu / maxSpolu) * 100) : 0,

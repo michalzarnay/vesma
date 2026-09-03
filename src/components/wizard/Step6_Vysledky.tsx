@@ -312,7 +312,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
             },
             {
-              label: 'Zadržanie odtoku na mieste',
+              label: 'Odtok zo spevnených plôch',
               ...komponentBody(score.mzi.odtok, 15),
               hodnota: score.mzi.podielZadrzanehoOdtoku === null
                 ? null

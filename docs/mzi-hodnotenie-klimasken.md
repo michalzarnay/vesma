@@ -17,7 +17,7 @@ najhorší). Pre MZI sú relevantné tri metodické listy pre budovy.
 | **B-GOV2** | Zadržiavanie zrážkovej vody v okolí budovy | koeficient MZI (0–1) | 45 b |
 | **B-GOV3** | Zachytávanie zrážkovej vody na budove | koeficient MZI (0–1) | 25 b |
 | **B-AD10** | Kapacita budovy na akumuláciu dažďovej vody | % | 15 b |
-| — | Zadržanie odtoku na mieste (doplnok VESMA) | % plôch | 15 b |
+| — | Odtok zo spevnených plôch (doplnok VESMA) | % odtokovej plochy | 15 b |
 
 Komponent, pre ktorý v dotazníku nie sú údaje, sa do skóre **nezapočíta** —
 výsledok sa normalizuje len cez dostupné komponenty. Areál tak nie je
@@ -83,12 +83,19 @@ komponent sa nezapočíta.
 
 Škála: **E** ≤ 1 % · **D** ≤ 20 % · **C** ≤ 50 % · **B** ≤ 75 % · **A** > 75 %
 
-### Zadržanie odtoku na mieste (doplnok VESMA)
+### Odtok zo spevnených plôch (doplnok VESMA)
 
-Nejde o indikátor Klimaskenu. Vyjadruje podiel plôch (vážený výmerou), z ktorých
-zrážková voda smeruje do **vsaku alebo retenčnej nádrže** namiesto kanalizácie,
-vodného toku či neriešeného odtoku. Dotazník VESMA tento údaj zbiera pre
-pozemky aj pre strechy budov a rozhoduje o tom, či voda v areáli vôbec zostane.
+Nejde o indikátor Klimaskenu. Vyjadruje podiel **odtokovej plochy** (vážený
+výmerou), z ktorej zrážková voda smeruje do **vsaku alebo retenčnej nádrže**
+namiesto kanalizácie, vodného toku či neriešeného odtoku.
+
+**Odtoková plocha = spevnená + polopriepustná plocha pozemkov + pôdorys striech.**
+Priepustná plocha sa do komponentu nezapočítava, a to zámerne: z priepustného
+povrchu zrážka vsiakne tam, kde spadne, takže „neriešený" odvod na ňom nie je
+nedostatok, ale práve žiaduci stav. Záhrada s celou plochou v tráve tak nedostane
+nula bodov za to, že odvod vody nemá technicky riešený — komponent sa jej vôbec
+nepočíta (`null`) a skóre sa normalizuje cez ostatné. Kvalita priepustného
+povrchu sa prejaví v koeficiente MZI indikátora B-GOV2, kde patrí.
 
 ## Zámerné odchýlky od metodiky
 

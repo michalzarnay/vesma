@@ -180,7 +180,7 @@ describe('calculateMZI – akumulácia zrážkovej vody (metodika KLIMASKEN B-AD
   });
 });
 
-describe('calculateMZI – zadržanie odtoku', () => {
+describe('calculateMZI – odtok zo spevnených plôch', () => {
   it('podiel plôch so vsakom a retenciou tvorí samostatný komponent', () => {
     const areal = arealSPozemkom((p) => {
       p.celkovaVymera = 1000;
@@ -190,5 +190,37 @@ describe('calculateMZI – zadržanie odtoku', () => {
     });
 
     expect(calculateMZI(areal).podielZadrzanehoOdtoku).toBeCloseTo(0.75, 5);
+  });
+
+  it('celkom priepustný pozemok s „neriešeným" odvodom sa nepenalizuje', () => {
+    // Záhrada, kde je všetok povrch priepustný: zrážka vsiakne tam, kde spadne.
+    // „Neriešený" odvod je tu žiaduci stav, nie nedostatok — komponent sa preto
+    // nemá z čoho počítať a do skóre nevstúpi.
+    const zahrada = arealSPozemkom((p) => {
+      p.celkovaVymera = 1000;
+      p.priepustnaPlochaCelkom = 1000;
+      p.priepustnaPlochaByliny = 100;
+      p.odvodVodyNerieseny = 100;
+    });
+
+    const skore = calculateMZI(zahrada);
+    expect(skore.podielZadrzanehoOdtoku).toBeNull();
+    expect(skore.odtok).toBeNull();
+    // Skóre stojí len na koeficiente B-GOV2 (trávnik 0,7) — nie na nule za odtok.
+    expect(skore.celkove).toBe(70);
+  });
+
+  it('počíta sa len z odtokovej plochy, priepustná plocha podiel neriedi', () => {
+    // 900 m² trávnika + 100 m² betónu, z ktorého všetko ide do kanalizácie.
+    // Rozhoduje len tých 100 m², ktoré odtok naozaj tvoria.
+    const areal = arealSPozemkom((p) => {
+      p.celkovaVymera = 1000;
+      p.priepustnaPlochaCelkom = 900;
+      p.priepustnaPlochaByliny = 100;
+      p.spevnenaPlochaCelkom = 100;
+      p.odvodVodyJednotnaKanalizacia = 100;
+    });
+
+    expect(calculateMZI(areal).podielZadrzanehoOdtoku).toBeCloseTo(0, 5);
   });
 });

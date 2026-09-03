@@ -75,8 +75,8 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
       score.mzi.koefBudovy === null ? null : `koeficient MZI ${score.mzi.koefBudovy.toFixed(2)}`, score.mzi.stupenBudovy),
     mziRiadok('Akumulácia zrážkovej vody (B-AD10)', score.mzi.akumulacia,
       score.mzi.akumulaciaPercent === null ? null : `${Math.round(score.mzi.akumulaciaPercent)} % optimálneho objemu`, score.mzi.stupenAkumulacia),
-    mziRiadok('Zadržanie odtoku na mieste', score.mzi.odtok,
-      score.mzi.podielZadrzanehoOdtoku === null ? null : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} % plôch`, null),
+    mziRiadok('Odtok zo spevnených plôch', score.mzi.odtok,
+      score.mzi.podielZadrzanehoOdtoku === null ? null : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} % odtokovej plochy do vsaku alebo retencie`, null),
     [],
     ['DETAIL OZE'],
     ...(saHodnotiOZE(score.oze)
