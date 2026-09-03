@@ -592,7 +592,7 @@ rozhodnutí človeka.
 
 ### Čo zostáva na energetickom expertovi
 
-Issues z tejto analýzy sú k 3. 9. 2026 uzavreté. Zostáva päť hodnôt, ktoré nemá kto
+Issues z tejto analýzy sú k 3. 9. 2026 uzavreté. Zostáva šesť hodnôt, ktoré nemá kto
 vymyslieť — na výstupe nie je vidieť, že sú odhad, a nástroj pre samosprávy by tým
 začal klamať sebavedomo. Preto sú v kóde zámerne prázdne alebo označené ako návrh:
 
@@ -603,11 +603,12 @@ začal klamať sebavedomo. Preto sú v kóde zámerne prázdne alebo označené 
 | Cena a návratnosť kotla na biomasu | `src/data/catalog.ts` | Jediné opatrenie v katalógu s poznámkou „hodnotu potvrdí energetický expert". |
 | Hustota príkonu osvetlenia W/m² | `src/data/lightingPowerDensity.ts` | Odhad z projekčnej praxe; oficiálna prepočtová tabuľka v SR neexistuje (pozri `docs/osvetlenie-prepocet.md`). |
 | Dennostupne podľa okresu | — | Bez klimatickej normalizácie (STN 73 0550) sa nedá porovnať spotreba z rôznych okresov ani z rôznych rokov. Toto je otázka zdroja dát, nie odhadu. |
+| Výhrevnosti palív | `src/data/constants.ts` | Hodnoty v kóde sú, ale bez zdroja a používateľ ich nevie prepísať — hoci to bod 3 písm. a) prílohy č. 1 vyhlášky žiada (pozri A1). Prepočítavajú kg paliva na kWh, takže chyba ide do mernej spotreby aj do porovnania. |
 
-Podklad pre experta so všetkými piatimi tabuľkami naraz je v
+Podklad pre experta so všetkými tabuľkami naraz je v
 `docs/VESMA_podklad_pre_energetickeho_experta.xlsx` — žlté bunky sú na vyplnenie,
 pri každej tabuľke je vysvetlené, načo slúži a čo bez nej VESMA nevie.
 
-Tých päť hodnôt je zároveň vedených v `docs/chybajuce-hodnoty.md` spolu
+Tie hodnoty sú zároveň vedené v `docs/chybajuce-hodnoty.md` (kódy E1–E6) spolu
 s hodnotami z ostatných oblastí. **Stav (čaká / návrh / potvrdené / zamietnuté)
 sa udržiava tam**, nie tu — tento dokument je rozbor, nie zoznam úloh.
