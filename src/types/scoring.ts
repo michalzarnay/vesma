@@ -47,6 +47,33 @@ export interface MZIScore {
   stupenAkumulacia: KlimaskenStupen | null;
 }
 
+/** Jedna položka, ktorá v podskóre pridala alebo odobrala body. */
+export interface PolozkaSkore {
+  nazov: string;
+  body: number;
+  /** Ktorej budovy sa týka — pri parametroch za celý areál chýba. */
+  budova?: string;
+}
+
+/**
+ * Rozpis jedného podskóre OZE alebo energetiky (issue #213, etapa 2).
+ *
+ * Body sa počítajú ako `orez(round(sucet / delenePoctom) + pausal)`. Keď sa
+ * podskóre nepriemeruje cez budovy, `delenePoctom` je 0.
+ */
+export interface RozpisPodskore {
+  polozky: PolozkaSkore[];
+  /** Súčet položiek pred spriemerovaním */
+  sucet: number;
+  /** Počet budov, ktorými sa súčet delí; 0 = nedelí sa */
+  delenePoctom: number;
+  /** Paušál pripočítaný po spriemerovaní */
+  pausal: number;
+  /** Výsledné body po zaokrúhlení a orezaní — zhodné s plochým poľom skóre */
+  body: number;
+  max: number;
+}
+
 export interface OZEScore {
   celkove: number;
   vhodnostStrechyPreSolar: number; // 0-30
@@ -55,6 +82,16 @@ export interface OZEScore {
   potencialDalsichOZE: number; // 0-25
   /** Počet budov, z ktorých sa OZE skóre počítalo. */
   hodnotenychBudov: number;
+  /**
+   * Rozpis, za čo body sú. Pole `body` každého rozpisu je zhodné s plochou
+   * hodnotou vyššie — plochá zostáva kvôli existujúcim konzumentom skóre.
+   */
+  rozpis: {
+    vhodnostStrechyPreSolar: RozpisPodskore;
+    existujuceOZE: RozpisPodskore;
+    potencialTepelnehoCerpadla: RozpisPodskore;
+    potencialDalsichOZE: RozpisPodskore;
+  };
 }
 
 export interface EnergiaScore {
@@ -67,6 +104,13 @@ export interface EnergiaScore {
   hodnotenychBudov: number;
   /** Počet sezónnych nevykurovaných stavieb vynechaných z hodnotenia. */
   vynechanychSezonnych: number;
+  /** Rozpis, za čo body sú — pozri `OZEScore.rozpis`. */
+  rozpis: {
+    zateplenie: RozpisPodskore;
+    kvalitaOkien: RozpisPodskore;
+    vykurovaciSystem: RozpisPodskore;
+    vetranie: RozpisPodskore;
+  };
 }
 
 /**

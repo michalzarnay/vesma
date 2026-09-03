@@ -12,7 +12,9 @@ import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
 import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
-import { VysvetlenieKomponentu, vysvetleniaMZI } from '../../utils/mziVysvetlenie';
+import {
+  VysvetlenieKomponentu, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
+} from '../../utils/skoreVysvetlenie';
 import { CopyButton } from '../ui/CopyButton';
 import { VypocetDialog } from './VypocetDialog';
 import { bezDiakritiky } from '../../utils/formatters';
@@ -34,9 +36,13 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const [vahyOpen, setVahyOpen] = useState(false);
   const [vypocet, setVypocet] = useState<VysvetlenieKomponentu | null>(null);
 
-  // Vysvetlenia komponentov MZI — veta na kartu a tabuľka do modálneho okna (#213).
+  // Vysvetlenia komponentov skóre — veta na kartu a tabuľka do modálneho okna (#213).
   const vysvetlenia = new Map(
-    vysvetleniaMZI(areal, score.mzi).map((v) => [v.kluc, v]),
+    [
+      ...vysvetleniaMZI(areal, score.mzi),
+      ...vysvetleniaOZE(score.oze),
+      ...vysvetleniaEnergetiky(score.energia),
+    ].map((v) => [v.kluc, v]),
   );
 
   const radarData = [
@@ -342,22 +348,24 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           <ScoreDetail
             title="OZE"
             items={[
-              { label: 'Vhodnosť strechy', score: score.oze.vhodnostStrechyPreSolar, max: 30 },
-              { label: 'Existujúce OZE', score: score.oze.existujuceOZE, max: 20 },
-              { label: 'Potenciál tepelného čerpadla (TČ)', score: score.oze.potencialTepelnehoCerpadla, max: 25 },
-              { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25 },
+              { label: 'Vhodnosť strechy', score: score.oze.vhodnostStrechyPreSolar, max: 30, vysvetlenie: vysvetlenia.get('vhodnostStrechyPreSolar') },
+              { label: 'Existujúce OZE', score: score.oze.existujuceOZE, max: 20, vysvetlenie: vysvetlenia.get('existujuceOZE') },
+              { label: 'Potenciál tepelného čerpadla (TČ)', score: score.oze.potencialTepelnehoCerpadla, max: 25, vysvetlenie: vysvetlenia.get('potencialTepelnehoCerpadla') },
+              { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25, vysvetlenie: vysvetlenia.get('potencialDalsichOZE') },
             ]}
+            onZobrazVypocet={setVypocet}
           />
         )}
         {hodnotiEnergetiku && (
           <ScoreDetail
             title="Energetika"
             items={[
-              { label: 'Zateplenie', score: score.energia.zateplenie, max: 30 },
-              { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20 },
-              { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25 },
-              { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25 },
+              { label: 'Zateplenie', score: score.energia.zateplenie, max: 30, vysvetlenie: vysvetlenia.get('zateplenie') },
+              { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20, vysvetlenie: vysvetlenia.get('kvalitaOkien') },
+              { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25, vysvetlenie: vysvetlenia.get('vykurovaciSystem') },
+              { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25, vysvetlenie: vysvetlenia.get('vetranie') },
             ]}
+            onZobrazVypocet={setVypocet}
           />
         )}
       </div>

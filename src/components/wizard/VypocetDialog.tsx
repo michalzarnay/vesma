@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { VysvetlenieKomponentu, tabulkaAkoText } from '../../utils/mziVysvetlenie';
+import { VysvetlenieKomponentu, tabulkaAkoText } from '../../utils/skoreVysvetlenie';
 import { CopyButton } from '../ui/CopyButton';
 
 interface VypocetDialogProps {
