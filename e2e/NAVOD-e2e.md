@@ -55,11 +55,8 @@ zatiaľ nedostane, má v položke `chyba: '#<číslo issue>'`; test na nej bež�
 `test.fixme`, takže nezhadzuje CI a je vidieť, na čo sa čaká. Opravuje sa
 produkčný kód v tom issue, nie test.
 
-Dnes takto čakajú:
-
-- **#209** — „Iné stavby" (krok 4) nie sú v exporte ani vo Výsledkoch,
-- **#223** — „Zamýšľané B&G opatrenia" (krok 5) tiež nie; v exporte figurujú
-  len pri porovnaní viacerých areálov.
+Dnes takto nečaká nič — všetky štyri typy entít musia byť vo Výsledkoch aj
+v exporte. („Iné stavby" pribudli opravou #209, B&G opatrenia opravou #223.)
 
 ## Známe obmedzenia / čo doladiť pri prvom behu
 

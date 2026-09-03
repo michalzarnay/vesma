@@ -279,6 +279,43 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
   return [header, ...rows];
 }
 
+/**
+ * Iné stavby z Kroku 4 (issue #209) — oplotenie, chodníky, parkoviská.
+ * Do skóre nevstupujú (o tom, či zastavaná plocha patrí do MZI, rozhoduje
+ * človek), ale zadané údaje musia byť vo výstupe.
+ */
+function sheetIneStavby(areal: Areal): (string | number)[][] {
+  const header = [
+    'Stavba', 'Parcela', 'Číslo listu vlastníctva', 'Typ stavby', 'Popis stavby',
+    'Aktuálne využitie', 'Celková výmera parciel (m²)', 'Zastavaná plocha (m²)',
+  ];
+  const rows = areal.ineStavby.map((s, i) => [
+    s.nazov || `Stavba ${i + 1}`, s.parcela, s.listVlastnictva, s.typStavby, s.popisStavby,
+    s.aktualneVyuzitie, s.celkovaVymeraParciel, s.zastavanaPlocha,
+  ]);
+  return [header, ...rows];
+}
+
+/**
+ * Zamýšľané B&G opatrenia z Kroku 5 (issue #223). Stĺpce sú rovnaké ako
+ * v porovnaní areálov (`comparisonXlsxExport.ts`), aby oba exporty hovorili
+ * rovnakým jazykom. Sú to plány, nie stav — do skóre preto nevstupujú.
+ */
+function sheetBGOpatrenia(areal: Areal): (string | number)[][] {
+  const header = [
+    'Opatrenie', 'Na parcele', 'Iná budova/pozemok mimo areálu',
+    'Ochranné pásma a technická infraštruktúra', 'Potenciál znečistenia',
+    'Hladina podzemnej vody', 'Vzdialenosť vodného toku (m)',
+    'Vplyv na ochranu pred povodňami', 'Vplyv na zraniteľné skupiny', 'Prekážky',
+  ];
+  const rows = areal.bgOpatrenia.map((bg, i) => [
+    bg.nazov || `Opatrenie ${i + 1}`, bg.naParcele, bg.inaBudovaMimoUSK,
+    bg.ochrannePasma, bg.potencialZnecistenia, bg.hladinaPodzemnejVody,
+    bg.vzdialenostVodnehoToku, bg.vplyvOchranaPredPovodniami, bg.vplyvZranitelneSkupiny, bg.prekazky,
+  ]);
+  return [header, ...rows];
+}
+
 function sheetOdporucania(recommendations: Odporucanie[]): (string | number)[][] {
   const header = [
     'Por.', 'Opatrenie', 'Kategória', 'Priorita', 'Dôvod',
@@ -299,7 +336,7 @@ function sheetOdporucania(recommendations: Odporucanie[]): (string | number)[][]
   return [header, ...rows];
 }
 
-function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: string })[][] {
+function sheetVahy(areal: Areal, score: ScoreResult): (string | number)[][] {
   const { mzi } = areal.vahy;
   // Váhy nehodnotených oblastí sa do súčtu nezapočítajú — pozri vazeneCelkoveSkore().
   const oze = saHodnotiOZE(score.oze) ? areal.vahy.oze : 0;
@@ -320,6 +357,37 @@ function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: st
   ];
 }
 
+/** Jeden hárok exportu — názov a riadky buniek. */
+export interface HarokExportu {
+  nazov: string;
+  riadky: (string | number)[][];
+}
+
+/**
+ * Obsah exportu areálu — jeden zdroj pravdy pre XLSX aj CSV.
+ *
+ * Oba exporty čítajú z tohto zoznamu, takže nemôžu rozísť: nový hárok sa
+ * objaví v zošite aj v CSV bez ďalšieho zásahu. Pridanie hárku je podľa
+ * `CLAUDE.md` voľná zmena — exportný kontrakt na xMatik a Klimasken sa tým
+ * neruší, poradie a význam doterajších hárkov zostáva.
+ */
+export function harkyExportu(
+  areal: Areal,
+  score: ScoreResult,
+  recommendations: Odporucanie[],
+): HarokExportu[] {
+  return [
+    { nazov: 'Súhrn', riadky: sheetSuhrn(areal, score) },
+    { nazov: 'Výpočet skóre', riadky: sheetVypocetSkore(areal, score) },
+    { nazov: 'Pozemky', riadky: sheetPozemky(areal) },
+    { nazov: 'Budovy', riadky: sheetBudovy(areal) },
+    { nazov: 'Iné stavby', riadky: sheetIneStavby(areal) },
+    { nazov: 'B&G opatrenia', riadky: sheetBGOpatrenia(areal) },
+    { nazov: 'Odporúčania', riadky: sheetOdporucania(recommendations) },
+    { nazov: 'Váhy a skóre', riadky: sheetVahy(areal, score) },
+  ];
+}
+
 export function exportToXlsx(
   areal: Areal,
   score: ScoreResult,
@@ -327,19 +395,12 @@ export function exportToXlsx(
 ): void {
   const wb = XLSX.utils.book_new();
 
-  const addSheet = (name: string, data: (string | number | { f: string })[][]) => {
-    const ws = XLSX.utils.aoa_to_sheet(data);
+  for (const harok of harkyExportu(areal, score, recommendations)) {
+    const ws = XLSX.utils.aoa_to_sheet(harok.riadky);
     // Šírka stĺpcov
     ws['!cols'] = [{ wch: 40 }, { wch: 20 }, { wch: 12 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, ws, name);
-  };
-
-  addSheet('Súhrn', sheetSuhrn(areal, score));
-  addSheet('Výpočet skóre', sheetVypocetSkore(areal, score));
-  addSheet('Pozemky', sheetPozemky(areal));
-  addSheet('Budovy', sheetBudovy(areal));
-  addSheet('Odporúčania', sheetOdporucania(recommendations));
-  addSheet('Váhy a skóre', sheetVahy(areal, score));
+    XLSX.utils.book_append_sheet(wb, ws, harok.nazov);
+  }
 
   const fileName = xlsxFilename(areal.nazov, new Date().toISOString().slice(0, 10));
   XLSX.writeFile(wb, fileName);

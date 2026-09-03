@@ -10,6 +10,7 @@ import {
 } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
+import { csvExportu } from '../../utils/csvExport';
 import { csvFilename } from '../../utils/exportFilenames';
 import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
 import {
@@ -17,7 +18,7 @@ import {
 } from '../../utils/skoreVysvetlenie';
 import { CopyButton } from '../ui/CopyButton';
 import { VypocetDialog } from './VypocetDialog';
-import { bezDiakritiky } from '../../utils/formatters';
+import { bezDiakritiky, formatArea } from '../../utils/formatters';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
@@ -66,26 +67,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
 
   const handleExportCSV = () => {
-    const BOM = '\uFEFF';
-    const rows: string[][] = [
-      ['Areál', areal.nazov],
-      ['Adresa', areal.adresa],
-      ['Obec', areal.obec],
-      ['Región', areal.region],
-      [''],
-      ['Celkové skóre (vážené)', String(vazeneSkore)],
-      ['Celkové skóre (nevážené)', String(score.celkove)],
-      ['MZI skóre', String(score.mzi.celkove), `váha: ${wMzi}`],
-      ['OZE skóre', hodnotiOZE ? String(score.oze.celkove) : 'nehodnotené', `váha: ${wOze}`],
-      ['Energetika skóre', hodnotiEnergetiku ? String(score.energia.celkove) : 'nehodnotené', `váha: ${wEnergia}`],
-      [''],
-      ['Pozemky', String(areal.pozemky.length)],
-      ['Budovy', String(areal.budovy.length)],
-      [''],
-      ['Odporúčania:'],
-      ...recommendations.map((r) => [r.opatrenie.nazov, r.priorita, r.dovod]),
-    ];
-    const csv = BOM + rows.map((r) => r.map((c) => `"${c}"`).join(';')).join('\n');
+    // CSV nesie to isté, čo zošit — obsah skladá `csvExportu()` z rovnakých
+    // hárkov, aby sa oba exporty nemohli rozísť (#209, #223).
+    const csv = csvExportu(areal, score, recommendations);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -373,6 +357,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       {/* Energetické ukazovatele (EnPI) — issue #171 */}
       <EnergyIndicators enpi={enpi} />
 
+      {/* Čo bolo zadané v dotazníku — issues #209 a #223 */}
+      <ZadaneEntity areal={areal} />
+
       {/* Médiá prehľad */}
       {areal.media.length > 0 && (
         <div className="space-y-2">
@@ -540,6 +527,135 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
         Ide o nameranú spotrebu z faktúr, bez klimatickej normalizácie – nezamieňať s vypočítanou potrebou energie
         z energetického certifikátu.
       </p>
+    </div>
+  );
+}
+
+/** Jedna zadaná entita v prehľade — čím sa volá a čím je bližšie určená. */
+interface PolozkaPrehladu {
+  id: string;
+  nazov: string;
+  popis: string;
+}
+
+/** Skupina entít jedného typu (Pozemky, Budovy, Iné stavby, B&G opatrenia). */
+interface SkupinaPrehladu {
+  nadpis: string;
+  krok: number;
+  polozky: PolozkaPrehladu[];
+  /** Prečo skupina nevstupuje do skóre; `undefined` = do skóre vstupuje. */
+  mimoSkore?: string;
+}
+
+/** Spojí neprázdne časti popisu do jedného riadku. */
+function popis(...casti: (string | false | undefined)[]): string {
+  return casti.filter((c): c is string => Boolean(c)).join(' · ');
+}
+
+/**
+ * Čo používateľ zadal v dotazníku, po typoch entít.
+ *
+ * Zoznam je jedno miesto, kam sa pridá nový typ entity — pribudnutím položky
+ * sa objaví v prehľade bez ďalšieho zásahu (`CLAUDE.md`, „oprav triedu, nie
+ * výskyt"). Rovnaké entity nesie aj export, pozri `harkyExportu()`.
+ */
+function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
+  return [
+    {
+      nadpis: 'Pozemky',
+      krok: 2,
+      polozky: areal.pozemky.map((p, i) => ({
+        id: p.id,
+        nazov: p.parcela || p.aktualneVyuzitie || `Parcela ${i + 1}`,
+        popis: popis(
+          p.parcela && p.aktualneVyuzitie,
+          p.celkovaVymera > 0 && `celková výmera ${formatArea(p.celkovaVymera)}`,
+          p.plochaBezBudov > 0 && `bez budov ${formatArea(p.plochaBezBudov)}`,
+        ),
+      })),
+    },
+    {
+      nadpis: 'Budovy',
+      krok: 3,
+      polozky: areal.budovy.map((b, i) => ({
+        id: b.id,
+        nazov: b.nazov || `Budova ${i + 1}`,
+        popis: popis(
+          b.parcela && `parcela ${b.parcela}`,
+          b.uzitkovaPlochaNUS > 0 && `NUS ${formatArea(b.uzitkovaPlochaNUS)}`,
+          b.sezonnaNevykurovana === 1 && 'sezónna nevykurovaná',
+        ),
+      })),
+    },
+    {
+      nadpis: 'Iné stavby',
+      krok: 4,
+      // Či má zastavaná plocha iných stavieb vstupovať do MZI, je rozhodnutie
+      // o pravidlách hodnotenia — ostáva na človeka (#209).
+      mimoSkore: 'Do skóre zatiaľ nevstupujú — sú v prehľade a v exporte.',
+      polozky: areal.ineStavby.map((s, i) => ({
+        id: s.id,
+        nazov: s.nazov || `Stavba ${i + 1}`,
+        popis: popis(
+          s.typStavby,
+          s.parcela && `parcela ${s.parcela}`,
+          s.zastavanaPlocha > 0 && `zastavaná plocha ${formatArea(s.zastavanaPlocha)}`,
+        ),
+      })),
+    },
+    {
+      nadpis: 'Zamýšľané B&G opatrenia',
+      krok: 5,
+      // Zamýšľané opatrenie ešte nie je zrealizované, takže hodnotenie nemení (#223).
+      mimoSkore: 'Sú to plány, nie stav areálu — do skóre preto nevstupujú.',
+      polozky: areal.bgOpatrenia.map((o, i) => ({
+        id: o.id,
+        nazov: o.nazov || `Opatrenie ${i + 1}`,
+        popis: popis(
+          o.naParcele && `na parcele ${o.naParcele}`,
+          o.prekazky && `prekážky: ${o.prekazky}`,
+        ),
+      })),
+    },
+  ];
+}
+
+/**
+ * Prehľad toho, čo bolo zadané v dotazníku (issues #209 a #223).
+ *
+ * „Iné stavby" a B&G opatrenia sa predtým nedostali ani sem, ani do exportu —
+ * používateľ ich vyplnil a vo výstupe po nich nezostala stopa. Skóre menia
+ * len tie skupiny, ktoré doň vstupujú; pri ostatných to prehľad povie rovno,
+ * aby si nikto nemyslel, že oplotenie zlepšilo hodnotenie.
+ */
+function ZadaneEntity({ areal }: { areal: Areal }) {
+  const skupiny = skupinyPrehladu(areal).filter((s) => s.polozky.length > 0);
+  if (skupiny.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-gray-800">Zadané v dotazníku</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {skupiny.map((skupina) => (
+          <div key={skupina.nadpis} className="bg-gray-50 rounded-xl p-4 space-y-2">
+            <h4 className="text-sm font-semibold text-gray-700">
+              {skupina.nadpis} ({skupina.polozky.length})
+              <span className="ml-1.5 font-normal text-gray-400">krok {skupina.krok}</span>
+            </h4>
+            <ul className="space-y-1">
+              {skupina.polozky.map((p) => (
+                <li key={p.id} className="text-xs text-gray-700">
+                  <span className="font-medium">{p.nazov}</span>
+                  {p.popis && <span className="text-gray-500"> — {p.popis}</span>}
+                </li>
+              ))}
+            </ul>
+            {skupina.mimoSkore && (
+              <p className="text-[11px] text-gray-400 leading-snug">{skupina.mimoSkore}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

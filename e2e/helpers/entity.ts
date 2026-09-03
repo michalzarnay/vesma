@@ -111,7 +111,6 @@ export const TYPY_ENTIT: TypEntity[] = [
       await pole(page, 'Názov stavby').fill('E2E oplotenie areálu');
       await pole(page, 'Zastavaná plocha').fill('40');
     },
-    chyba: '#209',
   },
   {
     kluc: 'bgOpatrenia',
@@ -125,7 +124,6 @@ export const TYPY_ENTIT: TypEntity[] = [
       // patriť práve jednej entite, inak by test prešiel na cudzí zápis.
       await pole(page, 'Na parcele').fill('2307');
     },
-    chyba: '#223',
   },
 ];
 
