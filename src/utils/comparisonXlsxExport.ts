@@ -133,6 +133,8 @@ const BUDOVA_HEADER = [
   'Celková spotreba (kWh)',
   'Fotovoltika', 'Plocha FV (m²)', 'Batériové úložisko (kWh)',
   'Zelená strecha celkom (m²)', 'Solárne kolektory (m²)',
+  // Nový stĺpec sa pridáva na koniec, aby sa poradie doterajších stĺpcov neposunulo.
+  'Sezónna nevykurovaná stavba',
 ];
 
 function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | number)[] {
@@ -155,6 +157,7 @@ function riadokBudovy(arealNazov: string, b: Budova, i: number): (string | numbe
     b.celkovaSpotreba ?? 0,
     yn(b.fotovoltika), b.fotovoltikaPlocha, b.bateriovyUlozisko,
     b.zelenaStrechaPlocha, b.solarnePanelyPlocha,
+    yn(b.sezonnaNevykurovana),
   ];
 }
 

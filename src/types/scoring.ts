@@ -1,3 +1,5 @@
+import { ScoringWeights } from './areal';
+
 export interface ScoreResult {
   celkove: number; // 0-100
   mzi: MZIScore;
@@ -28,6 +30,35 @@ export interface EnergiaScore {
   kvalitaOkien: number; // 0-20
   vykurovaciSystem: number; // 0-25
   vetranie: number; // 0-25
+  /** Počet budov, ktoré do hodnotenia vstúpili (bez sezónnych nevykurovaných stavieb). */
+  hodnotenychBudov: number;
+  /** Počet sezónnych nevykurovaných stavieb vynechaných z hodnotenia. */
+  vynechanychSezonnych: number;
+}
+
+/**
+ * Má sa energetické skóre vôbec brať do úvahy?
+ *
+ * Nie, keď areál budovy má, ale všetky sú sezónne nevykurované stavby — vtedy
+ * nie je čo hodnotiť a nula by sa čítala ako „veľký priestor na zlepšenie".
+ * Areál úplne bez budov sa správa ako doteraz (skóre 0 sa započíta), aby sa
+ * hodnotenie existujúcich relácií touto zmenou neposunulo.
+ */
+export function saHodnotiEnergetika(energia: EnergiaScore): boolean {
+  return energia.hodnotenychBudov > 0 || energia.vynechanychSezonnych === 0;
+}
+
+/**
+ * Vážené celkové skóre. Ak sa energetika nehodnotí, jej váha sa do súčtu
+ * nezapočíta — inak by nulové skóre nehodnotenej oblasti stiahlo celý areál dole.
+ */
+export function vazeneCelkoveSkore(score: ScoreResult, vahy: ScoringWeights): number {
+  const vahaEnergia = saHodnotiEnergetika(score.energia) ? vahy.energia : 0;
+  const sumVah = vahy.mzi + vahy.oze + vahaEnergia;
+  if (sumVah === 0) return 0;
+  return Math.round(
+    (score.mzi.celkove * vahy.mzi + score.oze.celkove * vahy.oze + score.energia.celkove * vahaEnergia) / sumVah,
+  );
 }
 
 export type ScoreLevel = 'cervena' | 'oranzova' | 'zlta' | 'zelena' | 'tmavaZelena';

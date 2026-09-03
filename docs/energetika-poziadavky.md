@@ -293,6 +293,20 @@ Nasledujúce polia sa v `Budova` zbierajú a **do žiadneho skóre nevstupujú**
 Buď ich zapojiť do hodnotenia, alebo z formulára odstrániť — laika stojí každá otázka
 trpezlivosť. Toto je otázka na človeka (mení rozsah funkcií).
 
+### C4b. Stavby, ktoré sa vôbec nemajú hodnotiť ✅ vyriešené
+Nie každá stavba v areáli je adeptom na energetickú obnovu. Záhradná chata, altánok
+či sklad náradia sú letné sídla — nekúri sa v nich, nespáva sa v nich a zateplenie
+ani obnova zdroja tepla v nich nemajú zmysel. VESMA im predtým počítala potenciál
+zlepšenia a navrhovala zateplenie, čím areálu nafukovala potenciál, ktorý nikto
+nebude realizovať.
+
+Formulár budovy má preto otázku **„Je to sezónna nevykurovaná stavba (letné sídlo)?"**
+a takáto stavba sa vynecháva z energetického skóre, z podielu „potenciál tepelného
+čerpadla" v OZE skóre, z odporúčaní na obálku a vykurovanie aj z energetických
+parametrov porovnania areálov, ktoré merajú potenciál obálky a vykurovania.
+Nevynecháva sa z toho, čo so sezónnosťou nesúvisí — strecha pre fotovoltiku, zelená
+strecha, odvod zrážkovej vody, osvetlenie. Pozri `src/utils/sezonnaStavba.ts`.
+
 ### C5. Chýba ukazovateľ kvality a úplnosti dát
 Článok 4.1.4 (transparentnosť) a 5.3–5.5 STN EN 16247-1 (zber údajov, plán merania,
 metódy vzorkovania) stoja na tom, že je zrejmé, odkiaľ údaj pochádza a akú má kvalitu.

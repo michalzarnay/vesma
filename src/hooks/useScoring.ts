@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
-import { ScoreResult, MZIScore, OZEScore, EnergiaScore } from '../types/scoring';
+import { ScoreResult, MZIScore, OZEScore, EnergiaScore, saHodnotiEnergetika } from '../types/scoring';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
 import { podielLED } from '../utils/lighting';
+import { budovyNaEnergetickeHodnotenie } from '../utils/sezonnaStavba';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -129,10 +130,12 @@ export function calculateOZE(areal: Areal): OZEScore {
   }
   const existujuceOZE = clamp(Math.round(ozeScore / budovy.length), 0, 20);
 
-  // 3. Potencial tepelneho cerpadla (0-25)
+  // 3. Potencial tepelneho cerpadla (0-25) — len z vykurovaných budov;
+  // sezónna chata sa nevykuruje, takže na ňu tepelné čerpadlo nenavrhujeme.
+  const vykurovaneBudovy = budovyNaEnergetickeHodnotenie(budovy);
   let tcPotencial = 0;
   const currentYear = new Date().getFullYear();
-  for (const b of budovy) {
+  for (const b of vykurovaneBudovy) {
     if (b.tepelneCerpadlo === 0) {
       // Old gas/electric heating = high potential
       if (b.kurenePlynom === 1 && b.kureniePlynRokInstalacie > 0) {
@@ -144,7 +147,9 @@ export function calculateOZE(areal: Areal): OZEScore {
       if (b.kurenieUhlimDrevom > 0) tcPotencial += 8;
     }
   }
-  const potencialTepelnehoCerpadla = clamp(Math.round(tcPotencial / budovy.length), 0, 25);
+  const potencialTepelnehoCerpadla = vykurovaneBudovy.length > 0
+    ? clamp(Math.round(tcPotencial / vykurovaneBudovy.length), 0, 25)
+    : 0;
 
   // 4. Potencial dalsich OZE (0-25)
   let dalsieOZE = 0;
@@ -169,9 +174,14 @@ export function calculateOZE(areal: Areal): OZEScore {
   return { celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE };
 }
 
-function calculateEnergia(areal: Areal): EnergiaScore {
-  const budovy = areal.budovy;
-  if (budovy.length === 0) return { celkove: 0, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0 };
+export function calculateEnergia(areal: Areal): EnergiaScore {
+  // Sezónne nevykurované stavby (záhradná chata a pod.) sa nehodnotia — nemá
+  // zmysel merať zateplenie ani vykurovanie tam, kde sa nekúri.
+  const budovy = budovyNaEnergetickeHodnotenie(areal.budovy);
+  const vynechanychSezonnych = areal.budovy.length - budovy.length;
+  if (budovy.length === 0) {
+    return { celkove: 0, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0, hodnotenychBudov: 0, vynechanychSezonnych };
+  }
 
   // 1. Zateplenie (0-30)
   let zatepScore = 0;
@@ -227,7 +237,7 @@ function calculateEnergia(areal: Areal): EnergiaScore {
 
   const celkove = zateplenie + kvalitaOkien + vykurovaciSystem + vetranie;
 
-  return { celkove, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie };
+  return { celkove, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie, hodnotenychBudov: budovy.length, vynechanychSezonnych };
 }
 
 function calculateMZIPotencial(areal: Areal): number {
@@ -263,14 +273,24 @@ function calculateMZIPotencial(areal: Areal): number {
   return Math.max(0, Math.round(skore));
 }
 
-export function useScoring(areal: Areal): ScoreResult {
-  return useMemo(() => {
-    const mzi = calculateMZI(areal);
-    const oze = calculateOZE(areal);
-    const energia = calculateEnergia(areal);
-    const celkove = Math.round((mzi.celkove + oze.celkove + energia.celkove) / 3);
-    const mziPotencial = calculateMZIPotencial(areal);
+/**
+ * Skóre areálu. Čistá funkcia — hook ju len memoizuje, aby sa pravidlá
+ * hodnotenia dali priamo testovať.
+ */
+export function computeScore(areal: Areal): ScoreResult {
+  const mzi = calculateMZI(areal);
+  const oze = calculateOZE(areal);
+  const energia = calculateEnergia(areal);
+  // Keď sú všetky budovy areálu sezónne nevykurované stavby, energetika sa
+  // nehodnotí a do priemeru nevstupuje — nula by sa inak čítala ako zlý stav.
+  const celkove = saHodnotiEnergetika(energia)
+    ? Math.round((mzi.celkove + oze.celkove + energia.celkove) / 3)
+    : Math.round((mzi.celkove + oze.celkove) / 2);
+  const mziPotencial = calculateMZIPotencial(areal);
 
-    return { celkove, mzi, oze, energia, mziPotencial };
-  }, [areal]);
+  return { celkove, mzi, oze, energia, mziPotencial };
+}
+
+export function useScoring(areal: Areal): ScoreResult {
+  return useMemo(() => computeScore(areal), [areal]);
 }

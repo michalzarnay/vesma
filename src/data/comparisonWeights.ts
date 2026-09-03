@@ -26,6 +26,15 @@
 // začnú tieto parametre v súčte reálne vážiť: pri počte budov prispievali jednotkami,
 // kým plošné parametre tisíckami, takže boli prakticky neviditeľné.
 //
+// SEZÓNNE NEVYKUROVANÉ STAVBY (záhradná chata, altánok, sklad náradia) sa do
+// parametrov, ktoré merajú potenciál obálky a vykurovania, nezapočítavajú —
+// zateplovať ani obnovovať zdroj tepla tam, kde sa nekúri, nedáva zmysel a areál
+// by tým dostal potenciál, ktorý nikto nebude realizovať. Týka sa to parametrov
+// "nezateplená obálka", "prechod na TČ/biomasu" (plyn aj elektrina), "výstavba
+// pred 1980" a im zodpovedajúcich odpočtov existujúcich riešení (zateplenie, TČ).
+// Naopak plocha strechy pre FV, plocha pozemku pre FV a osvetlenie sa počítajú
+// zo všetkých budov — so sezónnosťou nesúvisia (pozri src/utils/sezonnaStavba.ts).
+//
 // Nový parameter "prechod plyn → biomasa" má váhu 3, teda polovicu váhy prechodu na
 // tepelné čerpadlo. Dôvod: ide o alternatívnu cestu pre tie isté budovy, nie o ďalší
 // nezávislý potenciál — plocha plynom kúrenej budovy sa započíta do oboch parametrov.
@@ -35,6 +44,7 @@ import { Areal, Budova, Pozemok } from '../types/areal';
 import { Hrozba } from '../types/comparison';
 import { getPlochaObvodovehoPlasta, getPlochaStrechyPreFV, getVykurovanaPlocha } from '../utils/calculations';
 import { prikonLedOsvetleniaW, prikonNieLedOsvetleniaW } from '../utils/lighting';
+import { sumVykurovanych } from '../utils/sezonnaStavba';
 
 export interface MziParameter {
   key: string;
@@ -190,7 +200,7 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     key: 'energia_nezateplena_obalka',
     nazov: 'Nezateplená fasáda alebo strecha budovy',
     vaha: 8,
-    getValue: (areal) => sum(areal.budovy, (b) => {
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => {
       const strecha = b.strechaZateplenie === 0 ? b.plochaPodorysu : b.strechaZateplenie === 2 ? b.plochaPodorysu * 0.5 : 0;
       const plocha = getPlochaObvodovehoPlasta(b);
       const fasada = b.zateplenieFasady === 0 ? plocha : b.zateplenieFasady === 2 ? plocha * 0.5 : 0;
@@ -201,13 +211,13 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     key: 'energia_plyn_potencial_tc',
     nazov: 'Vykurovanie plynom → potenciál prechodu na tepelné čerpadlo (m² plochy budov)',
     vaha: 6,
-    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenePlynom === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => (b.kurenePlynom === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
   },
   {
     key: 'energia_plyn_potencial_biomasa',
     nazov: 'Vykurovanie plynom → potenciál prechodu na biomasu (pelety/štiepka, m² plochy budov)',
     vaha: 3,
-    getValue: (areal) => sum(areal.budovy, (b) =>
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) =>
       (b.kurenePlynom === 1 && b.kureniePeletami === 0 && b.kurenieStiepkou === 0) ? plochaBudovy(b) : 0
     ),
   },
@@ -215,13 +225,13 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     key: 'energia_elektrina_potencial_tc',
     nazov: 'Vykurovanie elektrinou (priamotopy) → potenciál tepelného čerpadla (m² plochy budov)',
     vaha: 6,
-    getValue: (areal) => sum(areal.budovy, (b) => (b.kurenieElektrinou === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => (b.kurenieElektrinou === 1 && b.tepelneCerpadlo === 0) ? plochaBudovy(b) : 0),
   },
   {
     key: 'energia_vystavba_pred_1980',
     nazov: 'Rok výstavby pred rokom 1980 (m² plochy budov)',
     vaha: 4,
-    getValue: (areal) => sum(areal.budovy, (b) => b.vystavbaPred1980 === 1 ? plochaBudovy(b) : 0),
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => b.vystavbaPred1980 === 1 ? plochaBudovy(b) : 0),
   },
   // Osvetlenie (issue #183) — veličinou je odhad inštalovaného príkonu vo wattoch,
   // nie m² úžitkovej plochy. Podiel LED sa berie z počtu svietidiel, keď je zadaný,
@@ -248,7 +258,7 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     key: 'energia_odratat_zateplenie',
     nazov: 'Odrátať existujúce riešenia: zateplenie fasády/strechy',
     vaha: -2,
-    getValue: (areal) => sum(areal.budovy, (b) => {
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => {
       const strecha = b.strechaZateplenie === 1 ? b.plochaPodorysu : b.strechaZateplenie === 2 ? b.plochaPodorysu * 0.5 : 0;
       const plocha = getPlochaObvodovehoPlasta(b);
       const fasada = b.zateplenieFasady === 1 ? plocha : b.zateplenieFasady === 2 ? plocha * 0.5 : 0;
@@ -259,7 +269,7 @@ export const ENERGIA_PARAMETERS: EnergiaParameter[] = [
     key: 'energia_odratat_tc',
     nazov: 'Odrátať existujúce riešenia: tepelné čerpadlo (m² plochy budov)',
     vaha: -1,
-    getValue: (areal) => sum(areal.budovy, (b) => b.tepelneCerpadlo === 1 ? plochaBudovy(b) : 0),
+    getValue: (areal) => sumVykurovanych(areal.budovy, (b) => b.tepelneCerpadlo === 1 ? plochaBudovy(b) : 0),
   },
   {
     // Prepočet váhy rovnako ako pri parametri vyššie: −1 ÷ 6 W/m² ≈ −0,17.

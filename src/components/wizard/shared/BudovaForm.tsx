@@ -10,6 +10,7 @@ import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
 import { budovaUpdatesFromDocument } from '../../../utils/documentToBudova';
 import { getParagraf11, PARAGRAF_11_PLOCHA_M2 } from '../../../utils/paragraf11';
+import { jeSezonnaNevykurovana } from '../../../utils/sezonnaStavba';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
 import { computeBudovaEnPI } from '../../../utils/energyIndicators';
 import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
@@ -76,6 +77,23 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
   );
 }
 
+/**
+ * Vysvetlenie, čo označenie „sezónna nevykurovaná stavba" zmení v hodnotení.
+ * Zobrazuje sa pri budove aj nad sekciami, ktoré sa pre takú stavbu nehodnotia.
+ */
+function SezonnaStavbaPoznamka() {
+  return (
+    <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+      Stavba je označená ako <strong>sezónna nevykurovaná</strong>. VESMA jej preto
+      nebude počítať potenciál zateplenia, výmeny okien, rekuperácie ani obnovy zdroja
+      tepla a nenavrhne v tomto smere žiadne opatrenia. Údaje nižšie môžete vyplniť,
+      ak ich poznáte — do hodnotenia energetickej efektívnosti nevstúpia. Hodnotí sa
+      naďalej to, čo so sezónnosťou nesúvisí: strecha pre fotovoltiku, zelená strecha,
+      odvod zrážkovej vody a osvetlenie.
+    </div>
+  );
+}
+
 function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>) => void) {
   const updates = budovaUpdatesFromDocument(doc);
   if (Object.keys(updates).length > 0) onChange(updates);
@@ -89,6 +107,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
   const [svpLoading, setSvpLoading] = useState(false);
   const [svpMsg, setSvpMsg] = useState<string | null>(null);
   const enpi = computeBudovaEnPI(budova);
+  const jeSezonna = jeSezonnaNevykurovana(budova);
   const predchadzajuciRok = new Date().getFullYear() - 1;
 
   const fetchSvpRiziko = async () => {
@@ -197,6 +216,15 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           onChange={(v) => onChange({ vystavbaPred1980: v as 0 | 1 })}
           tooltipText="Staršie budovy (pred rokom 1980) majú spravidla vyšší potenciál na zníženie energetickej náročnosti."
         />
+
+        <SelectCard
+          label="Je to sezónna nevykurovaná stavba (letné sídlo)?"
+          options={YES_NO}
+          value={budova.sezonnaNevykurovana}
+          onChange={(v) => onChange({ sezonnaNevykurovana: v as 0 | 1 })}
+          tooltipKey="sezonnaNevykurovanaDef"
+        />
+        {jeSezonna && <SezonnaStavbaPoznamka />}
 
         <h4 className="text-xs font-semibold text-gray-600 mt-4">Využitie objektu</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -433,6 +461,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
 
       {/* Uspory energie */}
       <Section title="Úspory energie">
+        {jeSezonna && <SezonnaStavbaPoznamka />}
         <TextInput
           label="Materiál obvodových stien"
           value={budova.obvodoveStenyMaterial}
@@ -523,6 +552,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
 
       {/* Vykurovanie */}
       <Section title="Vykurovanie">
+        {jeSezonna && <SezonnaStavbaPoznamka />}
         {/* Nápoveda pre spotrebu */}
         <details className="group">
           <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 list-none flex items-center gap-1 select-none">

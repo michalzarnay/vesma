@@ -113,6 +113,9 @@ function migrateBudova(raw: unknown): Budova {
     zelenaStrechaBudovStrkova: d.zelenaStrechaBudovStrkova ?? 0,
     zelenaStenaBudov: d.zelenaStenaBudov ?? 0,
     vystavbaPred1980: d.vystavbaPred1980 ?? 0,
+    // Sezónna nevykurovaná stavba: staršie relácie odpoveď nemajú a predvolená
+    // hodnota 0 (bežná budova) zachováva ich doterajšie hodnotenie nezmenené.
+    sezonnaNevykurovana: d.sezonnaNevykurovana ?? 0,
   };
 }
 
