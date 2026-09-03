@@ -31,6 +31,7 @@ Podklad so všetkými tabuľkami: `docs/VESMA_podklad_pre_energetickeho_experta.
 | E3 | Cena a návratnosť kotla na biomasu | `src/data/catalog.ts` | čaká | Jediné opatrenie v katalógu s poznámkou „hodnotu potvrdí energetický expert". |
 | E4 | Hustota príkonu osvetlenia [W/m²] | `src/data/lightingPowerDensity.ts` | návrh | Odhad z projekčnej praxe. Oficiálna prepočtová tabuľka „plocha → W" v SR neexistuje — pozri `docs/osvetlenie-prepocet.md`. Použije sa len vtedy, keď používateľ nepozná počet svietidiel. |
 | E5 | Dennostupne podľa okresu | nikde | čaká | Bez klimatickej normalizácie (STN 73 0550) sa nedá porovnať spotreba z rôznych okresov ani z rôznych rokov. Toto je otázka zdroja dát, nie odhadu. |
+| E6 | Výhrevnosti palív (`FUEL_CONVERSIONS`: pelety 4,8 / štiepka 4,0 / uhlie 8,0 / drevo 4,3 kWh/kg) | `src/data/constants.ts` | návrh | Hodnoty v kóde sú, ale bez zdroja — a používateľ ich nevie prepísať, hoci bod 3 písm. a) prílohy č. 1 vyhlášky č. 179/2015 Z. z. žiada výhrevnosť zistenú z dokladov. Prepočítava sa nimi zadané palivo v kg na kWh, takže chyba sa premietne do mernej spotreby aj do porovnania. Drevo s vlhkosťou 20 % a 50 % sa líši takmer dvojnásobne (pozri A1 v `docs/energetika-poziadavky.md`). |
 
 ## Modrozelená infraštruktúra — čaká na expertku
 
