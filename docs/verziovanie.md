@@ -3,7 +3,7 @@
 ## Pravidlo
 
 ```
-verzia = 179 + počet merge-ov do `main` od commitu 062dfcf
+verzia = 186 + počet merge-ov do `main` od commitu fb10457
 ```
 
 Technicky: `BASE_VERSION + git rev-list --count --first-parent BASE_COMMIT..merge-base(HEAD, main)`.
@@ -77,6 +77,7 @@ neskočí.
 | `cd36452` | 160 | Zavedenie tohto pravidla. Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže 160 zaručilo, že postupnosť pri prechode neklesla. |
 | `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). Verzia `main` bola v tom čase 170, takže sa nezmenila. |
 | `062dfcf` | 179 | Druhý posun z rovnakého dôvodu (2. 9. 2026), po deviatich merge-och. Kontrola kotvy vtedy nebežala — pozri nižšie. |
+| `fb10457` | 186 | Tretí posun (3. 9. 2026), preventívny. Kontrola kotvy nahlásila, že je presne na prahu (6 merge-ov), takže najbližší merge by CI zhodil. Prvý posun, ktorý nebol reakciou na spadnutý build — mechanizmus zafungoval tak, ako mal. |
 
 ### Automatické upozornenie na CI
 

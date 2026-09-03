@@ -45,13 +45,17 @@
 //     062dfcf / 179 — druhý posun z rovnakého dôvodu (2. 9. 2026). Kontrola
 //                     kotvy vtedy nebežala: súbor workflowu nemal príponu
 //                     .yml, takže ho GitHub Actions nespúšťal.
+//     fb10457 / 186 — tretí posun (3. 9. 2026), tentoraz preventívne: kontrola
+//                     kotvy nahlásila, že je presne na prahu (6 merge-ov),
+//                     takže najbližší merge by CI zhodil. Prvý posun, ktorý
+//                     nebol reakciou na spadnutý build.
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-export const BASE_VERSION = 179;
-export const BASE_COMMIT = '062dfcf067b4a59b6f803fa155fb52c70c35e20b';
+export const BASE_VERSION = 186;
+export const BASE_COMMIT = 'fb1045736118de279e8007062088f8d77c8d1456';
 
 /** Vetvy, ktoré považujeme za `main` — v poradí, v akom ich skúšame. */
 const MAIN_REFS = ['refs/remotes/origin/main', 'refs/heads/main', 'refs/remotes/upstream/main'];
