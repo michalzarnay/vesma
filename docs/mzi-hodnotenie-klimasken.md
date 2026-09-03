@@ -139,6 +139,15 @@ v komentári na začiatku `src/utils/mziKlimasken.ts`.
 5. **Jazierko** metodika nepozná; hodnotí sa ako plošný objekt HDV (k = 1,0).
 6. **Zelená strecha bez rozpisu na typy** sa odhadne z tvaru strechy — plochá
    ako E1, šikmá a strmá ako E2.
+7. **Nádrž, ktorú nie je možné inštalovať.** Metodika B-AD10 hovorí, že „ak
+   inštalácia nádrže nie je možná alebo je vylúčená… budova je v tomto
+   indikátore označená v najhoršej kategórii“. VESMA komponent namiesto toho
+   **vynecháva** (`areal.nadrzNieJeMozna`). Dôvod: Klimasken je štítok, ktorý
+   popisuje stav objektu, kým hodnotenie areálu vo VESMA k stavu **navrhuje aj
+   opatrenia** — komponent, na ktorý sa nedá reagovať, by skóre len skresľoval
+   a nástroj by navyše odporúčal nerealizovateľné opatrenie. Vo výsledkoch sa
+   preto nezobrazí „bez údajov“, ale „nehodnotí sa“ spolu so zadaným dôvodom,
+   takže informácia sa nestratí (issue #215).
 
 ## Zmena oproti pôvodnému hodnoteniu
 

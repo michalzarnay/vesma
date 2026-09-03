@@ -322,6 +322,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 ? null
                 : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
               vysvetlenie: vysvetlenia.get('akumulacia'),
+              dovodNehodnotenia: areal.nadrzNieJeMozna === 1
+                ? `Nádrž nie je možné inštalovať${areal.nadrzNemoznaDovod.trim() ? ` — ${areal.nadrzNemoznaDovod.trim()}` : ''}.`
+                : null,
             },
             {
               label: 'Odtok zo spevnených plôch',
@@ -573,6 +576,11 @@ interface ScoreDetailItem {
   hodnota?: string | null;
   /** Vysvetlenie, za čo body sú — veta na kartu a tabuľka do modálu (#213) */
   vysvetlenie?: VysvetlenieKomponentu;
+  /**
+   * Prečo sa komponent nehodnotí, keď to nie je chýbajúcimi údajmi —
+   * napr. nádrž nie je možné inštalovať (#215).
+   */
+  dovodNehodnotenia?: string | null;
 }
 
 /** Rozloží komponent MZI skóre na tvar, ktorý zobrazuje `ScoreDetail`. */
@@ -604,7 +612,9 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
             <div className="flex justify-between gap-2 text-xs">
               <span className="text-gray-600">{item.label}</span>
               {item.score === null ? (
-                <span className="text-gray-400 italic whitespace-nowrap">bez údajov</span>
+                <span className="text-gray-400 italic whitespace-nowrap">
+                  {item.dovodNehodnotenia ? 'nehodnotí sa' : 'bez údajov'}
+                </span>
               ) : (
                 <span className="font-medium whitespace-nowrap">
                   {item.hodnota && <span className="text-gray-400 font-normal mr-1.5">{item.hodnota}</span>}
@@ -621,6 +631,11 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
                 }}
               />
             </div>
+            {item.score === null && item.dovodNehodnotenia && (
+              <p className="text-[11px] text-gray-500 leading-snug pt-0.5">
+                {item.dovodNehodnotenia}
+              </p>
+            )}
             {item.vysvetlenie && (
               <div className="flex items-start gap-1 pt-0.5">
                 <p className="text-[11px] text-gray-500 leading-snug flex-1">

@@ -45,7 +45,10 @@ export function computeRecommendations(areal: Areal): Odporucanie[] {
       `Potenciál nahradiť až ${Math.round(totalSpevnena * 0.5)} m² priepustným povrchom.`);
     addRec(recs, 'dazdova-zahrada', 'vysoká', dovodVsak);
     addRec(recs, 'vsakovaci-rigol', 'vysoká', dovodVsak);
-    addRec(recs, 'zachytenie-do-nadob', 'stredná', dovod);
+    // Nádrž sa neodporúča tam, kde ju nie je možné inštalovať (issue #215).
+    if (areal.nadrzNieJeMozna !== 1) {
+      addRec(recs, 'zachytenie-do-nadob', 'stredná', dovod);
+    }
     addRec(recs, 'podzemne-vsakovanie', 'stredná', dovodVsak);
     if (totalPlocha >= 500) {
       addRec(recs, 'jazierko', 'stredná', dovod);

@@ -84,6 +84,19 @@ export interface Areal {
   mnozstvoZrazok?: number;        // mm/m2
   potencialSlnecnehoSvitu?: number; // kWh/rok
 
+  /**
+   * Akumulačnú nádrž na areáli nie je možné inštalovať (pamiatková ochrana,
+   * žiadny priestor, vysoká hladina podzemnej vody…). Vtedy sa komponent
+   * „akumulácia zrážkovej vody" (KLIMASKEN B-AD10) do skóre nezapočíta a
+   * nádrž sa ani neodporúča — pozri issue #215.
+   *
+   * Príznak je na areáli, nie na pozemku: nádrž je jeden systém pre celý areál
+   * a aj B-AD10 sa počíta za areál naraz.
+   */
+  nadrzNieJeMozna: 0 | 1;
+  /** Prečo nie je možná — povinné pri zaškrtnutí, zobrazuje sa vo výsledkoch aj v exporte. */
+  nadrzNemoznaDovod: string;
+
   kategoriaObjektu?: KategoriaObjektu;
   typObjektu?: string;
 
@@ -668,6 +681,8 @@ export function createEmptyAreal(): Areal {
     kapacitaZariadenia: '',
     aktualnaObsadenost: 0,
     pocetZamestnancov: 0,
+    nadrzNieJeMozna: 0,
+    nadrzNemoznaDovod: '',
     zaverBG: '',
     zaverOZE: '',
     pozemky: [createEmptyPozemok()],
