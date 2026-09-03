@@ -35,8 +35,9 @@ Podklad so všetkými tabuľkami: `docs/VESMA_podklad_pre_energetickeho_experta.
 
 ## Modrozelená infraštruktúra — čaká na expertku
 
-Podklad a rozbor prichádzajú s PR #214; hodnotenie podľa metodiky KLIMASKEN
-zaviedol #212.
+Podklad so všetkými tabuľkami: `docs/VESMA_podklad_pre_MZI_experta.xlsx` (žlté
+bunky sú na vyplnenie), rozbor v `docs/mzi-podklad-pre-experta.md`. Hodnotenie
+podľa metodiky KLIMASKEN zaviedol #212, podklad #214.
 
 | # | Hodnota | Kde v kóde | Stav | Čo bez nej nefunguje |
 |---|---|---|---|---|
@@ -44,9 +45,10 @@ zaviedol #212.
 | M2 | Koeficienty pre povrchy, ktoré metodika nepozná: `neurcenyPolopriepustny` a polovegetačné tvárnice 0,3, jazierko ako plošné HDV 1,0, nezdravé stromy ako mladé 0,4, zelená strecha 16 – 35° (`extenzivnaSikma`) 0,3 | `src/utils/mziKlimasken.ts` (`KOEF_OKOLIE`, `KOEF_BUDOVY`) | návrh | Štyri zaradenia sme rozhodli sami, lebo metodika na ne odpoveď nedáva. |
 | M3 | Koeficient odtoku strechy `KOEF_ODTOKU_STRECHY = 0,8` | `src/utils/mziKlimasken.ts` | návrh | Metodika ho odvodzuje z krytiny, VESMA má krytinu len ako voľný text. |
 | M4 | Počet osôb pre návrh nádrže (B-AD10) | `src/utils/mziKlimasken.ts` | čaká | Dnes sa berie z počtu zamestnancov. V škole to nie sú žiaci. |
-| M5 | Čísla v textoch odporúčaní: „nahradiť až 50 %" spevnenej plochy (`useRecommendations.ts:45`), „min. 30–50 m²" pri jazierku a „min. 3 m³" pri nádrži (`catalog.ts`), a koeficient „zachytí 0,3 m³ na m² strechy ročne", ak sa vráti s PR #214 | `src/hooks/useRecommendations.ts`, `src/data/catalog.ts` | čaká | Čísla sú bez zdroja. Pri koeficiente zádrže navyše nesedia jednotky — kým to nie je podložené, je správnejšie vetu zrušiť než nechať číslo. |
+| M5 | Čísla v textoch odporúčaní: koeficient „zachytí 0,3 m³ na m² strechy ročne" a „nahradiť až 50 %" spevnenej plochy (`useRecommendations.ts`), „min. 30–50 m²" pri jazierku a „min. 3 m³" pri nádrži (`catalog.ts`) | `src/hooks/useRecommendations.ts`, `src/data/catalog.ts` | čaká | Čísla sú bez zdroja. Pri koeficiente zádrže navyše nesedia jednotky — kým to nie je podložené, je správnejšie vetu zrušiť než nechať číslo. |
 | M6 | Ceny a návratnosť 14 opatrení MZI | `src/data/catalog.ts` | čaká | Zdroj nie je v nástroji zaznamenaný. Pri dažďovej záhrade či kvitnúcej lúke navyše nie je jasné, čo má „návratnosť" znamenať. |
 | M7 | Váha delenej zrážkovej kanalizácie oproti jednotnej | `src/data/comparisonWeights.ts` | čaká | Otvorené rozhodnutie z revízie MZI. |
+| M8 | Ceny a návratnosť troch opatrení pre pravidelne obrábanú pôdu (mulčovanie, krycie plodiny, obmedzenie orby) | zatiaľ nie sú v kóde — návrh v [#200](https://github.com/michalzarnay/vesma/issues/200) | čaká | Bez potvrdených cien sa opatrenia do katalógu nepridajú, takže VESMA pri obrábanej pôde zníži skóre, ale nepovie, čo s ňou. Otvorené je aj to, čo pri nich znamená „návratnosť" (je skôr agronomická), či zaradiť aj vetrolam a prahy 50 m² / 500 m². |
 
 ## Ako register používať
 

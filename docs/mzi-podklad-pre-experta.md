@@ -8,7 +8,9 @@ len pre časť o vode a zeleni.
 Zošit so všetkými tabuľkami naraz je
 [`VESMA_podklad_pre_MZI_experta.xlsx`](VESMA_podklad_pre_MZI_experta.xlsx) —
 žlté bunky sú na vyplnenie, zelený riadok je vzor formátu, pri každej tabuľke je
-vysvetlené, načo slúži a čo bez nej VESMA nevie.
+vysvetlené, načo slúži a čo bez nej VESMA nevie. Hárky sú v zošite označené
+kódmi M1 až M8 z registra [`chybajuce-hodnoty.md`](chybajuce-hodnoty.md), kde má
+každá hodnota stav a miesto v kóde; odpovede expertky sa prepíšu tam.
 
 ## Čo už rozhodnuté je
 
