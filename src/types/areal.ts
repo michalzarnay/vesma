@@ -10,6 +10,16 @@ export interface MediaItem {
   datumNahratia: string;
 }
 
+/**
+ * Verzia schémy uloženej relácie (issue #177).
+ * Zvýš ju vždy, keď pribudnú polia, ktoré má používateľ v starších reláciách doplniť,
+ * a doplň ich zoznam do `NOVE_POLIA_VO_VERZII` v `src/utils/schemaVersion.ts`.
+ *
+ * 1 = stav pred zavedením verziovania (relácie bez poľa `schemaVersion`)
+ * 2 = otázky o rozvodoch tepla (hydraulické vyregulovanie ÚK a TV, izolácia rozvodov)
+ */
+export const AKTUALNA_VERZIA_SCHEMY = 2;
+
 export interface ScoringWeights {
   mzi: number;
   oze: number;
@@ -61,6 +71,8 @@ export const FIRMA_TYPY_S_KAPACITOU = ['gastro', 'hotel', 'obchod'] as const;
 
 export interface Areal {
   id: string;
+  /** Verzia schémy, v ktorej bola relácia naposledy uložená (issue #177). */
+  schemaVersion?: number;
   nazov: string;
   adresa: string;
   krajina: string;
@@ -183,6 +195,9 @@ export interface Pozemok {
 
   // Prekoreniteľný priestor
   prekorenetelnyPriestorPreStromy: number;        // m2
+
+  // Potenciál OZE na pozemku (issue #184)
+  plochaVhodnaPreFV: number; // m2 — plocha pozemku vhodná pre FV alebo solárne kolektory
 }
 
 export interface Budova {
@@ -192,7 +207,18 @@ export interface Budova {
   listVlastnictva: string;
   plochaPodorysu: number;    // m2
   uzitkovaPlochaNUS: number; // m2
+  vykurovanaPlocha: number;  // m2 — vykurovaná plocha (issue #181); predvypĺňa sa z úžitkovej, 0 = použije sa úžitková
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
+
+  /**
+   * Sezónna nevykurovaná stavba — záhradná chatka, domček na náradie, nevykurovaná garáž.
+   * Užíva sa len v teplej časti roka, nevykuruje sa a nespáva sa v nej, takže
+   * zateplenie ani obnova vykurovania v nej nemajú zmysel. Taká stavba sa
+   * vynecháva z hodnotenia obálky a vykurovania, z návrhov opatrení v tomto
+   * smere aj z potenciálu zlepšenia (pozri src/utils/sezonnaStavba.ts).
+   * 0 = bežná budova, 1 = sezónna nevykurovaná stavba.
+   */
+  sezonnaNevykurovana: 0 | 1;
 
   // Využitie objektu
   vyuzitieDniVRoku: number;
@@ -224,6 +250,7 @@ export interface Budova {
   potencialZelenejStrechy?: number; // m2, auto
   strechaOrientovanaPlochaNaJuh: number; // m2
   fasadaOrientovanaNaJuh: number; // m2
+  plochaObvodovehoPlasta: number; // m2 — celá fasáda (všetky orientácie, vrátane otvorov), issue #176; 0 = odhad z pôdorysu
   strechaTvarKrovu?: string;
 
   // Voda a splašky
@@ -244,7 +271,11 @@ export interface Budova {
   celkovaPlochaPresklenia: number;       // m2, nové
   termoizolacneOkna: number;            // %
   vekTermoizolacnychOkien: number;      // rok (vážený priemer), nové
-  osvetlenieLED: number;                // %
+  osvetlenieLED: number;                // %, záložný údaj — použije sa, keď počet svietidiel nie je známy
+  // Počet svietidiel je presnejší než percento (issue #183). Nepovinné —
+  // v reláciách uložených pred touto zmenou polia chýbajú.
+  osvetleniePocetSvietidiel?: number;    // ks celkom
+  osvetleniePocetSvietidielLED?: number; // z toho LED, ks
   objemVyvetranehoPrezduchu: number;    // m3/deň, nové
 
   // Rekuperácia — detailná (v2_4)
@@ -254,23 +285,29 @@ export interface Budova {
   rekuperaciaLokalnaOd76do89: number;    // počet
   rekuperaciaLokalnaOd90: number;        // počet
 
+  // Rok, za ktorý sú uvedené ročné spotreby a náklady (issue #172); 0 = neuvedené
+  spotrebaRok: number;
+
   // Vykurovanie - Plyn
   kurenePlynom: 0 | 1;
   kureniePlynRokInstalacie: number;
   kureniePlynVykon: number;
   kureniePlynSpotreba: number;
+  kureniePlynNakladyRok: number; // EUR/rok (issue #173)
 
   // Vykurovanie - Elektrina
   kurenieElektrinou: 0 | 1;
   kurenieElektrinaRokInstalacie: number;
   kurenieElektrinaVykon: number;
   kurenieElektrinaSpotreba: number;
+  kurenieElektrinaNakladyRok: number; // EUR/rok
 
   // Vykurovanie - TČ
   tepelneCerpadlo: 0 | 1;
   tepelneCerpadloRokInstalacie: number;
   tepelneCerpadloVykon: number;
   tepelneCerpadloSpotreba: number;
+  tepelneCerpadloNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Pelety
   kureniePeletami: 0 | 1;
@@ -278,6 +315,7 @@ export interface Budova {
   kureniePeletyVykon: number;
   kureniePeletySpotreba_kg: number;
   kureniePeletySpotreba_kWh?: number; // auto
+  kureniePeletyNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Štiepka
   kurenieStiepkou: 0 | 1;
@@ -285,6 +323,7 @@ export interface Budova {
   kurenieStiepkaVykon: number;
   kurenieStiepkaSpotreba_kg: number;
   kurenieStiepkaSpotreba_kWh?: number; // auto
+  kurenieStiepkaNakladyRok: number; // EUR/rok
 
   // Vykurovanie - Uhlie/Drevo
   kurenieUhlimDrevom: 0 | 1 | 2;
@@ -292,13 +331,15 @@ export interface Budova {
   kurenieUhlimDrevomVykon: number;
   kurenieUhlimDrevomSpotreba_kg: number;
   kurenieUhlimDrevomSpotreba_kWh?: number; // auto
+  kurenieUhlimDrevomNakladyRok: number; // EUR/rok
 
   // Vykurovanie - CZT
   kurenieCZT: 0 | 1;
   kurenieCZTSpotreba: number;
-  kurenieCZTCenaKWh: number;
+  kurenieCZTCenaKWh: number; // EUR/kWh — ročné náklady CZT sa počítajú ako spotreba × cena
 
-  celkovaSpotreba?: number; // auto
+  celkovaSpotreba?: number; // auto, kWh/rok — súčet všetkých zdrojov kúrenia
+  celkoveNakladyKurenie?: number; // auto, EUR/rok — súčet ročných nákladov všetkých zdrojov kúrenia
 
   // Vykurovacie telesá
   vykurovacieTelesaDruh: string;
@@ -307,8 +348,15 @@ export interface Budova {
   rozdelenieDozOn: 0 | 1;
   kurenieHarmonogram: 0 | 1;
 
+  // Povinnosti podľa § 11 ods. 1 zákona č. 321/2014 Z. z. a bodu 7 prílohy č. 1
+  // vyhlášky č. 179/2015 Z. z. (issue #177). 0 = nie, 1 = áno, 2 = neviem.
+  hydraulickeVyregulovanieUK: 0 | 1 | 2;  // vykurovací systém
+  hydraulickeVyregulovanieTV: 0 | 1 | 2;  // rozvody teplej vody
+  izolaciaRozvodov: 0 | 1 | 2;            // tepelná izolácia rozvodov tepla a TV
+
   // Elektrická energia
   spotrebaElektriny: number;
+  spotrebaElektrinyNakladyRok: number; // EUR/rok (issue #173)
   vyrobaElektriny: number;
   fotovoltika: 0 | 1;
   fotovoltikaPlocha: number;
@@ -322,6 +370,14 @@ export interface Budova {
   energetickyCertifikat: 0 | 1;
   energetickyCertifikatCislo: string;
   energetickaTrieda?: string; // A0–G, voliteľné, podľa energetického certifikátu
+
+  // Ukazovatele z energetického certifikátu (issue #170), kWh/(m²·a).
+  // POZOR — je to VYPOČÍTANÁ potreba energie za normovaných podmienok užívania
+  // a klímy, nie nameraná spotreba z faktúr. Obe veličiny sa vedú oddelene
+  // a nesmú sa miešať do jedného ukazovateľa (pozri src/utils/energyIndicators.ts).
+  certifikatPotrebaVykurovanie: number; // kWh/(m²·a)
+  certifikatPotrebaTeplaVoda: number;   // kWh/(m²·a)
+  certifikatPrimarnaEnergia: number;    // kWh/(m²·a)
   energetickyAudit: 0 | 1;
   energetickyAuditRok: number;
   vystavbaPred1980: 0 | 1; // rok výstavby budovy pred rokom 1980 (voliteľné)
@@ -339,9 +395,8 @@ export interface Budova {
   zelenaStenaBudov: number;
   solarnePanelyPlocha: number;
 
-  // Expert / computed
-  normovanaSpotreba?: number;
-  kategoriaEnergetickejNarocnosti?: string;
+  // Merná spotreba (kWh/(m²·rok)) sa nepersistuje — počíta ju
+  // src/utils/energyIndicators.ts z nameranej spotreby a vykurovanej plochy (issue #171).
 }
 
 export interface InaStavba {
@@ -430,6 +485,7 @@ export function createEmptyPozemok(): Pozemok {
     vsakovaciaPrehlbenaBezpecnostnyPrepad: 0,
     vsakovaciaPrehlbenaRegulovanyOdtok: 0,
     prekorenetelnyPriestorPreStromy: 0,
+    plochaVhodnaPreFV: 0,
   };
 }
 
@@ -441,6 +497,8 @@ export function createEmptyBudova(): Budova {
     listVlastnictva: '',
     plochaPodorysu: 0,
     uzitkovaPlochaNUS: 0,
+    vykurovanaPlocha: 0,
+    sezonnaNevykurovana: 0,
     vyuzitieDniVRoku: 0,
     vyuzitieMesiacovVRoku: 0,
     vyuzitieHodinDenne: 0,
@@ -465,6 +523,7 @@ export function createEmptyBudova(): Budova {
     strechaProblemy: 0,
     strechaOrientovanaPlochaNaJuh: 0,
     fasadaOrientovanaNaJuh: 0,
+    plochaObvodovehoPlasta: 0,
     splaskovod: 1,
     zvodyDazdovejVody: 1,
     budovaOdvodVodyKanalizacia: 0,
@@ -481,36 +540,45 @@ export function createEmptyBudova(): Budova {
     termoizolacneOkna: 0,
     vekTermoizolacnychOkien: 0,
     osvetlenieLED: 0,
+    osvetleniePocetSvietidiel: 0,
+    osvetleniePocetSvietidielLED: 0,
     objemVyvetranehoPrezduchu: 0,
     rekuperacia: 0,
     rekuperaciaCentralnaUcinnost: 0,
     rekuperaciaLokalnaDo75: 0,
     rekuperaciaLokalnaOd76do89: 0,
     rekuperaciaLokalnaOd90: 0,
+    spotrebaRok: 0,
     kurenePlynom: 0,
     kureniePlynRokInstalacie: 0,
     kureniePlynVykon: 0,
     kureniePlynSpotreba: 0,
+    kureniePlynNakladyRok: 0,
     kurenieElektrinou: 0,
     kurenieElektrinaRokInstalacie: 0,
     kurenieElektrinaVykon: 0,
     kurenieElektrinaSpotreba: 0,
+    kurenieElektrinaNakladyRok: 0,
     tepelneCerpadlo: 0,
     tepelneCerpadloRokInstalacie: 0,
     tepelneCerpadloVykon: 0,
     tepelneCerpadloSpotreba: 0,
+    tepelneCerpadloNakladyRok: 0,
     kureniePeletami: 0,
     kureniePeletyRokInstalacie: 0,
     kureniePeletyVykon: 0,
     kureniePeletySpotreba_kg: 0,
+    kureniePeletyNakladyRok: 0,
     kurenieStiepkou: 0,
     kurenieStiepkaRokInstalacie: 0,
     kurenieStiepkaVykon: 0,
     kurenieStiepkaSpotreba_kg: 0,
+    kurenieStiepkaNakladyRok: 0,
     kurenieUhlimDrevom: 0,
     kurenieUhlimDrevomRokInstalacie: 0,
     kurenieUhlimDrevomVykon: 0,
     kurenieUhlimDrevomSpotreba_kg: 0,
+    kurenieUhlimDrevomNakladyRok: 0,
     kurenieCZT: 0,
     kurenieCZTSpotreba: 0,
     kurenieCZTCenaKWh: 0,
@@ -519,7 +587,11 @@ export function createEmptyBudova(): Budova {
     automatickaRegulacia: 0,
     rozdelenieDozOn: 0,
     kurenieHarmonogram: 0,
+    hydraulickeVyregulovanieUK: 2,
+    hydraulickeVyregulovanieTV: 2,
+    izolaciaRozvodov: 2,
     spotrebaElektriny: 0,
+    spotrebaElektrinyNakladyRok: 0,
     vyrobaElektriny: 0,
     fotovoltika: 0,
     fotovoltikaPlocha: 0,
@@ -528,6 +600,9 @@ export function createEmptyBudova(): Budova {
     celkovyStavBudovy: '',
     energetickyCertifikat: 0,
     energetickyCertifikatCislo: '',
+    certifikatPotrebaVykurovanie: 0,
+    certifikatPotrebaTeplaVoda: 0,
+    certifikatPrimarnaEnergia: 0,
     energetickyAudit: 0,
     energetickyAuditRok: 0,
     vystavbaPred1980: 0,
@@ -578,6 +653,7 @@ export function createEmptyBGOpatrenie(): BGOpatrenie {
 export function createEmptyAreal(): Areal {
   return {
     id: crypto.randomUUID(),
+    schemaVersion: AKTUALNA_VERZIA_SCHEMY,
     nazov: '',
     adresa: '',
     krajina: 'Slovensko',

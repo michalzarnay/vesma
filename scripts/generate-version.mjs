@@ -35,19 +35,27 @@
 //     2. BASE_COMMIT = HEAD vetvy `main`, BASE_VERSION = to číslo z kroku 1
 //   Verzia potom vyjde rovnaká ako predtým a postupnosť nikde neklesne.
 //
-//   Trvalé riešenie (aby sa posúvanie nemuselo opakovať) je predmetom
-//   samostatného issue — pozri docs/verziovanie.md.
+//   Aby posun kotvy neprekvapil uprostred inej práce, `check-version-anchor.mjs`
+//   beží v CI pri každom PR a push do `main` a zlyhá skôr, než sa kotva
+//   dostane mimo hĺbky klonu — pozri docs/verziovanie.md.
 //
 //   História kotiev:
 //     cd36452 / 160 — zavedenie tohto pravidla (predtým 23 + všetky commity)
 //     8959835 / 170 — posun kvôli plytkému klonu na Verceli (2. 9. 2026)
+//     062dfcf / 179 — druhý posun z rovnakého dôvodu (2. 9. 2026). Kontrola
+//                     kotvy vtedy nebežala: súbor workflowu nemal príponu
+//                     .yml, takže ho GitHub Actions nespúšťal.
+//     fb10457 / 186 — tretí posun (3. 9. 2026), tentoraz preventívne: kontrola
+//                     kotvy nahlásila, že je presne na prahu (6 merge-ov),
+//                     takže najbližší merge by CI zhodil. Prvý posun, ktorý
+//                     nebol reakciou na spadnutý build.
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-export const BASE_VERSION = 170;
-export const BASE_COMMIT = '8959835ae07c2001085fd7bbaf45bb98edae9082';
+export const BASE_VERSION = 186;
+export const BASE_COMMIT = 'fb1045736118de279e8007062088f8d77c8d1456';
 
 /** Vetvy, ktoré považujeme za `main` — v poradí, v akom ich skúšame. */
 const MAIN_REFS = ['refs/remotes/origin/main', 'refs/heads/main', 'refs/remotes/upstream/main'];
@@ -104,15 +112,14 @@ function najdiKotvu(cwd) {
 }
 
 /**
- * Spočíta verziu pre repozitár v `cwd`.
- * Parametre `baseCommit` a `baseVersion` sú kvôli testom.
+ * Počet commitov v hlavnej línii `main` od kotvy (`baseCommit`) po bod,
+ * z ktorého sa počíta verzia (`merge-base(HEAD, main)`).
+ *
+ * Zdieľané medzi `vypocitajVerziu` (tu) a kontrolou kotvy v CI
+ * (`check-version-anchor.mjs`), ktorá zlyhá skôr, než sa kotva dostane mimo
+ * hĺbky plytkého klonu na Verceli — pozri docs/verziovanie.md.
  */
-export function vypocitajVerziu({
-  cwd = process.cwd(),
-  baseCommit = BASE_COMMIT,
-  baseVersion = BASE_VERSION,
-  dotiahnut = true,
-} = {}) {
+export function pocetMergeovOdKotvy({ cwd = process.cwd(), baseCommit = BASE_COMMIT, dotiahnut = true } = {}) {
   if (gitOrNull(['rev-parse', '--is-inside-work-tree'], cwd) !== 'true') {
     throw new Error('Nie je to git repozitár — verziu sa nedá spočítať.');
   }
@@ -129,10 +136,10 @@ export function vypocitajVerziu({
   }
 
   // Kotva v histórii je, ale build je zo staršieho commitu (napr. rollback
-  // na Verceli). Vtedy je základná verzia správna odpoveď — starší kód
+  // na Verceli). Vtedy je 0 commitov od kotvy správna odpoveď — starší kód
   // objektívne neobsahuje žiadny z merge-ov započítaných od kotvy.
   if (gitOrNull(['merge-base', '--is-ancestor', baseCommit, kotva], cwd) === null) {
-    return baseVersion;
+    return 0;
   }
 
   const vystup = git(['rev-list', '--count', '--first-parent', `${baseCommit}..${kotva}`], cwd);
@@ -141,7 +148,20 @@ export function vypocitajVerziu({
     throw new Error(`Neplatný počet commitov od kotvy: "${vystup}".`);
   }
 
-  return baseVersion + pocet;
+  return pocet;
+}
+
+/**
+ * Spočíta verziu pre repozitár v `cwd`.
+ * Parametre `baseCommit` a `baseVersion` sú kvôli testom.
+ */
+export function vypocitajVerziu({
+  cwd = process.cwd(),
+  baseCommit = BASE_COMMIT,
+  baseVersion = BASE_VERSION,
+  dotiahnut = true,
+} = {}) {
+  return baseVersion + pocetMergeovOdKotvy({ cwd, baseCommit, dotiahnut });
 }
 
 /** Zapíše src/version.ts a vráti zapísanú verziu. */

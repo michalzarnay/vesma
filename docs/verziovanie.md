@@ -3,7 +3,7 @@
 ## Pravidlo
 
 ```
-verzia = 170 + počet merge-ov do `main` od commitu 8959835
+verzia = 186 + počet merge-ov do `main` od commitu fb10457
 ```
 
 Technicky: `BASE_VERSION + git rev-list --count --first-parent BASE_COMMIT..merge-base(HEAD, main)`.
@@ -76,10 +76,22 @@ neskočí.
 |---|---|---|
 | `cd36452` | 160 | Zavedenie tohto pravidla. Najvyššie číslo, aké mohla vypísať stará logika, bolo 23 + 135 = 158, takže 160 zaručilo, že postupnosť pri prechode neklesla. |
 | `8959835` | 170 | Posun kvôli plytkému klonu na Verceli (2. 9. 2026). Verzia `main` bola v tom čase 170, takže sa nezmenila. |
+| `062dfcf` | 179 | Druhý posun z rovnakého dôvodu (2. 9. 2026), po deviatich merge-och. Kontrola kotvy vtedy nebežala — pozri nižšie. |
+| `fb10457` | 186 | Tretí posun (3. 9. 2026), preventívny. Kontrola kotvy nahlásila, že je presne na prahu (6 merge-ov), takže najbližší merge by CI zhodil. Prvý posun, ktorý nebol reakciou na spadnutý build — mechanizmus zafungoval tak, ako mal. |
 
-### Trvalé riešenie
+### Automatické upozornenie na CI
 
-Posúvanie kotvy je náplasť — o ďalších ~10 merge-ov sa problém zopakuje.
-Trvalé riešenie (napríklad počítať číslo v GitHub Actions s `fetch-depth: 0`
-a odovzdať ho Vercelu, alebo držať počítadlo v sledovanom súbore) je otvorené
-a vedie sa ako samostatné issue.
+Posúvanie kotvy je náplasť a bude sa opakovať. Aby to neprekvapilo uprostred
+inej práce, `scripts/check-version-anchor.mjs` beží v CI (workflow
+`.github/workflows/kontrola-kotvy-verzie.yml`) pri každom PR aj push do
+`main` a **zlyhá**, keď je kotva viac než `PRAH_MERGEOV` (6) merge-ov za
+`main` — teda skôr, než sa dostane mimo hĺbky plytkého klonu na Verceli
+(pád nastal pri 10 merge-och). Keď tento krok zlyhá, kotvu posuň podľa
+postupu vyššie.
+
+**Pozor na príponu súboru.** Pri prvom zavedení mal workflow názov
+`kontrolaKotvyVerzie` bez prípony `.yml`. GitHub Actions načítava z
+`.github/workflows/` len súbory s príponou `.yml` alebo `.yaml`, takže sa
+kontrola nikdy nespustila a kotva sa druhýkrát dostala mimo okna bez
+varovania. Ak sa upozornenie neozve ani po prekročení prahu, over najprv,
+či workflow v záložke Actions vôbec existuje.

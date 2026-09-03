@@ -4,19 +4,42 @@
 VESMA je online dotazníkový nástroj pre samosprávy (voda, energia, adaptácia).
 Stack: React + Vite + TypeScript + Tailwind, nasadenie na Vercel. (Over a uprav podľa reality.)
 
-## Zakázané oblasti — NIKDY neupravuj bez človeka
-Ak sa oprava dotýka týchto oblastí, NEopravuj. Napíš do issue/PR komentár
-s vysvetlením a počkaj na rozhodnutie:
-- Metodická príručka a znalostná báza chatbota (riadi spoľahlivosť chatbota).
-- Dátová schéma a dátový model.
-- Exportný kontrakt na xMatik a Klimasken (G-label sekvencie).
-- Čokoľvek, čo mení správanie, UX alebo rozsah funkcií (nielen opravuje chybu).
+## Konaj, nepýtaj sa na povolenie
+Čo je v rozsahu zadania, sprav a napíš, čo si spravil — nepýtaj sa, či smieš.
+Platí to pre implementáciu, testy, dokumentáciu, založenie issue, otvorenie PR,
+opravu popisu PR aj sledovanie CI. Zmena dátového modelu, nová otázka vo
+formulári či úprava textov v UI samy o sebe dôvodom na opýtanie nie sú.
+
+Otázka má zmysel len vtedy, keď by sa bez odpovede robila iná práca — nie ako
+poistka pred zodpovednosťou.
+
+## Štyri veci, ktoré rozhoduje človek
+Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
+
+1. **Čísla, ktoré by si si musel vymyslieť.** Referenčné hodnoty
+   kWh/(m²·rok), emisné faktory, výhrevnosti palív, ceny a návratnosti
+   opatrení. Na výstupe nie je vidieť, že sú vymyslené — a nástroj pre
+   samosprávy tým začne klamať sebavedomo. Keď zdroj nie je, povedz to
+   a nechaj hodnotu prázdnu.
+2. **Pravidlá hodnotenia.** Skóre areálu (`useScoring.ts`) a váhy porovnania
+   (`comparisonWeights.ts`). Menia poradie areálov, teda to, kam pôjdu peniaze.
+   Prepočet jednotky alebo oprava zjavnej chyby vo vzorci sem nepatrí — tie
+   sprav a popíš v PR.
+3. **Nezvratné a von smerujúce kroky.** Zlúčenie PR, mazanie vetiev, zásah
+   priamo do `main`, čokoľvek smerom von z repozitára.
+4. **Rozbitie existujúceho exportného kontraktu** na xMatik a Klimasken
+   (G-label sekvencie) — teda zmena významu, poradia alebo odstránenie toho,
+   čo už export obsahuje. **Pridanie nového stĺpca alebo hárku je voľné.**
 
 ## Vždy dodržuj
 - Pracuj na samostatnej vetve, otvor PR. NIKDY nepushuj priamo do `main`.
-- Zmenu drž minimálnu a striktne v rozsahu daného issue. Žiadne zmeny „pri tom".
+- Zmenu drž v rozsahu daného zadania. Žiadne zmeny „pri tom" — čo objavíš
+  popri tom, založ ako issue.
 - Spusti existujúce testy. Ak chýba test pokrývajúci opravenú chybu, doplň ho.
-- Commit správy a popis PR po slovensky. V popise PR uveď „Closes #<číslo>".
+- Commit správy a popis PR po slovensky. V popise PR uveď „Closes #<číslo>",
+  ak zadanie vzniklo z issue.
+- V PR napíš aj to, čo je otvorené alebo na potvrdenie — hodnoty, ktoré
+  navrhuješ, a rozhodnutia, ktoré si spravil za niekoho.
 
 ## Číslo verzie — nikdy neupravuj ručne
 `src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
@@ -35,5 +58,12 @@ a interakčných chybách usudzuješ len z kódu. Preto:
 - Zmeny vzhľadu nesmú meniť správanie navigácie ani interaktívnych prvkov.
 
 ## Keď je niečo nejednoznačné
-Ak je „chyba" možno zámer, popis nejasný, alebo si nie si istý príčinou —
-neopravuj. Zhrň pochybnosti do komentára v issue a počkaj na človeka.
+Nejednoznačnosť sama osebe nie je dôvod zastaviť sa. Bežné rozhodnutie sprav
+sám, napíš, z čoho si vychádzal, a pokračuj.
+
+Zastav sa len vtedy, keď by si pri zlom odhade urobil škodu, ktorú nikto
+nezbadá — najmä pri veciach zo štyroch bodov vyššie. Vtedy zhrň pochybnosti
+do komentára v issue alebo PR a počkaj.
+
+Ak nevieš rozhodnúť, či ide o chybu alebo o zámer, sprav najmenšiu zmenu,
+ktorá dáva zmysel, a v PR napíš, čo si predpokladal.

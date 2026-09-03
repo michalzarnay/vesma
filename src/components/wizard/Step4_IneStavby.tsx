@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Fence } from 'lucide-react';
 import { InaStavba } from '../../types/areal';
 import { EntityTabBar } from '../ui/EntityTabBar';
+import { Tooltip } from '../ui/Tooltip';
 import { TextInput } from '../ui/TextInput';
 import { NumberInput } from '../ui/NumberInput';
 
@@ -36,10 +37,20 @@ export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, remo
         <div>
           <h2 className="text-lg font-bold text-gray-800">Iné stavby</h2>
           <p className="text-xs text-gray-500">
-            Oplotenie, chodníky, parkoviská, altánky a ďalšie stavby v areáli.
+            Oplotenie, chodníky, parkoviská, altánky bez stien a ďalšie stavby v areáli.
             Ak nemáte žiadne iné stavby, pokračujte ďalej.
           </p>
         </div>
+      </div>
+
+      {/* Deliaca čiara voči kroku Budovy: strecha a vnútorný priestor. */}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 flex items-start">
+        <span>
+          Sem patria stavby <strong>bez strechy alebo bez uzavretého vnútorného priestoru</strong> — oplotenie,
+          chodník, terasa, parkovisko, altánok či pergola. Záhradnú chatku, domček na náradie a garáž zadajte
+          medzi <strong>Budovy</strong> (krok 3) a označte ich tam ako sezónnu nevykurovanú stavbu.
+        </span>
+        <Tooltip glossaryKey="kamPatriStavbaDef" />
       </div>
 
       {ineStavby.length === 0 ? (

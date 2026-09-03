@@ -74,6 +74,42 @@ export const glossary: Record<string, GlossaryEntry> = {
     example: 'Pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok (trieda A0), nízkoenergetický dom okolo 30 kWh/m²/rok (trieda A1/B).',
     whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy.',
   },
+  certifikatPotrebaDef: {
+    term: 'Potreba energie podľa certifikátu',
+    definition: 'Vypočítaná spotreba energie na meter štvorcový za rok pri normovaných podmienkach užívania a počasia. Nie je to vaša skutočná spotreba z faktúr — tá závisí od toho, ako budovu naozaj používate a aká bola zima.',
+    example: 'Certifikát uvádza 95 kWh/(m²·rok) na vykurovanie, no z faktúr vám vyjde 130 — rozdiel býva v prevádzke budovy alebo v tom, že certifikát počítal s inými podmienkami.',
+    whereToFind: 'Nájdete ju v energetickom certifikáte budovy pri jednotlivých miestach spotreby (vykurovanie, príprava teplej vody).',
+  },
+  primarnaEnergiaDef: {
+    term: 'Primárna energia',
+    definition: 'Celková energia potrebná na prevádzku budovy vrátane strát pri výrobe a doprave energie k budove. Podľa nej sa budova zaraďuje do triedy energetickej hospodárnosti (A0 až G).',
+    example: 'Budova kúrená elektrinou má vyššiu primárnu energiu než rovnaká budova na drevo, hoci v budove spotrebujú rovnako — elektrina má vyššie straty pri výrobe.',
+    whereToFind: 'Nájdete ju v energetickom certifikáte v riadku globálneho ukazovateľa.',
+  },
+  hydraulickeVyregulovanieDef: {
+    term: 'Hydraulické vyregulovanie',
+    definition: 'Nastavenie prietoku vody vo vykurovacom systéme tak, aby sa teplo dostalo rovnomerne do všetkých miestností. Bez neho býva pri kotolni prekúrené a na konci rozvodov zima — a kúri sa zbytočne viac, aby aj tie vzdialené miestnosti boli teplé.',
+    example: 'Poznáte to podľa toho, že v niektorých miestnostiach musíte mať radiátor stále naplno a inde ho zaškrcujete.',
+    whereToFind: 'Vie to správca budovy alebo kúrenár. Robí sa pomocou regulačných ventilov na stúpačkách a radiátoroch.',
+  },
+  izolaciaRozvodovDef: {
+    term: 'Izolácia rozvodov',
+    definition: 'Tepelná izolácia potrubí, ktorými sa rozvádza teplo a teplá voda. Neizolované potrubie v nevykurovanom priestore (suterén, šachta) odovzdáva teplo tam, kde ho nikto nevyužije.',
+    example: 'Holé kovové potrubie v suteréne je neizolované; potrubie obalené sivým penovým alebo minerálnym púzdrom izolované je.',
+    whereToFind: 'Vidno pohľadom v kotolni, suteréne alebo v technických šachtách.',
+  },
+  sezonnaNevykurovanaDef: {
+    term: 'Sezónna nevykurovaná stavba',
+    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chatka, domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
+    example: 'Záhradná chatka, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
+    whereToFind: 'Rozhodnite podľa toho, či sa v stavbe v zime kúri. Ak áno čo i len občas, odpovedzte „nie".',
+  },
+  kamPatriStavbaDef: {
+    term: 'Budova alebo iná stavba?',
+    definition: 'Rozhoduje strecha a vnútorný priestor. Objekt so strechou a využiteľným vnútrajškom zadajte medzi Budovy — aj keď je malý a nevykurovaný (vtedy ho označte ako sezónnu nevykurovanú stavbu). Objekt bez strechy alebo bez uzavretého vnútorného priestoru patrí medzi Iné stavby.',
+    example: 'Medzi Budovy: záhradná chatka, domček na náradie, garáž, prístrešok so stenami. Medzi Iné stavby: oplotenie, chodník, terasa, parkovisko, altánok a pergola bez stien, trafostanica, studňa.',
+    whereToFind: 'Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia. Medzi Inými stavbami sa tieto veci nezisťujú.',
+  },
   retenciaVodyDef: {
     term: 'Retencia vody',
     definition: 'Schopnosť areálu zadržať dažďovú vodu a spomaliť jej odtok do kanalizácie alebo vodného toku.',

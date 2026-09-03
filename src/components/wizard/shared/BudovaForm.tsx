@@ -1,5 +1,5 @@
 import { Budova } from '../../../types/areal';
-import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS } from '../../../data/constants';
+import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS, YES_NO_UNKNOWN } from '../../../data/constants';
 import { TextInput } from '../../ui/TextInput';
 import { NumberInput } from '../../ui/NumberInput';
 import { SelectCard } from '../../ui/SelectCard';
@@ -8,7 +8,13 @@ import { ConditionalSection } from '../../ui/ConditionalSection';
 import { Tooltip } from '../../ui/Tooltip';
 import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
+import { budovaUpdatesFromDocument } from '../../../utils/documentToBudova';
+import { getParagraf11, PARAGRAF_11_PLOCHA_M2 } from '../../../utils/paragraf11';
+import { jeSezonnaNevykurovana } from '../../../utils/sezonnaStavba';
 import { getStrechaOrientovanaPlochaLabel, getStrechaOrientovanaPlochaTooltip } from '../../../utils/roofOrientationText';
+import { computeBudovaEnPI } from '../../../utils/energyIndicators';
+import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
+import { jeNevyplneneNovePole } from '../../../utils/schemaVersion';
 import { apiUrl } from '../../../utils/apiUrl';
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -17,41 +23,92 @@ interface BudovaFormProps {
   budova: Budova;
   onChange: (data: Partial<Budova>) => void;
   arealAdresa?: { adresa: string; obec: string };
+  /** Verzia schémy načítanej relácie — podľa nej sa zvýraznia nové nevyplnené polia (issue #177). */
+  verziaRelacie?: number;
+}
+
+/**
+ * Upozornenie na povinnosti podľa § 11 ods. 1 zákona č. 321/2014 Z. z.
+ * Zobrazí sa len pri budovách, na ktoré povinnosti dopadajú (issue #177).
+ */
+function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
+  const vysledok = getParagraf11(budova);
+  if (!vysledok.dopada) return null;
+
+  const { nesplnene, nezname } = vysledok;
+  if (nesplnene.length === 0 && nezname.length === 0) {
+    return (
+      <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+        Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
+        takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> Podľa zadaných
+        údajov sú všetky štyri povinnosti splnené.
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+      <p>
+        Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
+        takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> — vlastník je
+        povinný zabezpečiť:
+      </p>
+      {nesplnene.length > 0 && (
+        <>
+          <p className="mt-2 font-medium">Podľa zadaných údajov nesplnené:</p>
+          <ul className="list-disc list-inside">
+            {nesplnene.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
+          </ul>
+        </>
+      )}
+      {nezname.length > 0 && (
+        <>
+          <p className="mt-2 font-medium">Neviete posúdiť — oplatí sa overiť u správcu budovy:</p>
+          <ul className="list-disc list-inside">
+            {nezname.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
+          </ul>
+        </>
+      )}
+      <p className="mt-2 text-xs">
+        Upozornenie je orientačné. Zákon počíta celkovú podlahovú plochu z vonkajších rozmerov,
+        VESMA pracuje s úžitkovou, a teplovodné vykurovanie odvodzuje zo zadaného zdroja tepla.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Vysvetlenie, čo označenie „sezónna nevykurovaná stavba" zmení v hodnotení.
+ * Zobrazuje sa pri budove aj nad sekciami, ktoré sa pre takú stavbu nehodnotia.
+ */
+function SezonnaStavbaPoznamka() {
+  return (
+    <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+      Stavba je označená ako <strong>sezónna nevykurovaná</strong>. VESMA jej preto
+      nebude počítať potenciál zateplenia, výmeny okien, rekuperácie ani obnovy zdroja
+      tepla a nenavrhne v tomto smere žiadne opatrenia. Údaje nižšie môžete vyplniť,
+      ak ich poznáte — do hodnotenia energetickej efektívnosti nevstúpia. Hodnotí sa
+      naďalej to, čo so sezónnosťou nesúvisí: strecha pre fotovoltiku, zelená strecha,
+      odvod zrážkovej vody a osvetlenie.
+    </div>
+  );
 }
 
 function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>) => void) {
-  const updates: Partial<Budova> = {};
-
-  if (doc.projekt) {
-    const p = doc.projekt;
-    if (p.uzitkovaPlocha) updates.uzitkovaPlochaNUS = p.uzitkovaPlocha;
-    if (p.zastavanahPlocha) updates.plochaPodorysu = p.zastavanahPlocha;
-    if (p.obvodoveStenyMaterial) updates.obvodoveStenyMaterial = p.obvodoveStenyMaterial;
-    if (p.typStrechy) {
-      const t = p.typStrechy.toLowerCase();
-      if (t.includes('ploch')) updates.strechaTyp = 1;
-      else if (t.includes('šikm') || t.includes('sikm')) updates.strechaTyp = 2;
-    }
-  }
-
-  if (doc.certifikat) {
-    const c = doc.certifikat;
-    if (c.celkovaPlochaMsq) updates.uzitkovaPlochaNUS = c.celkovaPlochaMsq;
-    if (c.energetickaTrieda) updates.energetickaTrieda = c.energetickaTrieda;
-  }
-
-  if (doc.audit) {
-    const a = doc.audit;
-    if (a.spotrebaElektrina) updates.kurenieElektrinaSpotreba = a.spotrebaElektrina;
-    if (a.spotrebaPlyn) updates.kureniePlynSpotreba = a.spotrebaPlyn;
-  }
-
+  const updates = budovaUpdatesFromDocument(doc);
   if (Object.keys(updates).length > 0) onChange(updates);
 }
 
-export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
+const fmt = (n: number, digits = 0) => n.toLocaleString('sk', { maximumFractionDigits: digits });
+
+export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: BudovaFormProps) {
+  const zvyrazniNovePole = (pole: keyof Budova) =>
+    verziaRelacie !== undefined && jeNevyplneneNovePole(verziaRelacie, budova, pole);
   const [svpLoading, setSvpLoading] = useState(false);
   const [svpMsg, setSvpMsg] = useState<string | null>(null);
+  const enpi = computeBudovaEnPI(budova);
+  const jeSezonna = jeSezonnaNevykurovana(budova);
+  const predchadzajuciRok = new Date().getFullYear() - 1;
 
   const fetchSvpRiziko = async () => {
     if (!arealAdresa?.adresa && !arealAdresa?.obec) {
@@ -121,7 +178,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             tooltipKey="listVlastnictvaDef"
           />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <NumberInput
             label="Plocha pôdorysu budovy (zastavaná plocha)"
             value={budova.plochaPodorysu}
@@ -135,6 +192,13 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             onChange={(v) => onChange({ uzitkovaPlochaNUS: v })}
             unit="m²"
             tooltipKey="uzitkovaPlochaDef"
+          />
+          <NumberInput
+            label="Vykurovaná plocha"
+            value={budova.vykurovanaPlocha}
+            onChange={(v) => onChange({ vykurovanaPlocha: v })}
+            unit="m²"
+            tooltipText="Plocha, ktorá sa skutočne vykuruje. Predvyplní sa z úžitkovej plochy – upravte, ak sa časť budovy nevykuruje (haly, sklady, telocvične, suterény). Používa sa pri výpočte mernej spotreby kWh/(m²·rok)."
           />
         </div>
         {budova.kategoriaBudovy && (
@@ -152,6 +216,15 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           onChange={(v) => onChange({ vystavbaPred1980: v as 0 | 1 })}
           tooltipText="Staršie budovy (pred rokom 1980) majú spravidla vyšší potenciál na zníženie energetickej náročnosti."
         />
+
+        <SelectCard
+          label="Je to sezónna nevykurovaná stavba (letné sídlo)?"
+          options={YES_NO}
+          value={budova.sezonnaNevykurovana}
+          onChange={(v) => onChange({ sezonnaNevykurovana: v as 0 | 1 })}
+          tooltipKey="sezonnaNevykurovanaDef"
+        />
+        {jeSezonna && <SezonnaStavbaPoznamka />}
 
         <h4 className="text-xs font-semibold text-gray-600 mt-4">Využitie objektu</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -243,8 +316,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           </div>
         )}
 
-        <h4 className="text-xs font-semibold text-gray-600 mt-4">Orientácia na juh</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <h4 className="text-xs font-semibold text-gray-600 mt-4">Plochy strechy a fasády</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <NumberInput
             label={getStrechaOrientovanaPlochaLabel(budova.strechaTyp)}
             value={budova.strechaOrientovanaPlochaNaJuh}
@@ -259,7 +332,19 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             unit="m²"
             tooltipText="Plocha fasády (vrátane otvorov) orientovanej na juh, juhovýchod alebo juhozápad – dôležité pre pasívne solárne zisky."
           />
+          <NumberInput
+            label="Plocha obvodového plášťa (celá fasáda)"
+            value={budova.plochaObvodovehoPlasta}
+            onChange={(v) => onChange({ plochaObvodovehoPlasta: v })}
+            unit="m²"
+            tooltipText="Celková plocha fasády vo všetkých orientáciách (vrátane okien a dverí). Tepelné straty idú cez celú obálku budovy, preto sa používa pri hodnotení zateplenia. Ak pole nevyplníte, plocha sa odhadne z pôdorysu a z počtu podlaží odvodeného z úžitkovej plochy."
+          />
         </div>
+        {budova.strechaTyp !== 1 && (
+          <p className="text-xs text-gray-500">
+            Do potenciálu pre fotovoltiku sa započítavajú iba ploché a málo šikmé strechy (do 15°) – pri šikmej streche rozhoduje orientácia a sklon, ktoré nástroj nezachytáva.
+          </p>
+        )}
       </Section>
 
       {/* Ohrozenie záplavami */}
@@ -376,6 +461,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
 
       {/* Uspory energie */}
       <Section title="Úspory energie">
+        {jeSezonna && <SezonnaStavbaPoznamka />}
         <TextInput
           label="Materiál obvodových stien"
           value={budova.obvodoveStenyMaterial}
@@ -422,6 +508,23 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           placeholder="napr. 2015"
           tooltipText="Rok, kedy boli termoizolačné okná namontované (vážený priemer pri viacerých etapách)."
         />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NumberInput
+            label="Počet svietidiel celkom"
+            value={budova.osvetleniePocetSvietidiel ?? 0}
+            onChange={(v) => onChange({ osvetleniePocetSvietidiel: v })}
+            unit="ks"
+            tooltipText="Presnejší údaj než percento LED. Ak počet nepoznáte, nechajte 0 a vyplňte percento LED nižšie — aplikácia si potom príkon osvetlenia odhadne z plochy budovy."
+          />
+          <NumberInput
+            label="Z toho LED svietidiel"
+            value={budova.osvetleniePocetSvietidielLED ?? 0}
+            onChange={(v) => onChange({ osvetleniePocetSvietidielLED: v })}
+            unit="ks"
+            max={budova.osvetleniePocetSvietidiel || undefined}
+            tooltipText="Koľko z celkového počtu svietidiel je už LED."
+          />
+        </div>
         <NumberInput
           label="LED osvetlenie (% zo všetkých svietidiel)"
           value={budova.osvetlenieLED}
@@ -429,8 +532,15 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           unit="%"
           max={100}
           step={10}
-          tooltipText="Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30%."
+          disabled={maPocetSvietidiel(budova)}
+          tooltipText="Záložný údaj pre prípad, že počet svietidiel nepoznáte. Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30%."
         />
+        {maPocetSvietidiel(budova) && (
+          <p className="text-xs text-gray-500 -mt-2">
+            Podiel LED sa počíta z počtu svietidiel: <span className="font-medium">{fmt(podielLED(budova) * 100)} %</span>.
+            Percento vyššie sa nepoužije.
+          </p>
+        )}
         <NumberInput
           label="Objem vyvetrávaného vzduchu"
           value={budova.objemVyvetranehoPrezduchu}
@@ -442,6 +552,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
 
       {/* Vykurovanie */}
       <Section title="Vykurovanie">
+        {jeSezonna && <SezonnaStavbaPoznamka />}
         {/* Nápoveda pre spotrebu */}
         <details className="group">
           <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 list-none flex items-center gap-1 select-none">
@@ -457,6 +568,13 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             <p className="text-gray-400 pt-1">Tip: sčítajte všetky faktúry za posledný celý kalendárny rok.</p>
           </div>
         </details>
+        <NumberInput
+          label="Rok, za ktorý sú uvedené ročné spotreby a náklady"
+          value={budova.spotrebaRok}
+          onChange={(v) => onChange({ spotrebaRok: v })}
+          placeholder={`napr. ${predchadzajuciRok}`}
+          tooltipText="Kalendárny rok, ku ktorému sa viažu všetky ročné spotreby a náklady tejto budovy (vykurovanie aj elektrina). Bez roka sa neskôr nedá zistiť, ktorého obdobia sa údaj týka, ani sledovať trend. Vyhláška č. 179/2015 Z. z. o energetickom audite pracuje s priemerom za najviac štyri predchádzajúce kalendárne roky."
+        />
         {/* Plyn */}
         <HeatingSource
           title="Kúrenie plynom"
@@ -469,6 +587,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           spotreba={budova.kureniePlynSpotreba}
           onSpotreba={(v) => onChange({ kureniePlynSpotreba: v })}
           spotrebaUnit="kWh"
+          naklady={budova.kureniePlynNakladyRok}
+          onNaklady={(v) => onChange({ kureniePlynNakladyRok: v })}
         />
 
         {/* Elektrina */}
@@ -485,6 +605,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           spotrebaUnit="kWh"
           spotrebaTooltip="Uveďte iba ak sa elektrinou vykuruje. Ak sa nedá odlíšiť spotreba na vykurovanie, uveďte celkovú spotrebu."
           tooltipKey="kurenieElektrinouDef"
+          naklady={budova.kurenieElektrinaNakladyRok}
+          onNaklady={(v) => onChange({ kurenieElektrinaNakladyRok: v })}
         />
 
         {/* Tepelne cerpadlo */}
@@ -501,6 +623,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           spotrebaUnit="kWh"
           spotrebaLabel="Spotreba elektriny na prevádzku TČ"
           tooltipKey="tepelneCerpadloDef"
+          naklady={budova.tepelneCerpadloNakladyRok}
+          onNaklady={(v) => onChange({ tepelneCerpadloNakladyRok: v })}
         />
 
         {/* Pelety */}
@@ -517,6 +641,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           spotrebaUnit="kg"
           spotrebaLabel="Spotreba peliet za minulý rok"
           tooltipKey="peletyDef"
+          naklady={budova.kureniePeletyNakladyRok}
+          onNaklady={(v) => onChange({ kureniePeletyNakladyRok: v })}
         >
           {budova.kureniePeletami === 1 && budova.kureniePeletySpotreba_kg > 0 && (
             <div className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
@@ -541,6 +667,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
           spotrebaUnit="kg"
           spotrebaLabel="Spotreba štiepky za minulý rok"
           tooltipKey="stiepkaDef"
+          naklady={budova.kurenieStiepkaNakladyRok}
+          onNaklady={(v) => onChange({ kurenieStiepkaNakladyRok: v })}
         >
           {budova.kurenieStiepkou === 1 && budova.kurenieStiepkaSpotreba_kg > 0 && (
             <div className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
@@ -560,7 +688,7 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             onChange={(v) => onChange({ kurenieUhlimDrevom: v as 0 | 1 | 2 })}
           />
           <ConditionalSection title="Detail uhlia/dreva" show={budova.kurenieUhlimDrevom > 0} defaultOpen>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <NumberInput
                 label="Rok inštalácie"
                 value={budova.kurenieUhlimDrevomRokInstalacie}
@@ -577,6 +705,13 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
                 value={budova.kurenieUhlimDrevomSpotreba_kg}
                 onChange={(v) => onChange({ kurenieUhlimDrevomSpotreba_kg: v })}
                 unit="kg"
+              />
+              <NumberInput
+                label="Ročné náklady"
+                value={budova.kurenieUhlimDrevomNakladyRok}
+                onChange={(v) => onChange({ kurenieUhlimDrevomNakladyRok: v })}
+                unit="EUR"
+                tooltipText={NAKLADY_TOOLTIP}
               />
             </div>
             {budova.kurenieUhlimDrevomSpotreba_kg > 0 && (
@@ -618,15 +753,43 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
                 tooltipText="Priemerná cena tepla za predchádzajúci rok (z faktúry od dodávateľa CZT). Na Slovensku sa pohybuje okolo 0,10–0,14 EUR/kWh v závislosti od mesta a dodávateľa. Údaje ÚRSO: urso.gov.sk."
               />
             </div>
+            {budova.kurenieCZTSpotreba > 0 && budova.kurenieCZTCenaKWh > 0 && (
+              <div className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
+                Ročné náklady na CZT: <span className="font-medium">
+                  {fmt(budova.kurenieCZTSpotreba * budova.kurenieCZTCenaKWh)} EUR
+                </span> (spotreba × cena)
+              </div>
+            )}
           </ConditionalSection>
         </div>
 
         {/* Total */}
         {(budova.celkovaSpotreba ?? 0) > 0 && (
-          <div className="text-sm font-medium text-gray-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            Celková spotreba všetkých zdrojov kúrenia: <span className="text-amber-700">
-              {Math.round(budova.celkovaSpotreba!).toLocaleString('sk')} kWh/rok
-            </span>
+          <div className="text-sm font-medium text-gray-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1">
+            <div>
+              Celková spotreba všetkých zdrojov kúrenia: <span className="text-amber-700">
+                {fmt(budova.celkovaSpotreba!)} kWh/rok
+              </span>
+              {budova.spotrebaRok > 0 && <span className="text-gray-500 font-normal"> (rok {budova.spotrebaRok})</span>}
+            </div>
+            {(budova.celkoveNakladyKurenie ?? 0) > 0 && (
+              <div>
+                Celkové ročné náklady na kúrenie: <span className="text-amber-700">
+                  {fmt(budova.celkoveNakladyKurenie!)} EUR/rok
+                </span>
+                <span className="text-gray-500 font-normal"> (priemerne {fmt(budova.celkoveNakladyKurenie! / budova.celkovaSpotreba!, 3)} EUR/kWh)</span>
+              </div>
+            )}
+            {enpi.mernaSpotrebaVykurovanie !== undefined && (
+              <div className="text-xs font-normal text-gray-700 pt-1 border-t border-amber-200">
+                Merná spotreba na vykurovanie (nameraná, z faktúr): <span className="font-medium text-amber-700">
+                  {fmt(enpi.mernaSpotrebaVykurovanie)} kWh/(m²·rok)
+                </span> na vykurovanú plochu {fmt(enpi.vykurovanaPlocha)} m²
+                {enpi.vykurovanieNaHodinu !== undefined && (
+                  <> · na hodinu prevádzky: <span className="font-medium text-amber-700">{fmt(enpi.vykurovanieNaHodinu, 1)} kWh/h</span></>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -660,6 +823,36 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             tooltipText="Či je ústredné kúrenie rozdelené na nezávislé zóny, ktoré sa dajú regulovať samostatne."
           />
         </div>
+
+        {/* Rozvody tepla a teplej vody — § 11 ods. 1 zákona č. 321/2014 Z. z. (issue #177) */}
+        <h4 className="text-xs font-semibold text-gray-600 pt-2">Rozvody tepla a teplej vody</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <SelectCard
+            label="Hydraulicky vyregulovaný vykurovací systém"
+            options={YES_NO_UNKNOWN}
+            value={budova.hydraulickeVyregulovanieUK}
+            onChange={(v) => onChange({ hydraulickeVyregulovanieUK: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieUK')}
+            tooltipKey="hydraulickeVyregulovanieDef"
+          />
+          <SelectCard
+            label="Hydraulicky vyregulované rozvody teplej vody"
+            options={YES_NO_UNKNOWN}
+            value={budova.hydraulickeVyregulovanieTV}
+            onChange={(v) => onChange({ hydraulickeVyregulovanieTV: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('hydraulickeVyregulovanieTV')}
+            tooltipKey="hydraulickeVyregulovanieDef"
+          />
+          <SelectCard
+            label="Zaizolované rozvody tepla a teplej vody"
+            options={YES_NO_UNKNOWN}
+            value={budova.izolaciaRozvodov}
+            onChange={(v) => onChange({ izolaciaRozvodov: v as 0 | 1 | 2 })}
+            highlight={zvyrazniNovePole('izolaciaRozvodov')}
+            tooltipKey="izolaciaRozvodovDef"
+          />
+        </div>
+        <Paragraf11Upozornenie budova={budova} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SelectCard
             label="Kúrenie riadené harmonogramom"
@@ -708,12 +901,19 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
 
       {/* Elektricka energia */}
       <Section title="Elektrická energia">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <NumberInput
             label="Spotreba elektriny za minulý rok"
             value={budova.spotrebaElektriny}
             onChange={(v) => onChange({ spotrebaElektriny: v })}
             unit="kWh"
+          />
+          <NumberInput
+            label="Ročné náklady na elektrinu"
+            value={budova.spotrebaElektrinyNakladyRok}
+            onChange={(v) => onChange({ spotrebaElektrinyNakladyRok: v })}
+            unit="EUR"
+            tooltipText={NAKLADY_TOOLTIP}
           />
           <NumberInput
             label="Výroba elektriny za minulý rok"
@@ -723,6 +923,16 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             tooltipText="Celkové množstvo elektriny vyrobenej z vlastných zdrojov za minulý rok (FVE, veterník). Nájdete vo výkaze inštalovaného systému alebo v zmluve s výkupcom prebytkov."
           />
         </div>
+        {enpi.mernaSpotrebaElektrina !== undefined && (
+          <div className="text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
+            Merná spotreba elektriny (nameraná, z faktúr): <span className="font-medium">
+              {fmt(enpi.mernaSpotrebaElektrina)} kWh/(m²·rok)
+            </span> na úžitkovú plochu
+            {enpi.elektrinaNaHodinu !== undefined && (
+              <> · na hodinu prevádzky: <span className="font-medium">{fmt(enpi.elektrinaNaHodinu, 1)} kWh/h</span></>
+            )}
+          </div>
+        )}
         <SelectCard
           label="Existencia fotovoltických panelov"
           options={YES_NO}
@@ -779,6 +989,36 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
             />
           </ConditionalSection>
         </div>
+        <ConditionalSection title="" show={budova.energetickyCertifikat === 1}>
+          <p className="text-sm text-gray-600 mb-3">
+            Hodnoty z certifikátu sú <strong>vypočítaná potreba</strong> energie za normovaných
+            podmienok — nie skutočná spotreba z faktúr. Uvádzajú sa preto zvlášť a s vašou
+            spotrebou sa nesčítavajú.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <NumberInput
+              label="Potreba energie na vykurovanie"
+              value={budova.certifikatPotrebaVykurovanie}
+              onChange={(v) => onChange({ certifikatPotrebaVykurovanie: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="certifikatPotrebaDef"
+            />
+            <NumberInput
+              label="Potreba energie na teplú vodu"
+              value={budova.certifikatPotrebaTeplaVoda}
+              onChange={(v) => onChange({ certifikatPotrebaTeplaVoda: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="certifikatPotrebaDef"
+            />
+            <NumberInput
+              label="Primárna energia"
+              value={budova.certifikatPrimarnaEnergia}
+              onChange={(v) => onChange({ certifikatPrimarnaEnergia: v })}
+              unit="kWh/(m²·rok)"
+              tooltipKey="primarnaEnergiaDef"
+            />
+          </div>
+        </ConditionalSection>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectCard
             label="Energetický audit"
@@ -903,6 +1143,8 @@ export function BudovaForm({ budova, onChange, arealAdresa }: BudovaFormProps) {
 
 // Helper components
 
+const NAKLADY_TOOLTIP = 'Ročné náklady v EUR za toto médium podľa faktúr (daňových a účtovných dokladov) za rok uvedený vyššie. Slúžia na vyčíslenie úspory nákladov a návratnosti opatrení.';
+
 function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-4 border border-gray-100 rounded-xl p-4">
@@ -929,12 +1171,15 @@ interface HeatingSourceProps {
   spotrebaLabel?: string;
   spotrebaTooltip?: string;
   tooltipKey?: string;
+  naklady: number;
+  onNaklady: (v: number) => void;
   children?: React.ReactNode;
 }
 
 function HeatingSource({
   title, present, onPresent, rok, onRok, vykon, onVykon,
-  spotreba, onSpotreba, spotrebaUnit, spotrebaLabel, spotrebaTooltip, tooltipKey, children,
+  spotreba, onSpotreba, spotrebaUnit, spotrebaLabel, spotrebaTooltip, tooltipKey,
+  naklady, onNaklady, children,
 }: HeatingSourceProps) {
   return (
     <div className="border border-gray-200 rounded-xl p-4 space-y-3">
@@ -948,7 +1193,7 @@ function HeatingSource({
         />
       </div>
       <ConditionalSection title={`Detail ${title.toLowerCase()}`} show={present === 1} defaultOpen>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <NumberInput
             label="Rok inštalácie zdroja"
             value={rok}
@@ -966,6 +1211,13 @@ function HeatingSource({
             onChange={onSpotreba}
             unit={spotrebaUnit}
             tooltipText={spotrebaTooltip}
+          />
+          <NumberInput
+            label="Ročné náklady"
+            value={naklady}
+            onChange={onNaklady}
+            unit="EUR"
+            tooltipText={NAKLADY_TOOLTIP}
           />
         </div>
         {children}

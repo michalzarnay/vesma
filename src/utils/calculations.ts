@@ -92,3 +92,54 @@ export function getFVPotential(juznaPlochm2: number): { kWp: number; kWhRok: num
   const kWhRok = kWp * 1050;
   return { kWp: Math.round(kWp * 10) / 10, kWhRok: Math.round(kWhRok) };
 }
+
+/**
+ * Plocha strechy vhodná pre FV (issue #179, pripomienka energetického experta):
+ * do výpočtu sa započíta iba plochá alebo málo šikmá strecha do 15° (strechaTyp === 1),
+ * kde sa panely natočia ľubovoľne a orientácia budovy nie je rozhodujúca. Pri šikmej
+ * a strmej streche rozhoduje orientácia a sklon, ktoré VESMA spoľahlivo nezachytáva,
+ * preto sa nezapočítavajú.
+ *
+ * Pri plochej streche pole `strechaOrientovanaPlochaNaJuh` znamená „využiteľná plocha
+ * strechy" (pozri roofOrientationText.ts), preto sa použije ako vstup.
+ */
+export function getPlochaStrechyPreFV(budova: Budova): number {
+  return budova.strechaTyp === 1 ? budova.strechaOrientovanaPlochaNaJuh : 0;
+}
+
+/** Vykurovaná plocha budovy (issue #181); ak nie je vyplnená, použije sa úžitková plocha. */
+export function getVykurovanaPlocha(budova: Budova): number {
+  return budova.vykurovanaPlocha > 0 ? budova.vykurovanaPlocha : budova.uzitkovaPlochaNUS;
+}
+
+/** Predpokladaná konštrukčná výška jedného podlažia pre odhad plochy fasády. */
+export const VYSKA_PODLAZIA_M = 3.3;
+
+/**
+ * Plocha obvodového plášťa (celá fasáda, všetky orientácie) — issue #176.
+ * Ak je zadaná (`plochaObvodovehoPlasta` > 0), použije sa priamo. Inak sa odhadne
+ * z pôdorysu: obvod štvorcového pôdorysu (4·√pôdorys) × výška budovy, kde počet
+ * podlaží sa odvodí ako úžitková plocha / pôdorys (najmenej 1 podlažie).
+ */
+export function getPlochaObvodovehoPlasta(budova: Budova): number {
+  if (budova.plochaObvodovehoPlasta > 0) return budova.plochaObvodovehoPlasta;
+  if (budova.plochaPodorysu <= 0) return 0;
+  const podlazia = budova.uzitkovaPlochaNUS > 0
+    ? Math.max(1, Math.round(budova.uzitkovaPlochaNUS / budova.plochaPodorysu))
+    : 1;
+  const obvod = 4 * Math.sqrt(budova.plochaPodorysu);
+  return obvod * podlazia * VYSKA_PODLAZIA_M;
+}
+
+/** Celkové ročné náklady na všetky zdroje kúrenia v EUR (issue #173); CZT = spotreba × cena. */
+export function getTotalHeatingCost(budova: Budova): number {
+  return (
+    budova.kureniePlynNakladyRok +
+    budova.kurenieElektrinaNakladyRok +
+    budova.tepelneCerpadloNakladyRok +
+    budova.kureniePeletyNakladyRok +
+    budova.kurenieStiepkaNakladyRok +
+    budova.kurenieUhlimDrevomNakladyRok +
+    budova.kurenieCZTSpotreba * budova.kurenieCZTCenaKWh
+  );
+}

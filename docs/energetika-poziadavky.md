@@ -114,11 +114,19 @@ prípravou TV povinnosť:
 - c) zabezpečiť **hydraulicky vyregulované rozvody teplej vody**,
 - d) vybaviť rozvody tepla a TV **vhodnou tepelnou izoláciou**.
 
-VESMA sa pýta na termohlavice a automatickú reguláciu, ale **nie na hydraulické
-vyregulovanie ani na izoláciu rozvodov**. Pritom `uzitkovaPlochaNUS` už má — vie teda
-**automaticky upozorniť, že na budovu dopadá § 11 ods. 1**, a skontrolovať jeho splnenie.
-To je pre samosprávu veľmi konkrétny a užitočný výstup, ktorý dnes žiadny „skríningový"
-nástroj nedáva.
+VESMA sa pýtala na termohlavice a automatickú reguláciu, ale **nie na hydraulické
+vyregulovanie ani na izoláciu rozvodov**.
+
+**✅ Vyriešené (issue #177).** Doplnené tri otázky (`hydraulickeVyregulovanieUK`,
+`hydraulickeVyregulovanieTV`, `izolaciaRozvodov`) s možnosťou „neviem", ktorá je
+predvolená — laik odpoveď reálne nemusí poznať a predstierať „nie" by bolo horšie.
+`src/utils/paragraf11.ts` z nich a z plochy budovy vyhodnotí, či na budovu dopadá
+§ 11 ods. 1, a ktoré zo štyroch povinností nie sú splnené; formulár to zobrazí.
+
+Dva predpoklady, ktoré appka nevie overiť presne, sú zámerne na strane „radšej
+upozorniť" a uvádzajú sa priamo pri upozornení: zákon počíta celkovú podlahovú plochu
+z vonkajších rozmerov (VESMA má úžitkovú) a teplovodné vykurovanie sa odvodzuje zo
+zadaného zdroja tepla.
 
 ### A8. Vlastná výroba a predaj energie
 Tabuľka 2.1 prílohy č. 2 má riadok „predaj energie iným subjektom"; tabuľka 1.2 rieši
@@ -129,12 +137,16 @@ výrobu elektriny a jej predaj. VESMA má `fotovoltika` (áno/nie), `fotovoltika
 - **podiel vlastnej spotreby vs. dodávky do siete** — bez toho je ekonomika FV nepresná,
 - výkon a výnos solárnych kolektorov.
 
-### A9. Údaje z energetického certifikátu, ktoré appka prečíta a zahodí
-`src/utils/pdfParser.ts` už z certifikátu vyťahuje `potrebaEnergieKurenie`,
+### A9. Údaje z energetického certifikátu — ✅ vyriešené (issue #170)
+`src/utils/pdfParser.ts` z certifikátu vyťahuje `potrebaEnergieKurenie`,
 `potrebaEnergieVoda` a `primarnaEnergia` **v kWh/(m²·a)** — teda presne tie ukazovatele,
-ktoré normy nazývajú globálnymi EnPI. `BudovaForm.tsx` z nich do modelu prenesie **iba
-energetickú triedu a plochu**, zvyšok sa zahodí, lebo v `Budova` preň nie je pole.
-Toto je najlacnejšie možné doplnenie s najvyššou hodnotou.
+ktoré normy nazývajú globálnymi EnPI. Do modelu sa prenášala **iba energetická trieda
+a plocha**, zvyšok sa zahadzoval, lebo v `Budova` preň nebolo pole.
+
+Doplnené polia `certifikatPotrebaVykurovanie`, `certifikatPotrebaTeplaVoda`
+a `certifikatPrimarnaEnergia`. Mapovanie je vytiahnuté do `src/utils/documentToBudova.ts`,
+aby sa dalo testovať. Hodnoty sa vedú **oddelene od nameranej spotreby** podľa pravidla
+z B1 — do spotrebných polí sa nikdy nezapisujú.
 
 ### A10. SK NACE
 Príloha č. 5 (súbor údajov pre monitorovací systém) žiada zatriedenie podľa SK NACE.
@@ -167,7 +179,7 @@ Treba doplniť aspoň:
 Sú to dve rôzne čísla:
 - **potreba energie** z energetického certifikátu je **vypočítaná** hodnota za normovaných
   podmienok užívania a klímy (`potrebaEnergieKurenie`, `potrebaEnergieVoda`,
-  `primarnaEnergia` v kWh/(m²·a) — tie, ktoré parser dnes zahadzuje, viď A9),
+  `primarnaEnergia` v kWh/(m²·a) — viď A9),
 - **skutočná spotreba** z faktúr je **nameraná** a závisí od počasia, obsadenosti
   a správania používateľov.
 
@@ -280,6 +292,35 @@ Nasledujúce polia sa v `Budova` zbierajú a **do žiadneho skóre nevstupujú**
 
 Buď ich zapojiť do hodnotenia, alebo z formulára odstrániť — laika stojí každá otázka
 trpezlivosť. Toto je otázka na človeka (mení rozsah funkcií).
+
+### C4b. Stavby, ktoré sa vôbec nemajú hodnotiť ✅ vyriešené
+Nie každá stavba v areáli je adeptom na energetickú obnovu. Záhradná chata, altánok
+či sklad náradia sú letné sídla — nekúri sa v nich, nespáva sa v nich a zateplenie
+ani obnova zdroja tepla v nich nemajú zmysel. VESMA im predtým počítala potenciál
+zlepšenia a navrhovala zateplenie, čím areálu nafukovala potenciál, ktorý nikto
+nebude realizovať.
+
+Formulár budovy má preto otázku **„Je to sezónna nevykurovaná stavba (letné sídlo)?"**
+a takáto stavba sa vynecháva z energetického skóre, z podielu „potenciál tepelného
+čerpadla" v OZE skóre, z odporúčaní na obálku a vykurovanie aj z energetických
+parametrov porovnania areálov, ktoré merajú potenciál obálky a vykurovania.
+Nevynecháva sa z toho, čo so sezónnosťou nesúvisí — strecha pre fotovoltiku, zelená
+strecha, odvod zrážkovej vody, osvetlenie. Pozri `src/utils/sezonnaStavba.ts`.
+
+Rovnaké pravidlo platí pre **areál bez jedinej budovy** (park, námestie, dvor):
+energetika sa nehodnotí a do celkového skóre nevstupuje. Podmienka je jedna —
+do hodnotenia nevstúpila ani jedna budova (`saHodnotiEnergetika`
+v `src/types/scoring.ts`, issue #204).
+
+To isté platí pre **OZE skóre** (issue #205): stojí celé na budovách — strechy,
+existujúce OZE, potenciál tepelného čerpadla — takže bez budovy nie je z čoho
+počítať. Sezónne stavby sa z OZE nevynechávajú, len z podielu „potenciál
+tepelného čerpadla"; strecha chaty je pre fotovoltiku rovnako použiteľná ako
+ktorákoľvek iná.
+
+Do celkového skóre (`hodnoteneOblasti`) tak vstupujú len oblasti, ktoré sa
+naozaj hodnotia. Otvorené zostáva to isté pri **MZI skóre**, ktoré pri areáli
+bez pozemkov tiež vráti nulu a započíta sa (issue #207).
 
 ### C5. Chýba ukazovateľ kvality a úplnosti dát
 Článok 4.1.4 (transparentnosť) a 5.3–5.5 STN EN 16247-1 (zber údajov, plán merania,

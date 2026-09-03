@@ -4,10 +4,14 @@ import { Areal, ScoringWeights } from '../../types/areal';
 import { useScoring } from '../../hooks/useScoring';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
-import { getScoreLevel, KlimaskenStupen, MZIKomponent } from '../../types/scoring';
+import {
+  EnergiaScore, KlimaskenStupen, MZIKomponent,
+  dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
+} from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
+import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
 import { bezDiakritiky } from '../../utils/formatters';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
 import {
@@ -23,20 +27,28 @@ interface Step6Props {
 export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const score = useScoring(areal);
   const recommendations = useRecommendations(areal);
+  const enpi = computeArealEnPI(areal);
   const [vahyOpen, setVahyOpen] = useState(false);
 
   const radarData = [
     { subject: 'MZI', value: score.mzi.celkove, fullMark: 100 },
-    { subject: 'OZE', value: score.oze.celkove, fullMark: 100 },
-    { subject: 'Energia', value: score.energia.celkove, fullMark: 100 },
+    // Nehodnotená oblasť sa v grafe nezobrazuje ako nula (#203, #204, #205).
+    ...(saHodnotiOZE(score.oze)
+      ? [{ subject: 'OZE', value: score.oze.celkove, fullMark: 100 }]
+      : []),
+    ...(saHodnotiEnergetika(score.energia)
+      ? [{ subject: 'Energia', value: score.energia.celkove, fullMark: 100 }]
+      : []),
   ];
 
-  // Vážené celkové skóre
+  // Vážené celkové skóre. Oblasť, ktorú nie je z čoho počítať, sa nehodnotí
+  // a do váženého priemeru nevstupuje — OZE a energetika bez budov (#204, #205),
+  // energetika aj vtedy, keď sú všetky budovy sezónne nevykurované (#203).
   const { mzi: wMzi, oze: wOze, energia: wEnergia } = areal.vahy;
   const sumVah = wMzi + wOze + wEnergia;
-  const vazeneSkore = sumVah > 0
-    ? Math.round((score.mzi.celkove * wMzi + score.oze.celkove * wOze + score.energia.celkove * wEnergia) / sumVah)
-    : score.celkove;
+  const hodnotiOZE = saHodnotiOZE(score.oze);
+  const hodnotiEnergetiku = saHodnotiEnergetika(score.energia);
+  const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
 
   const handleExportCSV = () => {
     const BOM = '\uFEFF';
@@ -49,8 +61,8 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       ['Celkové skóre (vážené)', String(vazeneSkore)],
       ['Celkové skóre (nevážené)', String(score.celkove)],
       ['MZI skóre', String(score.mzi.celkove), `váha: ${wMzi}`],
-      ['OZE skóre', String(score.oze.celkove), `váha: ${wOze}`],
-      ['Energetika skóre', String(score.energia.celkove), `váha: ${wEnergia}`],
+      ['OZE skóre', hodnotiOZE ? String(score.oze.celkove) : 'nehodnotené', `váha: ${wOze}`],
+      ['Energetika skóre', hodnotiEnergetiku ? String(score.energia.celkove) : 'nehodnotené', `váha: ${wEnergia}`],
       [''],
       ['Pozemky', String(areal.pozemky.length)],
       ['Budovy', String(areal.budovy.length)],
@@ -100,7 +112,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
     doc.setTextColor(0);
     y += 10;
     doc.setFontSize(11);
-    doc.text(`MZI: ${score.mzi.celkove}/100   OZE: ${score.oze.celkove}/100   Energia: ${score.energia.celkove}/100`, 20, y);
+    const ozeText = hodnotiOZE ? `${score.oze.celkove}/100` : 'nehodnotene';
+    const energiaText = hodnotiEnergetiku ? `${score.energia.celkove}/100` : 'nehodnotene';
+    doc.text(`MZI: ${score.mzi.celkove}/100   OZE: ${ozeText}   Energia: ${energiaText}`, 20, y);
     y += 15;
 
     // Médiá
@@ -201,8 +215,15 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       </div>
       <div className="flex flex-wrap justify-center gap-6">
         <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />
-        <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
-        <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
+        {hodnotiOZE
+          ? <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
+          : <OblastNehodnotena
+              nazov="Obnoviteľné zdroje energie"
+              vysvetlenie="Areál nemá zadanú žiadnu budovu. OZE skóre stojí na strechách a zdrojoch tepla budov, takže ho nie je z čoho počítať — do celkového skóre nevstupuje."
+            />}
+        {hodnotiEnergetiku
+          ? <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
+          : <EnergetikaNehodnotena energia={score.energia} />}
       </div>
 
       {/* Váhy nastavenie */}
@@ -300,25 +321,32 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           ]}
           poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
         />
-        <ScoreDetail
-          title="OZE"
-          items={[
-            { label: 'Vhodnosť strechy', score: score.oze.vhodnostStrechyPreSolar, max: 30 },
-            { label: 'Existujúce OZE', score: score.oze.existujuceOZE, max: 20 },
-            { label: 'Potenciál tepelného čerpadla (TČ)', score: score.oze.potencialTepelnehoCerpadla, max: 25 },
-            { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25 },
-          ]}
-        />
-        <ScoreDetail
-          title="Energetika"
-          items={[
-            { label: 'Zateplenie', score: score.energia.zateplenie, max: 30 },
-            { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20 },
-            { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25 },
-            { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25 },
-          ]}
-        />
+        {hodnotiOZE && (
+          <ScoreDetail
+            title="OZE"
+            items={[
+              { label: 'Vhodnosť strechy', score: score.oze.vhodnostStrechyPreSolar, max: 30 },
+              { label: 'Existujúce OZE', score: score.oze.existujuceOZE, max: 20 },
+              { label: 'Potenciál tepelného čerpadla (TČ)', score: score.oze.potencialTepelnehoCerpadla, max: 25 },
+              { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25 },
+            ]}
+          />
+        )}
+        {hodnotiEnergetiku && (
+          <ScoreDetail
+            title="Energetika"
+            items={[
+              { label: 'Zateplenie', score: score.energia.zateplenie, max: 30 },
+              { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20 },
+              { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25 },
+              { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25 },
+            ]}
+          />
+        )}
       </div>
+
+      {/* Energetické ukazovatele (EnPI) — issue #171 */}
+      <EnergyIndicators enpi={enpi} />
 
       {/* Médiá prehľad */}
       {areal.media.length > 0 && (
@@ -414,6 +442,110 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       </p>
     </div>
   );
+}
+
+const fmtNum = (n: number | undefined, digits = 0) =>
+  n === undefined ? '–' : n.toLocaleString('sk', { maximumFractionDigits: digits });
+
+/**
+ * Ukazovatele energetickej hospodárnosti z NAMERANEJ spotreby (faktúry).
+ * Vykurovanie a elektrina sa vedú oddelene (pole „spotreba elektriny" môže zahŕňať
+ * aj elektrinu na vykurovanie). Nejde o vypočítanú potrebu z energetického certifikátu.
+ */
+function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
+  const budovySoSpotrebou = enpi.budovy.filter(
+    ({ enpi: e }) => e.spotrebaVykurovanie > 0 || e.spotrebaElektrina > 0,
+  );
+  if (budovySoSpotrebou.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-gray-800">
+        Energetické ukazovatele – nameraná spotreba
+        {enpi.roky.length > 0 && <span className="font-normal text-gray-500"> (rok {enpi.roky.join(', ')})</span>}
+      </h3>
+      <div className="overflow-x-auto bg-gray-50 rounded-xl p-4">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-left text-gray-500 border-b border-gray-200">
+              <th className="py-1.5 pr-3 font-medium">Budova</th>
+              <th className="py-1.5 px-3 font-medium text-right">Vykurovanie<br /><span className="font-normal">kWh/rok</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Merná spotreba<br /><span className="font-normal">kWh/(m²·rok)</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Na hodinu prev.<br /><span className="font-normal">kWh/h</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Elektrina<br /><span className="font-normal">kWh/rok</span></th>
+              <th className="py-1.5 px-3 font-medium text-right">Merná spotreba<br /><span className="font-normal">kWh/(m²·rok)</span></th>
+              <th className="py-1.5 pl-3 font-medium text-right">Na hodinu prev.<br /><span className="font-normal">kWh/h</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {budovySoSpotrebou.map(({ budova, enpi: e }, i) => (
+              <tr key={budova.id} className="border-b border-gray-100 text-gray-700">
+                <td className="py-1.5 pr-3 font-medium">{budova.nazov || `Budova ${i + 1}`}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.spotrebaVykurovanie > 0 ? e.spotrebaVykurovanie : undefined)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.mernaSpotrebaVykurovanie)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.vykurovanieNaHodinu, 1)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.spotrebaElektrina > 0 ? e.spotrebaElektrina : undefined)}</td>
+                <td className="py-1.5 px-3 text-right">{fmtNum(e.mernaSpotrebaElektrina)}</td>
+                <td className="py-1.5 pl-3 text-right">{fmtNum(e.elektrinaNaHodinu, 1)}</td>
+              </tr>
+            ))}
+            <tr className="font-semibold text-gray-800">
+              <td className="py-1.5 pr-3">Areál spolu</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.spotrebaVykurovanie > 0 ? enpi.spotrebaVykurovanie : undefined)}</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.mernaSpotrebaVykurovanie)}</td>
+              <td className="py-1.5 px-3 text-right">–</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.spotrebaElektrina > 0 ? enpi.spotrebaElektrina : undefined)}</td>
+              <td className="py-1.5 px-3 text-right">{fmtNum(enpi.mernaSpotrebaElektrina)}</td>
+              <td className="py-1.5 pl-3 text-right">–</td>
+            </tr>
+          </tbody>
+        </table>
+        {enpi.pocetOsob > 0 && (
+          <p className="text-xs text-gray-700 mt-3">
+            Na osobu ({fmtNum(enpi.pocetOsob)} osôb – zamestnanci a klienti/žiaci podľa kapacity a obsadenosti):
+            vykurovanie <span className="font-medium">{fmtNum(enpi.vykurovanieNaOsobu)} kWh/os·rok</span>,
+            elektrina <span className="font-medium">{fmtNum(enpi.elektrinaNaOsobu)} kWh/os·rok</span>.
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-gray-400">
+        Merná spotreba na vykurovanie je vztiahnutá na vykurovanú plochu, merná spotreba elektriny na úžitkovú plochu.
+        Ide o nameranú spotrebu z faktúr, bez klimatickej normalizácie – nezamieňať s vypočítanou potrebou energie
+        z energetického certifikátu.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Namiesto ukazovateľa energetickej efektívnosti, keď sa energetika nehodnotí —
+ * všetky budovy areálu sú sezónne nevykurované stavby. Nula by sa tu čítala ako
+ * „veľký priestor na zlepšenie", hoci zlepšovať nie je čo.
+ */
+function OblastNehodnotena({ nazov, vysvetlenie }: { nazov: string; vysvetlenie: React.ReactNode }) {
+  return (
+    <div className="max-w-xs rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
+      <p className="text-sm font-medium text-gray-700">{nazov}</p>
+      <p className="mt-1 text-sm text-gray-500">nehodnotí sa</p>
+      <p className="mt-2 text-xs text-gray-500">{vysvetlenie}</p>
+    </div>
+  );
+}
+
+function EnergetikaNehodnotena({ energia }: { energia: EnergiaScore }) {
+  const pocet = energia.vynechanychSezonnych;
+  const vysvetlenie = dovodNehodnoteniaEnergetiky(energia) === 'bezBudov' ? (
+    'Areál nemá zadanú žiadnu budovu. Energetickú efektívnosť nie je z čoho počítať, preto do celkového skóre nevstupuje.'
+  ) : (
+    <>
+      {pocet === 1
+        ? 'Jediná stavba areálu je sezónna nevykurovaná (letné sídlo).'
+        : `Všetkých ${pocet} stavieb areálu je sezónnych nevykurovaných (letné sídlo).`}
+      {' '}Zateplenie ani obnova vykurovania v nich nemajú zmysel, preto sa areálu
+      nepočíta ani potenciál zlepšenia v tejto oblasti.
+    </>
+  );
+  return <OblastNehodnotena nazov="Energetická efektívnosť" vysvetlenie={vysvetlenie} />;
 }
 
 interface ScoreDetailItem {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateMZI } from '../useScoring';
+import { calculateMZI, calculateOZE } from '../useScoring';
 import { createEmptyAreal, createEmptyPozemok, createEmptyBudova } from '../../types/areal';
 
 /** Areál len s pozemkami — budovy by inak pridali komponent B-GOV3 s nulovou strechou. */
@@ -11,6 +11,24 @@ function arealSPozemkom(uprav: (p: ReturnType<typeof createEmptyPozemok>) => voi
   areal.budovy = [];
   return areal;
 }
+
+describe('calculateOZE – vhodnosť strechy pre solár iba zo striech do 15° (issue #179)', () => {
+  it('plochá strecha s využiteľnou plochou zvyšuje skóre, šikmá orientovaná na juh nie', () => {
+    const plocha = createEmptyAreal();
+    plocha.budovy[0].plochaPodorysu = 400;
+    plocha.budovy[0].strechaTyp = 1;
+    plocha.budovy[0].strechaOrientovanaPlochaNaJuh = 300;
+
+    const sikma = createEmptyAreal();
+    sikma.budovy[0].plochaPodorysu = 400;
+    sikma.budovy[0].strechaTyp = 2;
+    sikma.budovy[0].strechaOrientovanaPlochaNaJuh = 300;
+
+    expect(calculateOZE(plocha).vhodnostStrechyPreSolar).toBeGreaterThan(0);
+    expect(calculateOZE(sikma).vhodnostStrechyPreSolar).toBe(0);
+    expect(calculateOZE(plocha).potencialDalsichOZE).toBeGreaterThan(calculateOZE(sikma).potencialDalsichOZE);
+  });
+});
 
 describe('calculateMZI – priepustná plocha (metodika KLIMASKEN B-GOV2)', () => {
   it('pravidelne obrábaná pôda prispieva ku skóre menej než trávnik, ale viac než nepriepustná plocha', () => {

@@ -258,6 +258,25 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
         )}
       </div>
 
+      {/* Potenciál pre FV / solárne kolektory na pozemku (issue #184) */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">
+          Potenciál pre fotovoltiku alebo solárne kolektory
+        </h3>
+        <NumberInput
+          label="Plocha pozemku vhodná pre FV alebo solárne kolektory"
+          value={pozemok.plochaVhodnaPreFV}
+          onChange={(v) => onChange({ plochaVhodnaPreFV: v })}
+          unit="m²"
+          tooltipText="Nezatienená, nevyužívaná časť pozemku (napr. nevyužitá lúka, plocha pri hospodárskych objektoch), na ktorú by sa dali umiestniť fotovoltické panely alebo solárne kolektory. Do porovnania areálov vstupuje s nízkou váhou 3."
+        />
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800">
+          <strong>Upozornenie:</strong> umiestňovanie fotovoltických elektrární a solárnych kolektorov na zelených
+          plochách je otvorená regulačná téma – možnosti sa môžu meniť podľa legislatívy a územného plánu.
+          Zadanú plochu berte ako orientačný, nie záväzný potenciál.
+        </div>
+      </div>
+
       {/* Existujuca infrastruktura */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">

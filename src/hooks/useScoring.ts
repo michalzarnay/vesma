@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
-import { ScoreResult, OZEScore, EnergiaScore } from '../types/scoring';
+import { ScoreResult, OZEScore, EnergiaScore, hodnoteneOblasti } from '../types/scoring';
 import { calculateMZI } from '../utils/mziKlimasken';
+import { getPlochaStrechyPreFV } from '../utils/calculations';
+import { podielLED } from '../utils/lighting';
+import { budovyNaEnergetickeHodnotenie } from '../utils/sezonnaStavba';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -10,26 +13,31 @@ function clamp(value: number, min: number, max: number): number {
 // MZI sa hodnotí podľa metodiky Klimaskenu — pozri utils/mziKlimasken.ts.
 export { calculateMZI };
 
-function calculateOZE(areal: Areal): OZEScore {
+export function calculateOZE(areal: Areal): OZEScore {
+  // Bez jedinej budovy sa OZE nehodnotí — celé skóre stojí na budovách
+  // a nula by sa čítala ako zlý stav (issue #205).
   const budovy = areal.budovy;
-  if (budovy.length === 0) return { celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0, potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0 };
+  if (budovy.length === 0) {
+    return { celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0, potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0, hodnotenychBudov: 0 };
+  }
 
-  // 1. Vhodnost strechy pre solar (0-30)
-  let totalJuznaPlochaBudov = 0;
+  // 1. Vhodnost strechy pre solar (0-30) — iba ploché / málo šikmé strechy do 15° (issue #179)
+  let totalPlochaPreFV = 0;
   let totalPlochaBudov = 0;
   let goodRoofCount = 0;
 
   for (const b of budovy) {
-    totalJuznaPlochaBudov += b.strechaOrientovanaPlochaNaJuh;
+    const plochaPreFV = getPlochaStrechyPreFV(b);
+    totalPlochaPreFV += plochaPreFV;
     totalPlochaBudov += b.plochaPodorysu;
-    if (b.strechaOrientovanaPlochaNaJuh > 0 && b.strechaProblemy === 0) {
+    if (plochaPreFV > 0 && b.strechaProblemy === 0) {
       goodRoofCount++;
     }
   }
 
   let solarScore = 0;
   if (totalPlochaBudov > 0) {
-    solarScore += (totalJuznaPlochaBudov / totalPlochaBudov) * 15;
+    solarScore += (totalPlochaPreFV / totalPlochaBudov) * 15;
   }
   if (goodRoofCount > 0) solarScore += Math.min(goodRoofCount * 5, 15);
   const vhodnostStrechyPreSolar = clamp(Math.round(solarScore), 0, 30);
@@ -44,10 +52,12 @@ function calculateOZE(areal: Areal): OZEScore {
   }
   const existujuceOZE = clamp(Math.round(ozeScore / budovy.length), 0, 20);
 
-  // 3. Potencial tepelneho cerpadla (0-25)
+  // 3. Potencial tepelneho cerpadla (0-25) — len z vykurovaných budov;
+  // sezónna chata sa nevykuruje, takže na ňu tepelné čerpadlo nenavrhujeme.
+  const vykurovaneBudovy = budovyNaEnergetickeHodnotenie(budovy);
   let tcPotencial = 0;
   const currentYear = new Date().getFullYear();
-  for (const b of budovy) {
+  for (const b of vykurovaneBudovy) {
     if (b.tepelneCerpadlo === 0) {
       // Old gas/electric heating = high potential
       if (b.kurenePlynom === 1 && b.kureniePlynRokInstalacie > 0) {
@@ -59,15 +69,17 @@ function calculateOZE(areal: Areal): OZEScore {
       if (b.kurenieUhlimDrevom > 0) tcPotencial += 8;
     }
   }
-  const potencialTepelnehoCerpadla = clamp(Math.round(tcPotencial / budovy.length), 0, 25);
+  const potencialTepelnehoCerpadla = vykurovaneBudovy.length > 0
+    ? clamp(Math.round(tcPotencial / vykurovaneBudovy.length), 0, 25)
+    : 0;
 
   // 4. Potencial dalsich OZE (0-25)
   let dalsieOZE = 0;
   for (const b of budovy) {
-    // Unused south-facing roof area
-    const unusedJuh = b.strechaOrientovanaPlochaNaJuh - b.fotovoltikaPlocha - b.solarnePanelyPlocha;
-    if (unusedJuh > 50) dalsieOZE += 8;
-    else if (unusedJuh > 20) dalsieOZE += 4;
+    // Unused flat-roof area suitable for FV (issue #179)
+    const unusedFV = getPlochaStrechyPreFV(b) - b.fotovoltikaPlocha - b.solarnePanelyPlocha;
+    if (unusedFV > 50) dalsieOZE += 8;
+    else if (unusedFV > 20) dalsieOZE += 4;
 
     // PC network = smart grid ready
     if (b.pocitacovaSiet === 1) dalsieOZE += 3;
@@ -81,12 +93,17 @@ function calculateOZE(areal: Areal): OZEScore {
 
   const celkove = vhodnostStrechyPreSolar + existujuceOZE + potencialTepelnehoCerpadla + potencialDalsichOZE;
 
-  return { celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE };
+  return { celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE, hodnotenychBudov: budovy.length };
 }
 
-function calculateEnergia(areal: Areal): EnergiaScore {
-  const budovy = areal.budovy;
-  if (budovy.length === 0) return { celkove: 0, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0 };
+export function calculateEnergia(areal: Areal): EnergiaScore {
+  // Sezónne nevykurované stavby (záhradná chata a pod.) sa nehodnotia — nemá
+  // zmysel merať zateplenie ani vykurovanie tam, kde sa nekúri.
+  const budovy = budovyNaEnergetickeHodnotenie(areal.budovy);
+  const vynechanychSezonnych = areal.budovy.length - budovy.length;
+  if (budovy.length === 0) {
+    return { celkove: 0, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0, hodnotenychBudov: 0, vynechanychSezonnych };
+  }
 
   // 1. Zateplenie (0-30)
   let zatepScore = 0;
@@ -134,15 +151,15 @@ function calculateEnergia(areal: Areal): EnergiaScore {
   let vetScore = 0;
   for (const b of budovy) {
     if (b.rekuperacia === 1) vetScore += 15;
-    // LED
-    const ledBonus = (b.osvetlenieLED / 100) * 10;
+    // LED — podiel z počtu svietidiel, keď je zadaný, inak z percenta (issue #183)
+    const ledBonus = podielLED(b) * 10;
     vetScore += ledBonus;
   }
   const vetranie = clamp(Math.round(vetScore / budovy.length), 0, 25);
 
   const celkove = zateplenie + kvalitaOkien + vykurovaciSystem + vetranie;
 
-  return { celkove, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie };
+  return { celkove, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie, hodnotenychBudov: budovy.length, vynechanychSezonnych };
 }
 
 function calculateMZIPotencial(areal: Areal): number {
@@ -178,14 +195,25 @@ function calculateMZIPotencial(areal: Areal): number {
   return Math.max(0, Math.round(skore));
 }
 
-export function useScoring(areal: Areal): ScoreResult {
-  return useMemo(() => {
-    const mzi = calculateMZI(areal);
-    const oze = calculateOZE(areal);
-    const energia = calculateEnergia(areal);
-    const celkove = Math.round((mzi.celkove + oze.celkove + energia.celkove) / 3);
-    const mziPotencial = calculateMZIPotencial(areal);
+/**
+ * Skóre areálu. Čistá funkcia — hook ju len memoizuje, aby sa pravidlá
+ * hodnotenia dali priamo testovať.
+ */
+export function computeScore(areal: Areal): ScoreResult {
+  const mzi = calculateMZI(areal);
+  const oze = calculateOZE(areal);
+  const energia = calculateEnergia(areal);
+  const mziPotencial = calculateMZIPotencial(areal);
+  const ciastkove: ScoreResult = { celkove: 0, mzi, oze, energia, mziPotencial };
 
-    return { celkove, mzi, oze, energia, mziPotencial };
-  }, [areal]);
+  // Do priemeru vstupujú len oblasti, ktoré sa naozaj hodnotia — nula
+  // nehodnotenej oblasti by inak stiahla celý areál dole (#203, #204, #205).
+  const hodnotene = hodnoteneOblasti(ciastkove);
+  const celkove = Math.round(hodnotene.reduce((acc, o) => acc + o.skore, 0) / hodnotene.length);
+
+  return { ...ciastkove, celkove };
+}
+
+export function useScoring(areal: Areal): ScoreResult {
+  return useMemo(() => computeScore(areal), [areal]);
 }

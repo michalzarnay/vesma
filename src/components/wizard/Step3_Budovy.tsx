@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Home } from 'lucide-react';
 import { Budova } from '../../types/areal';
 import { EntityTabBar } from '../ui/EntityTabBar';
+import { Tooltip } from '../ui/Tooltip';
 import { BudovaForm } from './shared/BudovaForm';
 
 interface Step3Props {
@@ -10,9 +11,11 @@ interface Step3Props {
   updateBudova: (index: number, data: Partial<Budova>) => void;
   removeBudova: (index: number) => void;
   arealAdresa?: { adresa: string; obec: string };
+  /** Verzia schémy načítanej relácie — zvýrazní nové nevyplnené polia (issue #177). */
+  verziaRelacie?: number;
 }
 
-export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, arealAdresa }: Step3Props) {
+export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, arealAdresa, verziaRelacie }: Step3Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleRemove = (index: number) => {
@@ -45,6 +48,14 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
       <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 space-y-1">
         <p>Parcela, na ktorej je iba budova, patrí <strong>len sem (medzi Budovy)</strong> — nezadávajte ju medzi Pozemky.</p>
         <p>Ak je na parcele budova aj nezastavaný pozemok, zaraďte ju podľa toho, čo na nej prevažuje (dominantné využitie) — buď medzi Budovy, alebo medzi Pozemky.</p>
+        <p className="flex items-start">
+          <span>
+            Sem patrí <strong>každý objekt so strechou a vnútorným priestorom</strong> — aj záhradná chatka,
+            domček na náradie či garáž. Ak sa v nich nekúri, označte ich nižšie ako sezónnu nevykurovanú stavbu;
+            strecha pre fotovoltiku, odvod vody a osvetlenie sa hodnotia aj tak.
+          </span>
+          <Tooltip glossaryKey="kamPatriStavbaDef" />
+        </p>
       </div>
 
       <EntityTabBar
@@ -64,6 +75,7 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
           budova={budovy[activeIndex]}
           onChange={(data) => updateBudova(activeIndex, data)}
           arealAdresa={arealAdresa}
+          verziaRelacie={verziaRelacie}
         />
       )}
     </div>
