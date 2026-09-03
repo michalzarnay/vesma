@@ -41,6 +41,25 @@ Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
 - V PR napíš aj to, čo je otvorené alebo na potvrdenie — hodnoty, ktoré
   navrhuješ, a rozhodnutia, ktoré si spravil za niekoho.
 
+## Oprav triedu, nie výskyt
+Keď oprava mení podmienku alebo pravidlo — „areál bez budov sa nehodnotí",
+„sezónna stavba sa nevykuruje", „toto pole je nepovinné" — nájdi **všetky
+miesta, ktoré ten istý predikát používajú**, a oprav ich v jednom PR.
+Test píš na úrovni toho predikátu, nie na úrovni obrazovky, kde sa chyba
+náhodou ukázala.
+
+Ako to vyzerá, keď sa to nedodrží: #203 (sezónna stavba sa energeticky
+nehodnotí) → #206 (energetika ani pri areáli bez budov) → #208 (OZE ani pri
+areáli bez budov). Tri PR-y za necelý deň, tri verzie navyše pre testerov
+a tri kolá recenzie na jednu myšlienku.
+
+Toto nie je výnimka z pravidla „drž sa rozsahu zadania". Dokončiť opravu
+naprieč miestami, kde platí to isté pravidlo, je stále ten istý rozsah;
+zmena „pri tom" je niečo iné.
+
+Keď je oprava celej triedy priveľká na jeden PR, sprav najmenšiu zmysluplnú
+časť a v popise PR **vymenuj zvyšné miesta**, aby sa nestratili.
+
 ## Číslo verzie — nikdy neupravuj ručne
 `src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
 Číslo počíta `scripts/generate-version.mjs` z histórie vetvy `main`
