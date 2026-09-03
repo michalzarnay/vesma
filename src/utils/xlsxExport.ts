@@ -6,7 +6,9 @@ import {
   dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
 } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
-import { vysvetleniaMZI } from './mziVysvetlenie';
+import {
+  VysvetlenieKomponentu, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
+} from './skoreVysvetlenie';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
 
@@ -109,29 +111,51 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
 }
 
 /**
- * Rozpis, za čo vznikli body v komponentoch MZI (issue #213) — rovnaké tabuľky,
- * aké aplikácia ukazuje v modálnom okne, aby sa dali priložiť k správe pre obec.
+ * Rozpis, za čo vznikli body vo všetkých troch oblastiach skóre (issue #213) —
+ * rovnaké tabuľky, aké aplikácia ukazuje v modálnom okne, aby sa dali priložiť
+ * k správe pre obec.
  */
-function sheetVypocetMZI(areal: Areal, score: ScoreResult): (string | number)[][] {
+function sheetVypocetSkore(areal: Areal, score: ScoreResult): (string | number)[][] {
   const riadky: (string | number)[][] = [
-    ['VÝPOČET MZI SKÓRE'],
-    ['Koeficienty a päťstupňová škála A–E podľa metodiky KLIMASKEN (www.klimasken.sk).'],
+    ['VÝPOČET SKÓRE'],
+    ['Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (www.klimasken.sk).'],
     [],
   ];
 
-  const vysvetlenia = vysvetleniaMZI(areal, score.mzi);
-  if (vysvetlenia.length === 0) {
-    riadky.push(['Žiadny komponent MZI sa nedal vypočítať — v dotazníku chýbajú údaje.']);
-    return riadky;
-  }
+  const oblasti: Array<{ nazov: string; vysvetlenia: VysvetlenieKomponentu[]; prazdne: string }> = [
+    {
+      nazov: 'MZI – MODRO-ZELENÁ INFRAŠTRUKTÚRA',
+      vysvetlenia: vysvetleniaMZI(areal, score.mzi),
+      prazdne: 'Žiadny komponent MZI sa nedal vypočítať — v dotazníku chýbajú údaje.',
+    },
+    {
+      nazov: 'OZE – OBNOVITEĽNÉ ZDROJE ENERGIE',
+      vysvetlenia: vysvetleniaOZE(score.oze),
+      prazdne: 'OZE sa nehodnotí — areál nemá zadanú žiadnu budovu.',
+    },
+    {
+      nazov: 'ENERGETICKÁ EFEKTÍVNOSŤ',
+      vysvetlenia: vysvetleniaEnergetiky(score.energia),
+      prazdne: dovodNehodnoteniaEnergetiky(score.energia) === 'bezBudov'
+        ? 'Energetika sa nehodnotí — areál nemá zadanú žiadnu budovu.'
+        : 'Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.',
+    },
+  ];
 
-  for (const v of vysvetlenia) {
-    riadky.push([v.metodika ? `${v.nadpis} (${v.metodika})` : v.nadpis]);
-    riadky.push([v.sumar]);
-    riadky.push(v.hlavicka);
-    riadky.push(...v.riadky);
-    riadky.push([v.zaver]);
-    riadky.push([]);
+  for (const oblast of oblasti) {
+    riadky.push([oblast.nazov]);
+    if (oblast.vysvetlenia.length === 0) {
+      riadky.push([oblast.prazdne], []);
+      continue;
+    }
+    for (const v of oblast.vysvetlenia) {
+      riadky.push([v.metodika ? `${v.nadpis} (${v.metodika})` : v.nadpis]);
+      riadky.push([v.sumar]);
+      riadky.push(v.hlavicka);
+      riadky.push(...v.riadky);
+      riadky.push([v.zaver]);
+      riadky.push([]);
+    }
   }
   return riadky;
 }
@@ -311,7 +335,7 @@ export function exportToXlsx(
   };
 
   addSheet('Súhrn', sheetSuhrn(areal, score));
-  addSheet('Výpočet MZI', sheetVypocetMZI(areal, score));
+  addSheet('Výpočet skóre', sheetVypocetSkore(areal, score));
   addSheet('Pozemky', sheetPozemky(areal));
   addSheet('Budovy', sheetBudovy(areal));
   addSheet('Odporúčania', sheetOdporucania(recommendations));
