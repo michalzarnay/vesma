@@ -12,6 +12,9 @@ import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
 import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
+import { VysvetlenieKomponentu, vysvetleniaMZI } from '../../utils/mziVysvetlenie';
+import { CopyButton } from '../ui/CopyButton';
+import { VypocetDialog } from './VypocetDialog';
 import { bezDiakritiky } from '../../utils/formatters';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
 import {
@@ -29,6 +32,12 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const recommendations = useRecommendations(areal);
   const enpi = computeArealEnPI(areal);
   const [vahyOpen, setVahyOpen] = useState(false);
+  const [vypocet, setVypocet] = useState<VysvetlenieKomponentu | null>(null);
+
+  // Vysvetlenia komponentov MZI — veta na kartu a tabuľka do modálneho okna (#213).
+  const vysvetlenia = new Map(
+    vysvetleniaMZI(areal, score.mzi).map((v) => [v.kluc, v]),
+  );
 
   const radarData = [
     { subject: 'MZI', value: score.mzi.celkove, fullMark: 100 },
@@ -298,11 +307,13 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               label: 'Priepustnosť a zeleň areálu',
               ...komponentBody(score.mzi.okolie, 45),
               hodnota: koeficientText(score.mzi.koefOkolie, score.mzi.stupenOkolie),
+              vysvetlenie: vysvetlenia.get('okolie'),
             },
             {
               label: 'Zeleň a retencia na budovách',
               ...komponentBody(score.mzi.budovy, 25),
               hodnota: koeficientText(score.mzi.koefBudovy, score.mzi.stupenBudovy),
+              vysvetlenie: vysvetlenia.get('budovy'),
             },
             {
               label: 'Akumulácia zrážkovej vody',
@@ -310,6 +321,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               hodnota: score.mzi.akumulaciaPercent === null || score.mzi.stupenAkumulacia === null
                 ? null
                 : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
+              vysvetlenie: vysvetlenia.get('akumulacia'),
             },
             {
               label: 'Odtok zo spevnených plôch',
@@ -317,9 +329,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               hodnota: score.mzi.podielZadrzanehoOdtoku === null
                 ? null
                 : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} %`,
+              vysvetlenie: vysvetlenia.get('odtok'),
             },
           ]}
           poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
+          onZobrazVypocet={setVypocet}
         />
         {hodnotiOZE && (
           <ScoreDetail
@@ -440,6 +454,8 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <p className="text-xs text-gray-400 text-center italic">
         {UPOZORNENIE_ROZSAH_HODNOTENIA}
       </p>
+
+      {vypocet && <VypocetDialog vysvetlenie={vypocet} onClose={() => setVypocet(null)} />}
     </div>
   );
 }
@@ -555,6 +571,8 @@ interface ScoreDetailItem {
   max: number;
   /** Doplnková hodnota indikátora (koeficient, percento, stupeň A–E) */
   hodnota?: string | null;
+  /** Vysvetlenie, za čo body sú — veta na kartu a tabuľka do modálu (#213) */
+  vysvetlenie?: VysvetlenieKomponentu;
 }
 
 /** Rozloží komponent MZI skóre na tvar, ktorý zobrazuje `ScoreDetail`. */
@@ -570,14 +588,19 @@ function koeficientText(koef: number | null, stupen: KlimaskenStupen | null): st
   return `${koef.toFixed(2)} · ${stupen}`;
 }
 
-function ScoreDetail({ title, items, poznamka }: { title: string; items: ScoreDetailItem[]; poznamka?: string }) {
+function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
+  title: string;
+  items: ScoreDetailItem[];
+  poznamka?: string;
+  onZobrazVypocet?: (vysvetlenie: VysvetlenieKomponentu) => void;
+}) {
   return (
     <div className="bg-gray-50 rounded-xl p-4 space-y-2">
       <h4 className="text-sm font-semibold text-gray-700">{title}</h4>
       {items.map((item) => {
         const podiel = item.score === null ? 0 : item.score / item.max;
         return (
-          <div key={item.label} className="space-y-1">
+          <div key={item.label} className="space-y-1 pb-1">
             <div className="flex justify-between gap-2 text-xs">
               <span className="text-gray-600">{item.label}</span>
               {item.score === null ? (
@@ -598,6 +621,23 @@ function ScoreDetail({ title, items, poznamka }: { title: string; items: ScoreDe
                 }}
               />
             </div>
+            {item.vysvetlenie && (
+              <div className="flex items-start gap-1 pt-0.5">
+                <p className="text-[11px] text-gray-500 leading-snug flex-1">
+                  {item.vysvetlenie.sumar}{' '}
+                  {onZobrazVypocet && (
+                    <button
+                      type="button"
+                      onClick={() => onZobrazVypocet(item.vysvetlenie!)}
+                      className="text-[#52A8DE] hover:underline whitespace-nowrap"
+                    >
+                      Zobraziť výpočet
+                    </button>
+                  )}
+                </p>
+                <CopyButton text={item.vysvetlenie.sumar} label={`Kopírovať zhrnutie – ${item.label}`} />
+              </div>
+            )}
           </div>
         );
       })}
