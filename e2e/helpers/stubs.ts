@@ -45,10 +45,10 @@ export async function stubExternalApis(page: Page): Promise<void> {
 }
 
 /**
- * Otvorí appku s čistým stavom (žiadny localStorage z predchádzajúceho behu).
- * Vždy začíname na Kroku 1 s prázdnym areálom.
+ * Otvorí appku ako úplne čerstvá relácia — bez uloženého areálu a bez
+ * vyplneného čohokoľvek. Presne to, čo vidí používateľ pri prvom otvorení.
  */
-export async function openClean(page: Page): Promise<void> {
+export async function openCleanBezNazvu(page: Page): Promise<void> {
   await stubExternalApis(page);
   // Appka beží pod základnou cestou /vesma/ (rovnako lokálne aj v produkcii).
   await page.goto('/vesma/');
@@ -57,6 +57,14 @@ export async function openClean(page: Page): Promise<void> {
     sessionStorage.clear();
   });
   await page.reload();
+}
+
+/**
+ * Otvorí appku s čistým stavom (žiadny localStorage z predchádzajúceho behu).
+ * Vždy začíname na Kroku 1 s prázdnym areálom.
+ */
+export async function openClean(page: Page): Promise<void> {
+  await openCleanBezNazvu(page);
   // Vyplň názov areálu, aby prešla validácia Kroku 1 a tlačidlo "Ďalej" bolo aktívne.
   await page.getByPlaceholder('napr. Základná škola Lipová').fill('Testovací areál');
 }
