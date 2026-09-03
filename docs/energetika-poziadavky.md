@@ -590,5 +590,20 @@ podľa `CLAUDE.md` stále vyžaduje odsúhlasenie človekom. Issues sú založen
 `auto-fix`** — ten v tomto repe spúšťa automatickú opravu, takže spustenie je na
 rozhodnutí človeka.
 
-Odporúčaný ďalší krok: prejsť tabuľku v kapitole F, vypýtať si od experta prepočtovú
-tabuľku pre osvetlenie (D7) a rozhodnúť zdroje dát pre body 13 a 14.
+### Čo zostáva na energetickom expertovi
+
+Issues z tejto analýzy sú k 3. 9. 2026 uzavreté. Zostáva päť hodnôt, ktoré nemá kto
+vymyslieť — na výstupe nie je vidieť, že sú odhad, a nástroj pre samosprávy by tým
+začal klamať sebavedomo. Preto sú v kóde zámerne prázdne alebo označené ako návrh:
+
+| Čo chýba | Kde v kóde | Dôsledok, kým to chýba |
+|---|---|---|
+| Referenčné hodnoty kWh/(m²·rok) podľa typu budovy | — (nikde definované) | VESMA vie povedať, koľko budova spotrebuje, ale nie či je to veľa. Kvôli tomu je vynechaný celý parameter „Spotreba nad referenčnou hodnotou" v porovnaní areálov. |
+| Finálne energetické váhy | `src/data/comparisonWeights.ts` | Poradie areálov stojí na návrhu označenom „NIE FINÁLNE HODNOTY". |
+| Cena a návratnosť kotla na biomasu | `src/data/catalog.ts` | Jediné opatrenie v katalógu s poznámkou „hodnotu potvrdí energetický expert". |
+| Hustota príkonu osvetlenia W/m² | `src/data/lightingPowerDensity.ts` | Odhad z projekčnej praxe; oficiálna prepočtová tabuľka v SR neexistuje (pozri `docs/osvetlenie-prepocet.md`). |
+| Dennostupne podľa okresu | — | Bez klimatickej normalizácie (STN 73 0550) sa nedá porovnať spotreba z rôznych okresov ani z rôznych rokov. Toto je otázka zdroja dát, nie odhadu. |
+
+Podklad pre experta so všetkými piatimi tabuľkami naraz je v
+`docs/VESMA_podklad_pre_energetickeho_experta.xlsx` — žlté bunky sú na vyplnenie,
+pri každej tabuľke je vysvetlené, načo slúži a čo bez nej VESMA nevie.
