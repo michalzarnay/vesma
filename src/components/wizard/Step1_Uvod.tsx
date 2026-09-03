@@ -365,6 +365,43 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
               tooltipText="Ročný úhrn globálneho slnečného žiarenia na vodorovnú plochu. Načítané z PVGIS (JRC). Pre Slovensko typicky 1 000–1 300 kWh/m²/rok."
             />
           </div>
+
+          {/* Nemožnosť nádrže — vstup do hodnotenia akumulácie zrážkovej vody (issue #215). */}
+          <div className="space-y-2 border border-gray-100 rounded-xl p-3">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={areal.nadrzNieJeMozna === 1}
+                onChange={(e) => updateAreal({
+                  nadrzNieJeMozna: e.target.checked ? 1 : 0,
+                  ...(e.target.checked ? {} : { nadrzNemoznaDovod: '' }),
+                })}
+                className="mt-0.5 accent-[#52A8DE]"
+              />
+              <span className="text-sm text-gray-700">
+                Akumulačnú nádrž na dažďovú vodu nie je možné na areáli inštalovať
+                <span className="block text-xs text-gray-500 mt-0.5">
+                  Napríklad pamiatková ochrana, žiadny priestor, vysoká hladina podzemnej vody.
+                  Hodnotenie potom akumuláciu vody nezapočíta do skóre a nádrž ani neodporučí.
+                </span>
+              </span>
+            </label>
+            {areal.nadrzNieJeMozna === 1 && (
+              <div>
+                <TextInput
+                  label="Dôvod, prečo nádrž nie je možná"
+                  value={areal.nadrzNemoznaDovod}
+                  onChange={(v) => updateAreal({ nadrzNemoznaDovod: v })}
+                  placeholder="napr. dvor je v pamiatkovej zóne, nie je kde nádrž umiestniť"
+                />
+                {areal.nadrzNemoznaDovod.trim() === '' && (
+                  <p className="text-xs text-amber-700 mt-1">
+                    Dôvod doplňte — bez neho sa hodnotenie nedá obhájiť pred obcou.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

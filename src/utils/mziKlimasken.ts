@@ -340,7 +340,15 @@ export interface DetailAkumulacie {
   percent: number | null;
 }
 
-/** Rozpis výpočtu B-AD10 podľa metodického listu. */
+/**
+ * Rozpis výpočtu B-AD10 podľa metodického listu.
+ *
+ * Ak je na areáli označené, že nádrž nie je možné inštalovať, výpočet sa nerobí
+ * a `percent` je `null` — komponent sa do skóre nezapočíta (issue #215).
+ * Metodika Klimaskenu v takom prípade zaraďuje objekt do najhoršej kategórie;
+ * VESMA sa od nej odchyľuje zámerne, lebo k hodnoteniu navrhuje aj opatrenia
+ * a komponent, na ktorý sa nedá reagovať, by skóre len skresľoval.
+ */
 export function detailAkumulacie(areal: Areal): DetailAkumulacie {
   const plochaStriech = areal.budovy.reduce((acc, b) => acc + b.plochaPodorysu, 0);
   const zrazky = areal.mnozstvoZrazok ?? 0;
@@ -366,6 +374,7 @@ export function detailAkumulacie(areal: Areal): DetailAkumulacie {
   const kandidati = [objemPodlaZrazok, objemPodlaSpotreby].filter((v): v is number => v !== null);
   // Vn = min(Vv; Vp) — ak je známy len jeden vstup, použije sa ten.
   const potrebnyObjem = kandidati.length > 0 && Math.min(...kandidati) > 0 ? Math.min(...kandidati) : null;
+  const nedaSaHodnotit = areal.nadrzNieJeMozna === 1 || potrebnyObjem === null;
 
   return {
     zrazky,
@@ -376,7 +385,7 @@ export function detailAkumulacie(areal: Areal): DetailAkumulacie {
     objemPodlaSpotreby,
     potrebnyObjem,
     skutocnyObjem,
-    percent: potrebnyObjem === null ? null : (skutocnyObjem / potrebnyObjem) * 100,
+    percent: nedaSaHodnotit ? null : (skutocnyObjem / potrebnyObjem!) * 100,
   };
 }
 
