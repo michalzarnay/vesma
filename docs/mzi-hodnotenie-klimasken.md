@@ -97,6 +97,29 @@ nula bodov za to, že odvod vody nemá technicky riešený — komponent sa jej 
 nepočíta (`null`) a skóre sa normalizuje cez ostatné. Kvalita priepustného
 povrchu sa prejaví v koeficiente MZI indikátora B-GOV2, kde patrí.
 
+## Vysvetlenie bodov
+
+Pri každom komponente sa vo výsledkoch zobrazí **veta**, ktorá povie, z čoho body
+vznikli, a tlačidlom **„Zobraziť výpočet"** sa otvorí **tabuľka** v tvare
+metodických listov Klimaskenu — povrch, kód, výmera, koeficient, príspevok,
+a pod ňou výpočet výsledného koeficientu a zaradenie do pásma.
+
+Vetu aj tabuľku možno skopírovať malým tlačidlom. Tabuľka sa kopíruje **ako text
+oddelený tabulátormi**, takže Word aj Excel z nej spravia skutočnú tabuľku
+(Word: Vložiť → Previesť text na tabuľku). Čísla sú v slovenskom formáte
+s desatinnou čiarkou, aby ich Excel prevzal ako čísla, nie ako text.
+
+To isté je v XLSX exporte na hárku **„Výpočet MZI"**.
+
+Implementácia: `src/utils/mziVysvetlenie.ts` (skladá vetu a tabuľku),
+`src/components/wizard/VypocetDialog.tsx` (modálne okno),
+`src/components/ui/CopyButton.tsx` (kopírovanie). Rozpis plôch
+a medzivýsledky poskytujú `plochyOkolia()`, `plochyBudov()`,
+`detailAkumulacie()` a `detailOdtoku()` v `src/utils/mziKlimasken.ts`.
+
+Rovnaké vysvetlenie pre OZE a energetiku rieši druhá etapa issue #213 —
+tam si vyžaduje prepis bodovej logiky, ktorá dnes prirážky nikde nezaznamenáva.
+
 ## Zámerné odchýlky od metodiky
 
 Sú vynútené rozsahom dotazníka VESMA. Nejde o chyby — sú zdokumentované aj

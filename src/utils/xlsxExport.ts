@@ -6,6 +6,7 @@ import {
   dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
 } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
+import { vysvetleniaMZI } from './mziVysvetlenie';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
 
@@ -102,6 +103,34 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Záver BG (MZI)', areal.zaverBG],
     ['Záver OZE', areal.zaverOZE],
   ];
+}
+
+/**
+ * Rozpis, za čo vznikli body v komponentoch MZI (issue #213) — rovnaké tabuľky,
+ * aké aplikácia ukazuje v modálnom okne, aby sa dali priložiť k správe pre obec.
+ */
+function sheetVypocetMZI(areal: Areal, score: ScoreResult): (string | number)[][] {
+  const riadky: (string | number)[][] = [
+    ['VÝPOČET MZI SKÓRE'],
+    ['Koeficienty a päťstupňová škála A–E podľa metodiky KLIMASKEN (www.klimasken.sk).'],
+    [],
+  ];
+
+  const vysvetlenia = vysvetleniaMZI(areal, score.mzi);
+  if (vysvetlenia.length === 0) {
+    riadky.push(['Žiadny komponent MZI sa nedal vypočítať — v dotazníku chýbajú údaje.']);
+    return riadky;
+  }
+
+  for (const v of vysvetlenia) {
+    riadky.push([v.metodika ? `${v.nadpis} (${v.metodika})` : v.nadpis]);
+    riadky.push([v.sumar]);
+    riadky.push(v.hlavicka);
+    riadky.push(...v.riadky);
+    riadky.push([v.zaver]);
+    riadky.push([]);
+  }
+  return riadky;
 }
 
 function sheetPozemky(areal: Areal): (string | number)[][] {
@@ -279,6 +308,7 @@ export function exportToXlsx(
   };
 
   addSheet('Súhrn', sheetSuhrn(areal, score));
+  addSheet('Výpočet MZI', sheetVypocetMZI(areal, score));
   addSheet('Pozemky', sheetPozemky(areal));
   addSheet('Budovy', sheetBudovy(areal));
   addSheet('Odporúčania', sheetOdporucania(recommendations));
