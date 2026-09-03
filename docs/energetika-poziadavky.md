@@ -310,8 +310,17 @@ strecha, odvod zrážkovej vody, osvetlenie. Pozri `src/utils/sezonnaStavba.ts`.
 Rovnaké pravidlo platí pre **areál bez jedinej budovy** (park, námestie, dvor):
 energetika sa nehodnotí a do celkového skóre nevstupuje. Podmienka je jedna —
 do hodnotenia nevstúpila ani jedna budova (`saHodnotiEnergetika`
-v `src/types/scoring.ts`). Otvorené zostáva to isté pri **OZE skóre**, ktoré tiež
-stojí celé na budovách a pri prázdnom areáli vráti nulu (issue #205).
+v `src/types/scoring.ts`, issue #204).
+
+To isté platí pre **OZE skóre** (issue #205): stojí celé na budovách — strechy,
+existujúce OZE, potenciál tepelného čerpadla — takže bez budovy nie je z čoho
+počítať. Sezónne stavby sa z OZE nevynechávajú, len z podielu „potenciál
+tepelného čerpadla"; strecha chaty je pre fotovoltiku rovnako použiteľná ako
+ktorákoľvek iná.
+
+Do celkového skóre (`hodnoteneOblasti`) tak vstupujú len oblasti, ktoré sa
+naozaj hodnotia. Otvorené zostáva to isté pri **MZI skóre**, ktoré pri areáli
+bez pozemkov tiež vráti nulu a započíta sa (issue #207).
 
 ### C5. Chýba ukazovateľ kvality a úplnosti dát
 Článok 4.1.4 (transparentnosť) a 5.3–5.5 STN EN 16247-1 (zber údajov, plán merania,

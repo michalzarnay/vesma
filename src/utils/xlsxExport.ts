@@ -1,17 +1,20 @@
 import * as XLSX from 'xlsx';
 import { Areal } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
-import { ScoreResult, dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, vazeneCelkoveSkore } from '../types/scoring';
+import { ScoreResult, dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
 
 const weightedScore = vazeneCelkoveSkore;
 
-/** Text do bunky skóre energetiky — nula nehodnotenej oblasti sa nemá tváriť ako výsledok. */
-function energiaCell(score: ScoreResult): string | number {
-  return saHodnotiEnergetika(score.energia) ? score.energia.celkove : 'nehodnotené';
+/** Text do bunky skóre — nula nehodnotenej oblasti sa nemá tváriť ako výsledok. */
+function skoreCell(hodnoti: boolean, skore: number): string | number {
+  return hodnoti ? skore : 'nehodnotené';
 }
+
+const ozeCell = (score: ScoreResult) => skoreCell(saHodnotiOZE(score.oze), score.oze.celkove);
+const energiaCell = (score: ScoreResult) => skoreCell(saHodnotiEnergetika(score.energia), score.energia.celkove);
 
 function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
   const ws = (vahy: Areal['vahy']) => weightedScore(score, vahy);
@@ -44,7 +47,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['SKÓRE', '', ''],
     ['Oblasť', 'Skóre (0–100)', 'Váha'],
     ['MZI – Modro-zelená infraštruktúra', score.mzi.celkove, areal.vahy.mzi],
-    ['OZE – Obnoviteľné zdroje energie', score.oze.celkove, areal.vahy.oze],
+    ['OZE – Obnoviteľné zdroje energie', ozeCell(score), areal.vahy.oze],
     ['Energia – Energetická efektívnosť', energiaCell(score), areal.vahy.energia],
     [],
     ['Vážené celkové skóre', ws(areal.vahy)],
@@ -57,6 +60,9 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Potenciál zlepšenia', score.mzi.potencialZlepsenia, '/ 25'],
     [],
     ['DETAIL OZE'],
+    ...(saHodnotiOZE(score.oze)
+      ? []
+      : [['OZE sa nehodnotí — areál nemá zadanú žiadnu budovu.', '', '']]),
     ['Vhodnosť strechy pre solár', score.oze.vhodnostStrechyPreSolar, '/ 30'],
     ['Existujúce OZE', score.oze.existujuceOZE, '/ 20'],
     ['Potenciál tepelného čerpadla', score.oze.potencialTepelnehoCerpadla, '/ 25'],
@@ -219,8 +225,9 @@ function sheetOdporucania(recommendations: Odporucanie[]): (string | number)[][]
 }
 
 function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: string })[][] {
-  const { mzi, oze } = areal.vahy;
-  // Nehodnotená energetika sa do súčtu váh nezapočíta — pozri vazeneCelkoveSkore().
+  const { mzi } = areal.vahy;
+  // Váhy nehodnotených oblastí sa do súčtu nezapočítajú — pozri vazeneCelkoveSkore().
+  const oze = saHodnotiOZE(score.oze) ? areal.vahy.oze : 0;
   const energia = saHodnotiEnergetika(score.energia) ? areal.vahy.energia : 0;
   const sumVah = mzi + oze + energia;
   return [
@@ -228,7 +235,7 @@ function sheetVahy(areal: Areal, score: ScoreResult): (string | number | { f: st
     [],
     ['Oblasť', 'Skóre (0–100)', 'Váha', 'Vážená hodnota'],
     ['MZI', score.mzi.celkove, mzi, sumVah > 0 ? Math.round(score.mzi.celkove * mzi / sumVah) : 0],
-    ['OZE', score.oze.celkove, oze, sumVah > 0 ? Math.round(score.oze.celkove * oze / sumVah) : 0],
+    ['OZE', ozeCell(score), oze, sumVah > 0 ? Math.round(score.oze.celkove * oze / sumVah) : 0],
     ['Energia', energiaCell(score), energia, sumVah > 0 ? Math.round(score.energia.celkove * energia / sumVah) : 0],
     [],
     ['Vážené celkové skóre', weightedScore(score, areal.vahy)],
