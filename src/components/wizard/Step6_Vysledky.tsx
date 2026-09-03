@@ -4,7 +4,7 @@ import { Areal, ScoringWeights } from '../../types/areal';
 import { useScoring } from '../../hooks/useScoring';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
-import { getScoreLevel, saHodnotiEnergetika, vazeneCelkoveSkore } from '../../types/scoring';
+import { EnergiaScore, dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, vazeneCelkoveSkore } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
@@ -36,8 +36,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       : []),
   ];
 
-  // Vážené celkové skóre. Keď sú všetky budovy sezónne nevykurované stavby,
-  // energetika sa nehodnotí a do váženého priemeru nevstupuje.
+  // Vážené celkové skóre. Keď do energetiky nevstúpila ani jedna budova — areál
+  // ich nemá, alebo sú všetky sezónne nevykurované — energetika sa nehodnotí
+  // a do váženého priemeru nevstupuje.
   const { mzi: wMzi, oze: wOze, energia: wEnergia } = areal.vahy;
   const sumVah = wMzi + wOze + wEnergia;
   const hodnotiEnergetiku = saHodnotiEnergetika(score.energia);
@@ -210,7 +211,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
         {hodnotiEnergetiku
           ? <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
-          : <EnergetikaNehodnotena pocetStavieb={score.energia.vynechanychSezonnych} />}
+          : <EnergetikaNehodnotena energia={score.energia} />}
       </div>
 
       {/* Váhy nastavenie */}
@@ -486,17 +487,25 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
  * všetky budovy areálu sú sezónne nevykurované stavby. Nula by sa tu čítala ako
  * „veľký priestor na zlepšenie", hoci zlepšovať nie je čo.
  */
-function EnergetikaNehodnotena({ pocetStavieb }: { pocetStavieb: number }) {
+function EnergetikaNehodnotena({ energia }: { energia: EnergiaScore }) {
+  const dovod = dovodNehodnoteniaEnergetiky(energia);
+  const pocet = energia.vynechanychSezonnych;
   return (
     <div className="max-w-xs rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
       <p className="text-sm font-medium text-gray-700">Energetická efektívnosť</p>
       <p className="mt-1 text-sm text-gray-500">nehodnotí sa</p>
       <p className="mt-2 text-xs text-gray-500">
-        {pocetStavieb === 1
-          ? 'Jediná stavba areálu je sezónna nevykurovaná (letné sídlo).'
-          : `Všetkých ${pocetStavieb} stavieb areálu je sezónnych nevykurovaných (letné sídlo).`}
-        {' '}Zateplenie ani obnova vykurovania v nich nemajú zmysel, preto sa areálu
-        nepočíta ani potenciál zlepšenia v tejto oblasti.
+        {dovod === 'bezBudov' ? (
+          'Areál nemá zadanú žiadnu budovu. Energetickú efektívnosť nie je z čoho počítať, preto do celkového skóre nevstupuje.'
+        ) : (
+          <>
+            {pocet === 1
+              ? 'Jediná stavba areálu je sezónna nevykurovaná (letné sídlo).'
+              : `Všetkých ${pocet} stavieb areálu je sezónnych nevykurovaných (letné sídlo).`}
+            {' '}Zateplenie ani obnova vykurovania v nich nemajú zmysel, preto sa areálu
+            nepočíta ani potenciál zlepšenia v tejto oblasti.
+          </>
+        )}
       </p>
     </div>
   );

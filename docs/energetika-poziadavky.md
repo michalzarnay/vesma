@@ -307,6 +307,12 @@ parametrov porovnania areálov, ktoré merajú potenciál obálky a vykurovania.
 Nevynecháva sa z toho, čo so sezónnosťou nesúvisí — strecha pre fotovoltiku, zelená
 strecha, odvod zrážkovej vody, osvetlenie. Pozri `src/utils/sezonnaStavba.ts`.
 
+Rovnaké pravidlo platí pre **areál bez jedinej budovy** (park, námestie, dvor):
+energetika sa nehodnotí a do celkového skóre nevstupuje. Podmienka je jedna —
+do hodnotenia nevstúpila ani jedna budova (`saHodnotiEnergetika`
+v `src/types/scoring.ts`). Otvorené zostáva to isté pri **OZE skóre**, ktoré tiež
+stojí celé na budovách a pri prázdnom areáli vráti nulu (issue #205).
+
 ### C5. Chýba ukazovateľ kvality a úplnosti dát
 Článok 4.1.4 (transparentnosť) a 5.3–5.5 STN EN 16247-1 (zber údajov, plán merania,
 metódy vzorkovania) stoja na tom, že je zrejmé, odkiaľ údaj pochádza a akú má kvalitu.

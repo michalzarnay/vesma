@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Areal, Budova, createEmptyAreal, createEmptyBudova } from '../../types/areal';
-import { saHodnotiEnergetika, vazeneCelkoveSkore } from '../../types/scoring';
+import { dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, vazeneCelkoveSkore } from '../../types/scoring';
 import { calculateEnergia, calculateOZE, computeScore } from '../../hooks/useScoring';
 import { computeRecommendations } from '../../hooks/useRecommendations';
 import { ENERGIA_PARAMETERS } from '../../data/comparisonWeights';
@@ -128,11 +128,33 @@ describe('Skóre areálu — sezónna nevykurovaná stavba sa nehodnotí', () =>
     expect(saHodnotiEnergetika(energia)).toBe(false);
   });
 
-  it('areál bez budov sa správa ako doteraz — energetika sa hodnotí (nulou)', () => {
+  it('ani areál bez budov sa energeticky nehodnotí (issue #204)', () => {
     const areal = createEmptyAreal();
     areal.budovy = [];
 
-    expect(saHodnotiEnergetika(calculateEnergia(areal))).toBe(true);
+    const energia = calculateEnergia(areal);
+    expect(saHodnotiEnergetika(energia)).toBe(false);
+    expect(dovodNehodnoteniaEnergetiky(energia)).toBe('bezBudov');
+  });
+
+  it('rozlíši dôvod nehodnotenia — samé sezónne stavby vs. žiadna budova', () => {
+    const chata = createEmptyAreal();
+    chata.budovy = [budovaSPotencialom({ sezonnaNevykurovana: 1 })];
+
+    expect(dovodNehodnoteniaEnergetiky(calculateEnergia(chata))).toBe('lenSezonne');
+    expect(dovodNehodnoteniaEnergetiky(calculateEnergia(arealSBudovou()))).toBeNull();
+  });
+
+  it('areál bez budov nedostane energetiku do celkového skóre', () => {
+    const areal = createEmptyAreal();
+    areal.budovy = [];
+    areal.pozemky[0].celkovaVymera = 500;
+    areal.pozemky[0].priepustnaPlochaCelkom = 400;
+    areal.pozemky[0].priepustnaPlochaByliny = 100;
+
+    const score = computeScore(areal);
+    expect(score.celkove).toBe(Math.round((score.mzi.celkove + score.oze.celkove) / 2));
+    expect(vazeneCelkoveSkore(score, { mzi: 1, oze: 1, energia: 1 })).toBe(score.celkove);
   });
 
   it('nehodnotená energetika nevstúpi do váženého celkového skóre', () => {
@@ -145,6 +167,12 @@ describe('Skóre areálu — sezónna nevykurovaná stavba sa nehodnotí', () =>
     );
   });
 });
+
+function arealSBudovou(): Areal {
+  const areal = createEmptyAreal();
+  areal.budovy = [budovaSPotencialom()];
+  return areal;
+}
 
 function arealSoSamouChatou(): Areal {
   const areal = createEmptyAreal();
