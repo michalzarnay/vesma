@@ -36,10 +36,12 @@ const KONTEXTOVE_OTAZKY: Record<number, string[]> = {
     'Kde nájdem spotrebu plynu/elektriny?',
     'Čo je rekuperácia?',
     'Ako odhadnúť % termoizolačných okien?',
+    'Kam patrí záhradná chatka?',
   ],
   4: [
     'Čo patrí medzi iné stavby?',
     'Ako zadať oplotenie alebo parkovisko?',
+    'Kam patrí záhradná chatka?',
   ],
   5: [
     'Čo sú ochranné pásma?',
@@ -110,7 +112,9 @@ const ODPOVEDE: Record<string, string> = {
   'zateplenie fasády': '**Zateplenie fasády systémom ETICS** (kontaktné zatepľovacie systémy) znižuje tepelné straty o 30–60 %. Cena: **50–100 €/m²** podľa hrúbky izolácie a materiálu. Najefektívnejšie pri budovách bez zateplenia postavených pred rokom 2000. Dotácie: dostupné cez OPKZP, OP Slovensko.',
 
   // Step 4
-  'iné stavby': 'Do kroku **Iné stavby** patria všetky objekty v areáli, ktoré nie sú budovami ani pozemkami:\n• Oplotenie, brány, múry\n• Chodníky, terasy, spevnené plochy\n• Parkoviská a príjazdové cesty\n• Altánky, prístrešky, pergoly\n• Technické objekty (trafostanice, studne, žumpy)\n\nAk takéto stavby nemáte, krok preskočte – nie je povinný.',
+  'iné stavby': 'Do kroku **Iné stavby** patria objekty **bez strechy alebo bez uzavretého vnútorného priestoru**:\n• Oplotenie, brány, múry\n• Chodníky, terasy, spevnené plochy\n• Parkoviská a príjazdové cesty\n• Altánky a pergoly bez stien, prístrešky\n• Technické objekty (trafostanice, studne, žumpy)\n\nObjekt so strechou a vnútorným priestorom – **záhradná chatka, domček na náradie, garáž** – patrí medzi **Budovy** (krok 3).\n\nAk takéto stavby nemáte, krok preskočte – nie je povinný.',
+
+  'kam patrí záhradná chatka': 'Záhradná chatka, domček na náradie aj garáž patria medzi **Budovy** (krok 3), nie medzi iné stavby. Rozhoduje **strecha a vnútorný priestor**, nie veľkosť ani vykurovanie.\n\nAk sa v chatke v zime nekúri, odpovedzte v kroku 3 „áno" na otázku **Je to sezónna nevykurovaná stavba (letné sídlo)?**. VESMA jej potom nebude počítať potenciál zateplenia, okien, rekuperácie ani vykurovania – ale naďalej vyhodnotí to, čo so sezónnosťou nesúvisí:\n• strechu vhodnú pre fotovoltiku\n• potenciál zelenej strechy\n• odvod zrážkovej vody\n• osvetlenie\n\nMedzi Inými stavbami by sa tieto údaje vôbec nezisťovali.',
 
   'oplotenie parkovisko': 'Oplotenie, chodníky a parkoviská zadajte ako samostatné položky v kroku **Iné stavby**:\n1. Kliknite na "Pridať inú stavbu"\n2. Zadajte názov (napr. "Oplotenie areálu")\n3. Vyplňte typ stavby a zastavanou plochu\n\nPre parkovisko je dôležitý **typ povrchu** – klasický asfalt je nepriepustný, priepustná dlažba alebo štrk zlepšujú skóre MZI.',
 
@@ -197,6 +201,10 @@ function najdiOdpoved(otazka: string): string {
   }
   if (q.includes('dlažb') || q.includes('priepustn') && q.includes('dlažb')) {
     return ODPOVEDE['priepustná dlažba'];
+  }
+  // Skôr než všeobecná odpoveď o iných stavbách — chatka a podobné objekty patria medzi budovy.
+  if (q.includes('chatk') || q.includes('chata') || q.includes('domček') || q.includes('domcek') || q.includes('garáž') || q.includes('garaz')) {
+    return ODPOVEDE['kam patrí záhradná chatka'];
   }
   if (q.includes('iné stavb') || q.includes('ine stavb') || (q.includes('čo patrí') && q.includes('stavb'))) {
     return ODPOVEDE['iné stavby'];
