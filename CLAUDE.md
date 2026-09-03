@@ -62,9 +62,10 @@ Keď je oprava celej triedy priveľká na jeden PR, sprav najmenšiu zmysluplnú
 
 ## Číslo verzie — nikdy neupravuj ručne
 `src/version.ts` je generovaný súbor (v `.gitignore`) a **necommituje sa**.
-Číslo počíta `scripts/generate-version.mjs` z histórie vetvy `main`
-(pozri `docs/verziovanie.md`). Nikdy doň nezapisuj číslo ručne a nikdy ho
-nepridávaj do gitu — verzia sa posunie sama tým, že sa PR zlúči do `main`.
+Číslo číta `scripts/generate-version.mjs` z `version.json` v koreni repozitára
+(pozri `docs/verziovanie.md`). Do `version.json` nezapisuj — zvyšuje ho
+workflow „Číslo verzie" po každom zlúčení do `main`. Verzia sa teda posunie
+sama tým, že sa PR zlúči; ručný zásah ju len rozhodí.
 
 ## UI a interakčné chyby — zvýšená opatrnosť
 Nevidíš vykreslenú stránku ani na ňu nevieš kliknúť — pri vizuálnych

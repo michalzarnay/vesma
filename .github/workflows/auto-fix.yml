@@ -38,8 +38,8 @@ jobs:
         github.event.comment.author_association == 'COLLABORATOR'))
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 – scripts/generate-version.mjs počíta číslo verzie
-      # z histórie `main`; pri plytkom klone by ho nemal z čoho spočítať.
+      # fetch-depth: 0 – posledný krok porovnáva vetvu s `origin/main`
+      # (`git diff origin/main...HEAD`), na čo plytký klon nestačí.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
