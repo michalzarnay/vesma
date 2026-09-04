@@ -49,6 +49,8 @@ export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, remo
           Sem patria stavby <strong>bez strechy alebo bez uzavretého vnútorného priestoru</strong> — oplotenie,
           chodník, terasa, parkovisko, altánok či pergola. Záhradnú chatku, domček na náradie a garáž zadajte
           medzi <strong>Budovy</strong> (krok 3) a označte ich tam ako sezónnu nevykurovanú stavbu.
+          {' '}Zastavaná plocha odtiaľto vstupuje do skóre ako <strong>nepriepustná plocha</strong>, preto ju
+          v kroku <strong>Pozemky</strong> do výmer nezapočítavajte — inak by sa tá istá plocha zarátala dvakrát.
         </span>
         <Tooltip glossaryKey="kamPatriStavbaDef" />
       </div>

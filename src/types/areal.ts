@@ -33,7 +33,7 @@ export const AKTUALNA_VERZIA_SCHEMY = 2;
  *     nevieme povedať, ktoré pravidlá vtedy platili — upozornenie je len všeobecné
  * 1 = stav pri zavedení sledovania
  */
-export const AKTUALNA_VERZIA_PRAVIDIEL = 1;
+export const AKTUALNA_VERZIA_PRAVIDIEL = 2;
 
 export interface ScoringWeights {
   mzi: number;

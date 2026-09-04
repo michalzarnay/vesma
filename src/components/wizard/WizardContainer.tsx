@@ -69,6 +69,7 @@ export function WizardContainer() {
             addPozemok={arealState.addPozemok}
             updatePozemok={arealState.updatePozemok}
             removePozemok={arealState.removePozemok}
+            plochaInychStavieb={arealState.areal.ineStavby.reduce((acc, s) => acc + s.zastavanaPlocha, 0)}
           />
         );
       case 3:

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { AKTUALNA_VERZIA_PRAVIDIEL, createEmptyAreal } from '../../types/areal';
 import { migrateAreal } from '../../hooks/useArealState';
 import {
+  PRVA_SLEDOVANA_VERZIA,
   ZMENY_PRAVIDIEL,
   ZmenaPravidiel,
   jeStarsiaVerziaPravidiel,
@@ -58,10 +59,28 @@ describe('verziovanie pravidiel hodnotenia', () => {
     expect(upozornenieNaZmenuPravidiel(areal)).toBeNull();
   });
 
-  it('zoznam zmien je pri zavedení sledovania prázdny — verzia 1 je východiskový stav', () => {
+  it('verzia 1 je východiskový stav a záznam nemá', () => {
     expect(ZMENY_PRAVIDIEL[1]).toBeUndefined();
+  });
+
+  it('relácia z aktuálnej verzie nemá čo dobiehať', () => {
     expect(zmenyPravidielOd(AKTUALNA_VERZIA_PRAVIDIEL)).toEqual([]);
-    expect(zmenyPravidielOd(0)).toEqual([]);
+  });
+
+  it('každá verzia nad východiskovou má vysvetlenú zmenu', () => {
+    // Inak by používateľ dostal upozornenie „pravidlá sa zmenili" bez toho,
+    // aby sa dozvedel, čo sa zmenilo.
+    for (let verzia = PRVA_SLEDOVANA_VERZIA + 1; verzia <= AKTUALNA_VERZIA_PRAVIDIEL; verzia++) {
+      expect(ZMENY_PRAVIDIEL[verzia], `verzia ${verzia} nemá záznam v ZMENY_PRAVIDIEL`)
+        .toBeTruthy();
+      expect(ZMENY_PRAVIDIEL[verzia].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('najstaršia relácia dostane zoznam všetkých zmien od východiskovej verzie', () => {
+    expect(zmenyPravidielOd(0)).toEqual(zmenyPravidielOd(PRVA_SLEDOVANA_VERZIA));
+    expect(zmenyPravidielOd(PRVA_SLEDOVANA_VERZIA).length)
+      .toBe(Object.values(ZMENY_PRAVIDIEL).flat().length);
   });
 });
 
