@@ -34,10 +34,9 @@ Z toho vyplýva:
 - **Číslo nezávisí od toho, kto build spustil.** Vercel produkcia, Vercel
   preview, GitHub Actions aj lokálny `npm run dev` čítajú ten istý súbor.
   Build z vetvy ukáže verziu `main`, z ktorej vetva vychádza.
-- **Číslo nikdy neklesne** a dve zostavy nedostanú to isté číslo. Práve preto
-  sa počíta z `main`, nie prírastkom k tomu, čo je vo vetve — dva súbežne
-  otvorené PR-y by inak dostali rovnaké číslo a tester by dve rôzne zostavy
-  nerozlíšil.
+- **Číslo nikdy neklesne.** Počíta sa z `main`, nie prírastkom k tomu, čo je
+  vo vetve. Že dve zostavy nedostanú to isté číslo, tým ale zaručené **nie je**
+  — pozri „Súbežné PR-y" nižšie.
 - **Číslo sa nedá prepísať ručne.** `src/version.ts` je v `.gitignore`
   a generuje sa pred každým `dev`, `build`, `preview` aj `test` behom.
   Do `version.json` píš len cez `npm run verzia`.
@@ -59,6 +58,28 @@ Druhá hláška hovorí, že vetva verziu nezvýšila vôbec:
 
 Rieši sa rovnako. Kontrola je zámerne prísna — pripustiť zhodu s `main` by
 znamenalo prepustiť práve ten PR, ktorý na verziu zabudol.
+
+## Súbežné PR-y
+
+Kontrola pri PR beží pri otvorení a pri každom pushi do vetvy, **nie pri
+zlúčení**. Dva PR-y otvorené naraz teda obidva uvidia to isté `main`, obidva si
+nastavia rovnaké číslo a obidvom kontrola prejde. Keď sa zlúčia oba, druhý
+merge to číslo ticho použije znova.
+
+Stalo sa to pri verzii **196**, ktorú nesú tri zlúčené PR-y (#230, #229, #228)
+— „podnet k zostave 196" tak ukazuje na tri rôzne stavy aplikácie (#231).
+
+Na to sú dve poistky:
+
+1. **`po-zluceni`** v `verzia.yml` — po pushi do `main` overí, že sa číslo
+   posunulo o jedna, a inak zlyhá. Nezastaví to, len hneď pomenuje.
+2. **„Require branches to be up to date before merging"** v ochrane `main`.
+   Toto tomu zabráni: druhý PR musí pred zlúčením dobehnúť `main`, čím sa
+   kontrola pri PR spustí znova a vypýta si ďalšie číslo. Je to nastavenie
+   repozitára, nie kód — zapína ho človek s právami správcu.
+
+Spätne sa čísla neprečíslovávajú. Zostavy, ktoré už boli nasadené, si svoje
+číslo nechajú; ide o to, aby sa to nedialo ďalej.
 
 ## Keď build spadne na verzii
 

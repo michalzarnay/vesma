@@ -1,22 +1,39 @@
 name: Číslo verzie
 
-# Overí, že `version.json` vo vetve je o jedna vyššie než na `main`.
-# Zlúčením PR sa tak `main` posunie o +1 — jeden zlúčený PR = jedna verzia.
+# Dve kontroly toho istého pravidla — jeden zlúčený PR = presne +1
+# (docs/verziovanie.md):
 #
-# Prečo to kontroluje PR a nezvyšuje to workflow po zlúčení: `main` má ruleset
-# „Changes must be made through a pull request", takže push z Actions doň
-# neprejde (GH013). Číslo preto prináša sama vetva.
+#   `kontrola`   pri PR overí, že `version.json` vo vetve je o jedna vyššie
+#                než na `main`;
+#   `po-zluceni` po pushi do `main` overí, že sa číslo naozaj posunulo.
 #
-# Keď kontrola zlyhá, stačí vo vetve spustiť `npm run verzia` a commitnúť
-# version.json. Podrobnosti sú v docs/verziovanie.md.
+# Prečo obe: kontrola pri PR beží pri otvorení a pri pushi do vetvy, nie pri
+# zlúčení. Dva súbežne otvorené PR-y teda obidva uvidia to isté `main`, obidva
+# si nastavia rovnaké číslo a obidvom kontrola prejde — presne to sa stalo pri
+# verzii 196, ktorú nesú tri zlúčené PR-y (#231). Kontrola po zlúčení to
+# nezastaví, ale hneď pomenuje.
+#
+# Úplne tomu zabráni až nastavenie repozitára „Require branches to be up to
+# date before merging" v ochrane `main` — vtedy musí druhý PR dobehnúť `main`,
+# čím sa kontrola pri PR spustí znova a vypýta si ďalšie číslo.
+#
+# Prečo číslo nezvyšuje workflow po zlúčení: `main` má ruleset „Changes must be
+# made through a pull request", takže push z Actions doň neprejde (GH013).
+# Číslo preto prináša sama vetva.
+#
+# Keď `kontrola` zlyhá, stačí vo vetve spustiť `npm run verzia` a commitnúť
+# version.json.
 
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
   workflow_dispatch:
 
 jobs:
   kontrola:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -32,3 +49,20 @@ jobs:
 
       - name: Verzia je o jedna vyššia než na main
         run: node scripts/bump-version.mjs --kontrola
+
+  po-zluceni:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Porovnáva sa s predchádzajúcim commitom, takže treba oba.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Zlúčenie zvýšilo verziu o jedna
+        run: node scripts/bump-version.mjs --kontrola-main

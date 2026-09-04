@@ -5,7 +5,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 // @ts-expect-error – skript je čistý ESM bez typov.
-import { zvysVerziu, skontrolujVerziu, verziaNaMain } from '../bump-version.mjs';
+import {
+  zvysVerziu, skontrolujVerziu, verziaNaMain, skontrolujPosunNaMain,
+} from '../bump-version.mjs';
 // @ts-expect-error – generátor je čistý ESM skript bez typov.
 import { SUBOR_VERZIE } from '../generate-version.mjs';
 
@@ -142,5 +144,65 @@ describe('skontrolujVerziu', () => {
     zapisVerziu(dir, 195);
 
     expect(skontrolujVerziu({ korenRepozitara: dir })).toMatchObject({ sedi: false, ocakavana: 191 });
+  });
+});
+
+/**
+ * Kontrola po zlúčení (#231). Kontrola pri PR nestačí — beží pri otvorení
+ * a pri pushi do vetvy, nie pri zlúčení, takže dva súbežne otvorené PR-y
+ * prejdú s rovnakým číslom a druhý merge ho ticho použije znova.
+ */
+describe('skontrolujPosunNaMain', () => {
+  /**
+   * Zlúčený PR: mení kód a nesie číslo verzie. Číslo môže byť aj rovnaké ako
+   * predtým — práve to je chyba, ktorú má kontrola chytiť, a commit vtedy
+   * vzniká vďaka zmene v kóde.
+   */
+  function zlucPR(dir: string, verzia: number, poradie: number): void {
+    zapisVerziu(dir, verzia);
+    writeFileSync(join(dir, `zmena-${poradie}.txt`), 'kód\n');
+    git(['add', '-A'], dir);
+    git(['commit', '-m', `feat: zmena ${poradie}`], dir);
+  }
+
+  it('posun o jedna prejde', () => {
+    const dir = vytvorRepo(190);
+    zlucPR(dir, 191, 1);
+
+    expect(skontrolujPosunNaMain({ korenRepozitara: dir })).toMatchObject({
+      teraz: 191, predtym: 190, sedi: true,
+    });
+  });
+
+  it('rovnaké číslo v dvoch zlúčeniach neprejde — to je prípad z #231', () => {
+    const dir = vytvorRepo(195);
+    zlucPR(dir, 196, 1);
+    zlucPR(dir, 196, 2); // druhý súbežne otvorený PR s tým istým číslom
+
+    expect(skontrolujPosunNaMain({ korenRepozitara: dir })).toMatchObject({
+      teraz: 196, predtym: 196, sedi: false,
+    });
+  });
+
+  it('preskočené číslo neprejde — zostavy medzitým neexistujú', () => {
+    const dir = vytvorRepo(190);
+    zlucPR(dir, 195, 1);
+
+    expect(skontrolujPosunNaMain({ korenRepozitara: dir })).toMatchObject({ sedi: false });
+  });
+
+  it('znížené číslo neprejde', () => {
+    const dir = vytvorRepo(191);
+    zlucPR(dir, 190, 1);
+
+    expect(skontrolujPosunNaMain({ korenRepozitara: dir })).toMatchObject({ sedi: false });
+  });
+
+  it('prvý commit nemá s čím porovnávať a nepadá', () => {
+    const dir = vytvorRepo(1);
+
+    expect(skontrolujPosunNaMain({ korenRepozitara: dir })).toMatchObject({
+      sedi: true, bezPredchodcu: true,
+    });
   });
 });
