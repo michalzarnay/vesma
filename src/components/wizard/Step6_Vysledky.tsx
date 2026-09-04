@@ -13,7 +13,7 @@ import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvFilename } from '../../utils/exportFilenames';
 import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
 import {
-  VysvetlenieKomponentu, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
+  VysvetlenieKomponentu, chybajuceUdajeMZI, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
 } from '../../utils/skoreVysvetlenie';
 import { CopyButton } from '../ui/CopyButton';
 import { VypocetDialog } from './VypocetDialog';
@@ -44,6 +44,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       ...vysvetleniaEnergetiky(score.energia),
     ].map((v) => [v.kluc, v]),
   );
+
+  // Prečo komponent MZI nedostal body — „bez údajov" samo nepovie, čo doplniť (#213).
+  const chybaMZI = chybajuceUdajeMZI(areal, score.mzi);
 
   const radarData = [
     { subject: 'MZI', value: score.mzi.celkove, fullMark: 100 },
@@ -314,12 +317,14 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               ...komponentBody(score.mzi.okolie, 45),
               hodnota: koeficientText(score.mzi.koefOkolie, score.mzi.stupenOkolie),
               vysvetlenie: vysvetlenia.get('okolie'),
+              coChyba: chybaMZI.get('okolie'),
             },
             {
               label: 'Zeleň a retencia na budovách',
               ...komponentBody(score.mzi.budovy, 25),
               hodnota: koeficientText(score.mzi.koefBudovy, score.mzi.stupenBudovy),
               vysvetlenie: vysvetlenia.get('budovy'),
+              coChyba: chybaMZI.get('budovy'),
             },
             {
               label: 'Akumulácia zrážkovej vody',
@@ -328,6 +333,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 ? null
                 : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
               vysvetlenie: vysvetlenia.get('akumulacia'),
+              coChyba: chybaMZI.get('akumulacia'),
               dovodNehodnotenia: areal.nadrzNieJeMozna === 1
                 ? `Nádrž nie je možné inštalovať${areal.nadrzNemoznaDovod.trim() ? ` — ${areal.nadrzNemoznaDovod.trim()}` : ''}.`
                 : null,
@@ -339,6 +345,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 ? null
                 : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} %`,
               vysvetlenie: vysvetlenia.get('odtok'),
+              coChyba: chybaMZI.get('odtok'),
             },
           ]}
           poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
@@ -589,6 +596,8 @@ interface ScoreDetailItem {
    * napr. nádrž nie je možné inštalovať (#215).
    */
   dovodNehodnotenia?: string | null;
+  /** Prečo komponent nemá výsledok — ktorý údaj v dotazníku chýba (#213). */
+  coChyba?: string;
 }
 
 /** Rozloží komponent MZI skóre na tvar, ktorý zobrazuje `ScoreDetail`. */
@@ -639,9 +648,9 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
                 }}
               />
             </div>
-            {item.score === null && item.dovodNehodnotenia && (
+            {item.score === null && (item.dovodNehodnotenia || item.coChyba) && (
               <p className="text-[11px] text-gray-500 leading-snug pt-0.5">
-                {item.dovodNehodnotenia}
+                {item.dovodNehodnotenia || item.coChyba}
               </p>
             )}
             {item.vysvetlenie && (

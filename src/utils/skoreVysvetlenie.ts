@@ -12,7 +12,8 @@ import {
   EnergiaScore, MZIScore, OZEScore, RozpisPodskore, saHodnotiEnergetika, saHodnotiOZE,
 } from '../types/scoring';
 import {
-  Plocha, detailAkumulacie, detailOdtoku, plochyBudov, plochyOkolia, zluceneRiadky,
+  Plocha, detailAkumulacie, detailOdtoku, odtokovaPlochaArealu, plochyBudov, plochyOkolia,
+  zluceneRiadky,
 } from './mziKlimasken';
 
 /** Kľúč komponentu, ktorého sa vysvetlenie týka. */
@@ -89,7 +90,7 @@ function vysvetlenieOkolia(areal: Areal, score: MZIScore): VysvetlenieKomponentu
 
   return {
     kluc: 'okolie',
-    nadpis: 'Priepustnosť a zeleň areálu',
+    nadpis: NADPISY_MZI.okolie,
     metodika: 'KLIMASKEN B-GOV2',
     sumar:
       `${percent} % plochy areálu plní funkciu modro-zelenej infraštruktúry. ` +
@@ -114,7 +115,7 @@ function vysvetlenieBudov(areal: Areal, score: MZIScore): VysvetlenieKomponentu 
 
   return {
     kluc: 'budovy',
-    nadpis: 'Zeleň a retencia na budovách',
+    nadpis: NADPISY_MZI.budovy,
     metodika: 'KLIMASKEN B-GOV3',
     sumar:
       `${percent} % plochy striech a stien zadržiava zrážkovú vodu. ` +
@@ -158,7 +159,7 @@ function vysvetlenieAkumulacie(areal: Areal, score: MZIScore): VysvetlenieKompon
 
   return {
     kluc: 'akumulacia',
-    nadpis: 'Akumulácia zrážkovej vody',
+    nadpis: NADPISY_MZI.akumulacia,
     metodika: 'KLIMASKEN B-AD10',
     sumar:
       `Nádrže areálu majú ${m3(d.skutocnyObjem)} z optimálnych ${m3(d.potrebnyObjem ?? 0)}, ` +
@@ -186,7 +187,7 @@ function vysvetlenieOdtoku(areal: Areal, score: MZIScore): VysvetlenieKomponentu
 
   return {
     kluc: 'odtok',
-    nadpis: 'Odtok zo spevnených plôch',
+    nadpis: NADPISY_MZI.odtok,
     sumar:
       `Z ${m2(d.odtokovaPlocha)} spevnených plôch a striech zostáva ${m2(d.zadrzanaPlocha)} ` +
       `(${percent} %) na mieste vo vsaku alebo v retencii; ${m2(odvedene)} odteká preč. ` +
@@ -207,6 +208,73 @@ export function vysvetleniaMZI(areal: Areal, score: MZIScore): VysvetlenieKompon
     vysvetlenieAkumulacie(areal, score),
     vysvetlenieOdtoku(areal, score),
   ].filter((v): v is VysvetlenieKomponentu => v !== null);
+}
+
+/** Kľúč komponentu MZI — tie štyri, ktoré tvoria skóre modro-zelenej infraštruktúry. */
+export type KlucMZI = 'okolie' | 'budovy' | 'akumulacia' | 'odtok';
+
+/** Názvy komponentov MZI tak, ako ich vidí hodnotiteľ — jedno miesto pre kartu aj export. */
+export const NADPISY_MZI: Record<KlucMZI, string> = {
+  okolie: 'Priepustnosť a zeleň areálu',
+  budovy: 'Zeleň a retencia na budovách',
+  akumulacia: 'Akumulácia zrážkovej vody',
+  odtok: 'Odtok zo spevnených plôch',
+};
+
+/**
+ * Prečo komponent MZI nemá výsledok — ktorý údaj v dotazníku chýba, alebo že
+ * v areáli nie je čo hodnotiť.
+ *
+ * „bez údajov" samo osebe hodnotiteľovi nepovie, či na niečo zabudol, alebo či
+ * je taký areál. Vysvetlenie preto pomenuje konkrétnu otázku a krok, kde sa
+ * údaj dopĺňa — to je podstata #213 aj pre komponenty, ktoré body nedostali.
+ *
+ * Mapa obsahuje len komponenty, ktoré sa nedali vypočítať. Akumulácia sem
+ * nepatrí, keď používateľ sám označil, že nádrž nie je možná (#222) — to nie je
+ * chýbajúci údaj, ale odpoveď, a vysvetľuje sa vlastným textom.
+ */
+export function chybajuceUdajeMZI(areal: Areal, score: MZIScore): Map<KlucMZI, string> {
+  const chyba = new Map<KlucMZI, string>();
+
+  if (score.okolie === null) {
+    chyba.set('okolie',
+      'V kroku Pozemky nie je zadaná výmera žiadneho povrchu — ani prírodného ' +
+      '(vsakovacieho), ani spevneného, ani nepriepustného.');
+  }
+
+  if (score.budovy === null) {
+    chyba.set('budovy',
+      'V kroku Budovy nie je zadaná plocha pôdorysu ani plocha zelenej strechy ' +
+      'či zelenej steny.');
+  }
+
+  if (score.akumulacia === null && areal.nadrzNieJeMozna !== 1) {
+    const d = detailAkumulacie(areal);
+    const chybaju: string[] = [];
+    // Optimálny objem vzniká z dvojice (zrážky × strechy) alebo z počtu osôb;
+    // stačí jedna z nich, preto sa vypíšu všetky nevyplnené vstupy.
+    if (d.zrazky <= 0) chybaju.push('úhrn zrážok (krok Úvod)');
+    if (d.plochaStriech <= 0) chybaju.push('plocha pôdorysu budov (krok Budovy)');
+    if (d.osoby <= 0) chybaju.push('počet zamestnancov (krok Úvod)');
+    chyba.set('akumulacia',
+      `Optimálny objem nádrže sa nedá určiť — chýba ${zoznamPoloziek(chybaju)}.`);
+  }
+
+  if (score.odtok === null) {
+    chyba.set('odtok', odtokovaPlochaArealu(areal) > 0
+      ? 'Plochy sú zadané, ale nie je vyplnené, kam z nich voda odteká — ' +
+        'skupina „Odvod vody z pozemku" v kroku Pozemky a odvod vody pri budovách.'
+      : 'Areál nemá spevnené ani polopriepustné plochy a strechy, z ktorých by ' +
+        'voda odtekala — nie je čo hodnotiť.');
+  }
+
+  return chyba;
+}
+
+/** „a", „a a b", „a, b a c" — vymenovanie do vety. */
+function zoznamPoloziek(polozky: string[]): string {
+  if (polozky.length <= 1) return polozky[0] ?? '';
+  return `${polozky.slice(0, -1).join(', ')} a ${polozky[polozky.length - 1]}`;
 }
 
 // ───────────────────────── OZE a energetika (etapa 2) ─────────────────────────

@@ -410,6 +410,21 @@ function odtokovaPlocha(p: Pozemok): number {
 }
 
 /**
+ * Súčet plôch areálu, z ktorých vzniká odtok — spevnené a polopriepustné plochy
+ * pozemkov a strechy budov.
+ *
+ * Odlišuje dve príčiny, prečo komponent odtoku nemá výsledok: areál buď také
+ * plochy nemá (nie je čo hodnotiť), alebo ich má, ale nie je vyplnené, kam
+ * z nich voda ide (chýbajúci údaj). Pozri `chybajuceUdajeMZI()`.
+ */
+export function odtokovaPlochaArealu(areal: Areal): number {
+  return (
+    areal.pozemky.reduce((acc, p) => acc + odtokovaPlocha(p), 0) +
+    areal.budovy.reduce((acc, b) => acc + Math.max(0, b.plochaPodorysu), 0)
+  );
+}
+
+/**
  * Podiel odtokovej plochy, z ktorej zrážková voda smeruje do vsaku alebo
  * retencie namiesto kanalizácie, vodného toku či neriešeného odtoku (0–1).
  *

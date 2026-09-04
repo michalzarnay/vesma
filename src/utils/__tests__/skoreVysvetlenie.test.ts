@@ -3,7 +3,7 @@ import { createEmptyAreal, createEmptyPozemok, createEmptyBudova } from '../../t
 import { calculateMZI } from '../mziKlimasken';
 import { calculateOZE, calculateEnergia } from '../../hooks/useScoring';
 import {
-  vysvetleniaMZI, vysvetleniaOZE, vysvetleniaEnergetiky, tabulkaAkoText,
+  vysvetleniaMZI, vysvetleniaOZE, vysvetleniaEnergetiky, tabulkaAkoText, chybajuceUdajeMZI,
 } from '../skoreVysvetlenie';
 
 /** Areál s jedným pozemkom a bez budov — izoluje komponent B-GOV2. */
@@ -258,5 +258,62 @@ describe('vysvetleniaOZE / vysvetleniaEnergetiky (etapa 2)', () => {
     expect(v.sumar).toContain('Jedna sezónna nevykurovaná stavba je z hodnotenia vynechaná');
     // Chata sa nedostane ani do rozpisu položiek.
     expect(v.riadky.some((r) => r[1] === 'Záhradná chata')).toBe(false);
+  });
+});
+
+describe('chybajuceUdajeMZI – prečo komponent nemá body (#213)', () => {
+  /** Úplne prázdny areál — žiadny komponent MZI sa nedá vypočítať. */
+  function prazdnyAreal() {
+    const areal = createEmptyAreal();
+    areal.pozemky = [createEmptyPozemok()];
+    areal.budovy = [createEmptyBudova()];
+    return areal;
+  }
+
+  it('pomenuje chýbajúci údaj pri každom nevypočítanom komponente', () => {
+    const areal = prazdnyAreal();
+    const chyba = chybajuceUdajeMZI(areal, calculateMZI(areal));
+
+    expect([...chyba.keys()].sort()).toEqual(['akumulacia', 'budovy', 'odtok', 'okolie']);
+    expect(chyba.get('okolie')).toContain('V kroku Pozemky');
+    expect(chyba.get('budovy')).toContain('V kroku Budovy');
+  });
+
+  it('pri akumulácii vymenuje všetky chýbajúce vstupy výpočtu', () => {
+    const areal = prazdnyAreal();
+    const text = chybajuceUdajeMZI(areal, calculateMZI(areal)).get('akumulacia')!;
+
+    expect(text).toContain('úhrn zrážok');
+    expect(text).toContain('plocha pôdorysu budov');
+    expect(text).toContain('počet zamestnancov');
+  });
+
+  it('akumulácia nechýba, keď používateľ označil, že nádrž nie je možná (#222)', () => {
+    const areal = prazdnyAreal();
+    areal.nadrzNieJeMozna = 1;
+
+    // Nie je to chýbajúci údaj, ale odpoveď — vysvetľuje sa vlastným textom.
+    expect(chybajuceUdajeMZI(areal, calculateMZI(areal)).has('akumulacia')).toBe(false);
+  });
+
+  it('odlíši „nie je čo hodnotiť" od „nie je vyplnené, kam voda odteká"', () => {
+    const bezPloch = prazdnyAreal();
+    expect(chybajuceUdajeMZI(bezPloch, calculateMZI(bezPloch)).get('odtok'))
+      .toContain('nie je čo hodnotiť');
+
+    // Plocha zadaná, ale odvod vody nevyplnený — to je chyba v zadaní.
+    const sPlochou = prazdnyAreal();
+    sPlochou.pozemky[0].spevnenaPlochaCelkom = 500;
+    expect(chybajuceUdajeMZI(sPlochou, calculateMZI(sPlochou)).get('odtok'))
+      .toContain('Odvod vody z pozemku');
+  });
+
+  it('vypočítaný komponent v zozname chýbajúcich údajov nie je', () => {
+    const areal = arealSPozemkom((p) => {
+      p.priepustnaPlochaCelkom = 100;
+      p.priepustnaPlochaByliny = 100;
+    });
+
+    expect(chybajuceUdajeMZI(areal, calculateMZI(areal)).has('okolie')).toBe(false);
   });
 });

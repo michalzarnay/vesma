@@ -7,19 +7,25 @@ import {
 } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import {
-  VysvetlenieKomponentu, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
+  NADPISY_MZI, VysvetlenieKomponentu, chybajuceUdajeMZI,
+  vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
 } from './skoreVysvetlenie';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../data/constants';
 import { getParagraf11 } from './paragraf11';
 
-/** Riadok detailu MZI — komponent bez údajov sa vypíše ako „bez údajov". */
+/**
+ * Riadok detailu MZI. Komponent bez údajov nezostane pri holom „bez údajov" —
+ * do stĺpca hodnoty sa vypíše, ktorý údaj chýba (#213), aby hodnotiteľ vedel,
+ * či na niečo zabudol.
+ */
 function mziRiadok(
   nazov: string,
   komponent: MZIKomponent | null,
   hodnota: string | null,
   stupen: KlimaskenStupen | null,
+  coChyba?: string,
 ): (string | number)[] {
-  if (komponent === null) return [nazov, 'bez údajov', '', '', ''];
+  if (komponent === null) return [nazov, 'bez údajov', '', coChyba ?? '', ''];
   return [nazov, komponent.body, komponent.max, hodnota ?? '', stupen ?? ''];
 }
 
@@ -35,6 +41,7 @@ const energiaCell = (score: ScoreResult) => skoreCell(saHodnotiEnergetika(score.
 
 function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
   const ws = (vahy: Areal['vahy']) => weightedScore(score, vahy);
+  const chyba = chybajuceUdajeMZI(areal, score.mzi);
   return [
     ['VESMA – Hodnotenie areálu'],
     [UPOZORNENIE_ROZSAH_HODNOTENIA],
@@ -73,16 +80,20 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['DETAIL MZI (metodika KLIMASKEN)'],
     ['Komponent', 'Body', 'Maximum', 'Hodnota indikátora', 'Stupeň A–E'],
     mziRiadok('Priepustnosť a zeleň areálu (B-GOV2)', score.mzi.okolie,
-      score.mzi.koefOkolie === null ? null : `koeficient MZI ${score.mzi.koefOkolie.toFixed(2)}`, score.mzi.stupenOkolie),
+      score.mzi.koefOkolie === null ? null : `koeficient MZI ${score.mzi.koefOkolie.toFixed(2)}`,
+      score.mzi.stupenOkolie, chyba.get('okolie')),
     mziRiadok('Zeleň a retencia na budovách (B-GOV3)', score.mzi.budovy,
-      score.mzi.koefBudovy === null ? null : `koeficient MZI ${score.mzi.koefBudovy.toFixed(2)}`, score.mzi.stupenBudovy),
+      score.mzi.koefBudovy === null ? null : `koeficient MZI ${score.mzi.koefBudovy.toFixed(2)}`,
+      score.mzi.stupenBudovy, chyba.get('budovy')),
     areal.nadrzNieJeMozna === 1
       ? ['Akumulácia zrážkovej vody (B-AD10)', 'nehodnotí sa',
         `Nádrž nie je možné inštalovať${areal.nadrzNemoznaDovod.trim() ? ` — ${areal.nadrzNemoznaDovod.trim()}` : ''}`, '', '']
       : mziRiadok('Akumulácia zrážkovej vody (B-AD10)', score.mzi.akumulacia,
-        score.mzi.akumulaciaPercent === null ? null : `${Math.round(score.mzi.akumulaciaPercent)} % optimálneho objemu`, score.mzi.stupenAkumulacia),
+        score.mzi.akumulaciaPercent === null ? null : `${Math.round(score.mzi.akumulaciaPercent)} % optimálneho objemu`,
+        score.mzi.stupenAkumulacia, chyba.get('akumulacia')),
     mziRiadok('Odtok zo spevnených plôch', score.mzi.odtok,
-      score.mzi.podielZadrzanehoOdtoku === null ? null : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} % odtokovej plochy do vsaku alebo retencie`, null),
+      score.mzi.podielZadrzanehoOdtoku === null ? null : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} % odtokovej plochy do vsaku alebo retencie`,
+      null, chyba.get('odtok')),
     [],
     ['DETAIL OZE'],
     ...(saHodnotiOZE(score.oze)
@@ -122,11 +133,23 @@ function sheetVypocetSkore(areal: Areal, score: ScoreResult): (string | number)[
     [],
   ];
 
-  const oblasti: Array<{ nazov: string; vysvetlenia: VysvetlenieKomponentu[]; prazdne: string }> = [
+  // Komponenty MZI, ktoré sa nedali vypočítať, sa nezamlčia — hodnotiteľ musí
+  // vedieť, ktorý údaj doplniť, aby výsledok vznikol (#213).
+  const chybaMZI = [...chybajuceUdajeMZI(areal, score.mzi)].map(
+    ([kluc, text]) => [`${NADPISY_MZI[kluc]}: bez údajov`, text],
+  );
+
+  const oblasti: Array<{
+    nazov: string;
+    vysvetlenia: VysvetlenieKomponentu[];
+    prazdne: string;
+    chybajuce?: (string | number)[][];
+  }> = [
     {
       nazov: 'MZI – MODRO-ZELENÁ INFRAŠTRUKTÚRA',
       vysvetlenia: vysvetleniaMZI(areal, score.mzi),
-      prazdne: 'Žiadny komponent MZI sa nedal vypočítať — v dotazníku chýbajú údaje.',
+      prazdne: 'Žiadny komponent MZI sa nedal vypočítať:',
+      chybajuce: chybaMZI,
     },
     {
       nazov: 'OZE – OBNOVITEĽNÉ ZDROJE ENERGIE',
@@ -145,8 +168,7 @@ function sheetVypocetSkore(areal: Areal, score: ScoreResult): (string | number)[
   for (const oblast of oblasti) {
     riadky.push([oblast.nazov]);
     if (oblast.vysvetlenia.length === 0) {
-      riadky.push([oblast.prazdne], []);
-      continue;
+      riadky.push([oblast.prazdne]);
     }
     for (const v of oblast.vysvetlenia) {
       riadky.push([v.metodika ? `${v.nadpis} (${v.metodika})` : v.nadpis]);
@@ -156,6 +178,8 @@ function sheetVypocetSkore(areal: Areal, score: ScoreResult): (string | number)[
       riadky.push([v.zaver]);
       riadky.push([]);
     }
+    riadky.push(...(oblast.chybajuce ?? []));
+    if (oblast.vysvetlenia.length === 0) riadky.push([]);
   }
   return riadky;
 }
