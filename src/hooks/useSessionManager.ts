@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { AKTUALNA_VERZIA_SCHEMY, Areal } from '../types/areal';
+import { AKTUALNA_VERZIA_PRAVIDIEL, AKTUALNA_VERZIA_SCHEMY, Areal } from '../types/areal';
 import { buildShareMailto, sessionJsonFilename } from '../utils/shareSession';
 import { migrateAreal } from './useArealState';
 import { chybajuceNovePolia, verziaArealu } from '../utils/schemaVersion';
@@ -79,6 +79,9 @@ export function useSessionManager() {
         ...areal,
         id: areal.id || crypto.randomUUID(),
         schemaVersion: verziaPreUlozenie(areal),
+        // Čo používateľ pri ukladaní videl (skóre, poradie, odporúčania), počítali
+        // aktuálne pravidlá — relácia sa preto ukladá s ich verziou.
+        pravidlaVersion: AKTUALNA_VERZIA_PRAVIDIEL,
       },
       datumUlozenia: new Date().toISOString(),
     };
@@ -97,7 +100,11 @@ export function useSessionManager() {
           ? {
             ...s,
             nazov,
-            areal: { ...areal, schemaVersion: verziaPreUlozenie(areal) },
+            areal: {
+              ...areal,
+              schemaVersion: verziaPreUlozenie(areal),
+              pravidlaVersion: AKTUALNA_VERZIA_PRAVIDIEL,
+            },
             datumUlozenia: new Date().toISOString(),
           }
           : s

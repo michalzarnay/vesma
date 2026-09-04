@@ -20,6 +20,21 @@ export interface MediaItem {
  */
 export const AKTUALNA_VERZIA_SCHEMY = 2;
 
+/**
+ * Verzia pravidiel a parametrov hodnotenia, podľa ktorých bola relácia naposledy
+ * vyhodnotená (skóre areálu, váhy porovnania, odporúčania).
+ *
+ * Zvýš ju vždy, keď sa zmení niečo, čo mení výsledok pri nezmenených odpovediach,
+ * a doplň zoznam zmien do `ZMENY_PRAVIDIEL` v `src/utils/pravidlaVersion.ts`
+ * (návod: `docs/verziovanie-pravidiel.md`). Používateľ potom po otvorení staršej
+ * relácie dostane upozornenie, že hodnotenie a odporúčania môžu byť iné.
+ *
+ * 0 = relácia uložená pred zavedením sledovania (pole `pravidlaVersion` chýba);
+ *     nevieme povedať, ktoré pravidlá vtedy platili — upozornenie je len všeobecné
+ * 1 = stav pri zavedení sledovania
+ */
+export const AKTUALNA_VERZIA_PRAVIDIEL = 1;
+
 export interface ScoringWeights {
   mzi: number;
   oze: number;
@@ -73,6 +88,8 @@ export interface Areal {
   id: string;
   /** Verzia schémy, v ktorej bola relácia naposledy uložená (issue #177). */
   schemaVersion?: number;
+  /** Verzia pravidiel hodnotenia, podľa ktorých bola relácia naposledy vyhodnotená. */
+  pravidlaVersion?: number;
   nazov: string;
   adresa: string;
   krajina: string;
@@ -667,6 +684,7 @@ export function createEmptyAreal(): Areal {
   return {
     id: crypto.randomUUID(),
     schemaVersion: AKTUALNA_VERZIA_SCHEMY,
+    pravidlaVersion: AKTUALNA_VERZIA_PRAVIDIEL,
     nazov: '',
     adresa: '',
     krajina: 'Slovensko',
