@@ -24,16 +24,26 @@ describe('glossary', () => {
     expect(glossary.kurenieElektrinouDef.definition).toContain('NEPOVAŽUJE');
   });
 
-  it('deliaca čiara budova/iná stavba je strecha a vnútorný priestor — chatka patrí medzi budovy', () => {
+  it('deliaca čiara budova/iná stavba sú základy v zemi — chatka patrí medzi budovy', () => {
     const { definition, example } = glossary.kamPatriStavbaDef;
-    expect(definition).toContain('strech');
-    expect(definition).toContain('vnútorn');
+    expect(definition).toContain('základ');
     // Chatka je uvedená na strane budov, altánok na strane iných stavieb.
     const budovy = example!.split('Medzi Iné stavby')[0];
     const ineStavby = example!.split('Medzi Iné stavby')[1];
     expect(budovy).toContain('chatka');
     expect(ineStavby).toContain('ltánok');
     expect(budovy).not.toContain('ltánok');
+  });
+
+  it('chodník, parkovisko ani oplotenie nie sú iné stavby', () => {
+    const { definition, example } = glossary.kamPatriStavbaDef;
+    // Patria medzi povrchy pozemku, nie medzi stavby — inak by sa tá istá
+    // plocha zadala dvakrát a hodnotila ako nepriepustná bez ohľadu na povrch.
+    expect(definition).toContain('Pozemky');
+    const ineStavby = example!.split('Medzi Iné stavby')[1].split('Do Pozemkov')[0];
+    expect(ineStavby).not.toContain('hodník');
+    expect(ineStavby).not.toContain('arkovisko');
+    expect(ineStavby).not.toContain('plotenie');
   });
 
   it('sezónna nevykurovaná stavba neuvádza altánok — ten patrí medzi iné stavby', () => {

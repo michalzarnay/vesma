@@ -100,15 +100,15 @@ export const glossary: Record<string, GlossaryEntry> = {
   },
   sezonnaNevykurovanaDef: {
     term: 'Sezónna nevykurovaná stavba',
-    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chatka, domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
+    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — murovaná záhradná chatka, murovaný domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
     example: 'Záhradná chatka, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
     whereToFind: 'Rozhodnite podľa toho, či sa v stavbe v zime kúri. Ak áno čo i len občas, odpovedzte „nie".',
   },
   kamPatriStavbaDef: {
     term: 'Budova alebo iná stavba?',
-    definition: 'Rozhoduje strecha a vnútorný priestor. Objekt so strechou a využiteľným vnútrajškom zadajte medzi Budovy — aj keď je malý a nevykurovaný (vtedy ho označte ako sezónnu nevykurovanú stavbu). Objekt bez strechy alebo bez uzavretého vnútorného priestoru patrí medzi Iné stavby.',
-    example: 'Medzi Budovy: záhradná chatka, domček na náradie, garáž, prístrešok so stenami. Medzi Iné stavby: oplotenie, chodník, terasa, parkovisko, altánok a pergola bez stien, trafostanica, studňa.',
-    whereToFind: 'Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia. Medzi Inými stavbami sa tieto veci nezisťujú.',
+    definition: 'Rozhodujú základy v zemi. Stavba na základoch je Budova — aj keď je malá a nevykurovaná (vtedy ju označte ako sezónnu nevykurovanú stavbu). Stavba bez základov, ktorá len stojí na teréne, patrí medzi Iné stavby: má zvislú konštrukciu a spravidla aj strechu, ale je taká jednoduchá, že sa na nej modrozelené ani energetické opatrenia nedajú robiť. Chodníky, parkoviská a spevnené plochy nie sú stavby — tie patria medzi povrchy pozemku v kroku Pozemky.',
+    example: 'Medzi Budovy: murovaná záhradná chatka, murovaný domček na náradie, garáž. Medzi Iné stavby: altánok, pergola, prístrešok, plechová búda na náradie. Do Pozemkov ako povrch: chodník, terasa, parkovisko. Jednoduché oplotenie sa nezadáva nikam — na hodnotenie nemá vplyv.',
+    whereToFind: 'Keď neviete rozhodnúť, pozrite sa na spodok stavby: betónový základový pás alebo doska pod celou stavbou znamená Budovu. Stavba na pätkách, na dlažbe alebo priamo na zemi je Iná stavba. Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia.',
   },
   retenciaVodyDef: {
     term: 'Retencia vody',

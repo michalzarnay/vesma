@@ -37,20 +37,23 @@ export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, remo
         <div>
           <h2 className="text-lg font-bold text-gray-800">Iné stavby</h2>
           <p className="text-xs text-gray-500">
-            Oplotenie, chodníky, parkoviská, altánky bez stien a ďalšie stavby v areáli.
-            Ak nemáte žiadne iné stavby, pokračujte ďalej.
+            Drobné stavby bez základov — altánok, pergola, prístrešok, plechová búda na náradie.
+            Ak takéto stavby nemáte, pokračujte ďalej.
           </p>
         </div>
       </div>
 
-      {/* Deliaca čiara voči kroku Budovy: strecha a vnútorný priestor. */}
+      {/* Deliaca čiara voči kroku Budovy: základy v zemi. */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 flex items-start">
         <span>
-          Sem patria stavby <strong>bez strechy alebo bez uzavretého vnútorného priestoru</strong> — oplotenie,
-          chodník, terasa, parkovisko, altánok či pergola. Záhradnú chatku, domček na náradie a garáž zadajte
-          medzi <strong>Budovy</strong> (krok 3) a označte ich tam ako sezónnu nevykurovanú stavbu.
-          {' '}Zastavaná plocha odtiaľto vstupuje do skóre ako <strong>nepriepustná plocha</strong>, preto ju
-          v kroku <strong>Pozemky</strong> do výmer nezapočítavajte — inak by sa tá istá plocha zarátala dvakrát.
+          Rozhodujú <strong>základy v zemi</strong>: stavba na základoch je <strong>Budova</strong> (krok 3),
+          stavba bez nich patrí sem. Má zvislú konštrukciu a spravidla aj strechu, ale je taká jednoduchá, že sa
+          na nej modrozelené ani energetické opatrenia nedajú robiť — altánok, pergola, prístrešok, plechová búda.
+          Murovanú chatku, murovaný domček na náradie a garáž zadajte medzi <strong>Budovy</strong>.
+          {' '}<strong>Chodník, terasa ani parkovisko sem nepatria</strong> — to sú povrchy pozemku, zadajte ich
+          v kroku <strong>Pozemky</strong>. Jednoduché oplotenie sa nezadáva nikam, na hodnotenie nemá vplyv.
+          {' '}Zastavaná plocha odtiaľto vstupuje do skóre ako nepriepustná plocha, preto ju v kroku Pozemky
+          do výmer nezapočítavajte — inak by sa tá istá plocha zarátala dvakrát.
         </span>
         <Tooltip glossaryKey="kamPatriStavbaDef" />
       </div>
@@ -99,7 +102,7 @@ function InaStavbaForm({ stavba, onChange }: { stavba: InaStavba; onChange: (dat
         label="Názov stavby"
         value={stavba.nazov}
         onChange={(v) => onChange({ nazov: v })}
-        placeholder="napr. Oplotenie, Altánok"
+        placeholder="napr. Altánok, Búda na náradie"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TextInput
@@ -119,7 +122,7 @@ function InaStavbaForm({ stavba, onChange }: { stavba: InaStavba; onChange: (dat
         label="Typ stavby"
         value={stavba.typStavby}
         onChange={(v) => onChange({ typStavby: v })}
-        placeholder="napr. Oplotenie, Chodník, Parkovisko, Altán"
+        placeholder="napr. Altánok, Pergola, Prístrešok, Plechová búda"
       />
       <TextInput
         label="Popis stavby"
@@ -131,7 +134,7 @@ function InaStavbaForm({ stavba, onChange }: { stavba: InaStavba; onChange: (dat
         label="Aktuálne využitie"
         value={stavba.aktualneVyuzitie}
         onChange={(v) => onChange({ aktualneVyuzitie: v })}
-        placeholder="napr. oplotenie, chodník, parkovisko, altánok"
+        placeholder="napr. posedenie, sklad náradia, prístrešok pre bicykle"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <NumberInput

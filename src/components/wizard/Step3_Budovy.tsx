@@ -50,9 +50,10 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
         <p>Ak je na parcele budova aj nezastavaný pozemok, zaraďte ju podľa toho, čo na nej prevažuje (dominantné využitie) — buď medzi Budovy, alebo medzi Pozemky.</p>
         <p className="flex items-start">
           <span>
-            Sem patrí <strong>každý objekt so strechou a vnútorným priestorom</strong> — aj záhradná chatka,
-            domček na náradie či garáž. Ak sa v nich nekúri, označte ich nižšie ako sezónnu nevykurovanú stavbu;
-            strecha pre fotovoltiku, odvod vody a osvetlenie sa hodnotia aj tak.
+            Sem patrí <strong>každá stavba na základoch</strong> — aj murovaná záhradná chatka, murovaný
+            domček na náradie či garáž. Stavbu bez základov (altánok, prístrešok, plechová búda) zadajte
+            medzi <strong>Iné stavby</strong> (krok 4). Ak sa v budove nekúri, označte ju nižšie ako sezónnu
+            nevykurovanú stavbu; strecha pre fotovoltiku, odvod vody a osvetlenie sa hodnotia aj tak.
           </span>
           <Tooltip glossaryKey="kamPatriStavbaDef" />
         </p>

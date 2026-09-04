@@ -501,7 +501,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           <ul className="mt-1 list-disc list-inside text-xs space-y-0.5">
             <li>Pozemok – nezastavané parcely, odvod vody, zeleň</li>
             <li>Budovy – strecha, voda, energia, vykurovanie</li>
-            <li>Iné stavby – oplotenie, chodníky, parkoviská</li>
+            <li>Iné stavby – altánky, prístrešky a búdy bez základov</li>
             <li>Zamýšľané B&amp;G opatrenia</li>
             <li>Výsledky a závery hodnotenia (krok 6)</li>
           </ul>

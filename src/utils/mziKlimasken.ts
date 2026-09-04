@@ -225,8 +225,10 @@ export function plochyOkolia(areal: Areal): Plocha[] {
     plochy.push({ nazov: 'Prekoreniteľný priestor pre stromy', kod: 'P', vymera: p.prekorenetelnyPriestorPreStromy, koef: KOEF_OKOLIE.prekorenitelnyPriestor });
   }
 
-  // Iné stavby z Kroku 4 — oplotenie, chodník, parkovisko (#233). Zastavaná
-  // plocha je nepriepustný povrch (kód A) rovnako ako asfalt na pozemku.
+  // Iné stavby z Kroku 4 — drobné stavby bez základov, teda altánok, prístrešok
+  // či plechová búda (#233). Zastavaná plocha je nepriepustný povrch (kód A)
+  // rovnako ako asfalt na pozemku. Chodníky a parkoviská sem nepatria — tie sa
+  // zadávajú ako povrchy pozemku v Kroku 2.
   //
   // Dvojité započítanie tej istej plochy rieši Krok 2: výmery povrchov sa tam
   // zadávajú BEZ stavieb z Kroku 4. Preto sa tu plochy pripočítajú, nie

@@ -33,7 +33,7 @@ export const AKTUALNA_VERZIA_SCHEMY = 2;
  *     nevieme povedať, ktoré pravidlá vtedy platili — upozornenie je len všeobecné
  * 1 = stav pri zavedení sledovania
  */
-export const AKTUALNA_VERZIA_PRAVIDIEL = 2;
+export const AKTUALNA_VERZIA_PRAVIDIEL = 3;
 
 export interface ScoringWeights {
   mzi: number;
@@ -241,7 +241,8 @@ export interface Budova {
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
 
   /**
-   * Sezónna nevykurovaná stavba — záhradná chatka, domček na náradie, nevykurovaná garáž.
+   * Sezónna nevykurovaná stavba — murovaná záhradná chatka, murovaný domček na náradie,
+   * nevykurovaná garáž. Stavba bez základov (altánok, plechová búda) sem nepatrí — je to iná stavba.
    * Užíva sa len v teplej časti roka, nevykuruje sa a nespáva sa v nej, takže
    * zateplenie ani obnova vykurovania v nej nemajú zmysel. Taká stavba sa
    * vynecháva z hodnotenia obálky a vykurovania, z návrhov opatrení v tomto
