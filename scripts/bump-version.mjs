@@ -1,6 +1,8 @@
 // Práca s číslom verzie vo `version.json`:
-//   node scripts/bump-version.mjs            — nastaví číslo na (verzia na main) + 1
-//   node scripts/bump-version.mjs --kontrola  — len overí, nič nezapisuje (beží v CI)
+//   node scripts/bump-version.mjs                 — nastaví číslo na (verzia na main) + 1
+//   node scripts/bump-version.mjs --kontrola      — overí vetvu oproti main (beží pri PR)
+//   node scripts/bump-version.mjs --kontrola-main — overí, že posledné zlúčenie
+//                                                   číslo zvýšilo (beží po pushi do main)
 //
 // PRAVIDLO
 //   Číslo vo vetve musí byť presne o jedna vyššie než číslo na `main`.
@@ -16,11 +18,16 @@
 //   a nikto nepotrebuje výnimku z pravidiel repozitára.
 //
 // ČO KEĎ SA MEDZITÝM ZLÚČI INÝ PR
-//   Kontrola pri ďalšom behu zlyhá — číslo vo vetve už nie je o jedna vyššie
-//   než na `main`. Spusti `npm run verzia` znova. Práve toto je dôvod, prečo
-//   sa číslo počíta z `main` a nie prírastkom k tomu, čo je vo vetve: dva PR-y
-//   otvorené naraz by inak dostali rovnaké číslo a testeri by dve rôzne
-//   zostavy nerozlíšili.
+//   Kontrola pri ďalšom **pushi** do vetvy zlyhá — číslo už nie je o jedna
+//   vyššie než na `main`. Spusti `npm run verzia` znova.
+//
+//   Pozor, kontrola pri PR na to nestačí (#231): beží pri otvorení a pri pushi,
+//   nie pri zlúčení. Dva súbežne otvorené PR-y teda obidva uvidia to isté
+//   `main`, obidva si nastavia rovnaké číslo a obidvom kontrola prejde —
+//   presne to sa stalo pri verzii 196, ktorú nesú tri zlúčené PR-y. Preto je
+//   tu ešte `--kontrola-main`, ktorá po zlúčení overí, že sa číslo na `main`
+//   naozaj posunulo. Nezabráni tomu, len to hneď pomenuje; zabráni tomu až
+//   nastavenie repozitára „Require branches to be up to date before merging".
 import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -73,6 +80,39 @@ export function skontrolujVerziu({ korenRepozitara }) {
   };
 }
 
+/** Číslo verzie zapísané vo `version.json` v danom commite; `null`, keď commit nie je. */
+function verziaVCommite(cwd, ref) {
+  const obsah = gitOrNull(['show', `${ref}:${SUBOR_VERZIE}`], cwd);
+  if (obsah === null) return null;
+
+  const verzia = JSON.parse(obsah)?.verzia;
+  return Number.isInteger(verzia) && verzia >= 0 ? verzia : null;
+}
+
+/**
+ * Overí, že posledné zlúčenie do `main` zvýšilo číslo verzie o jedna.
+ *
+ * Kontrola pri PR na to nestačí — beží pri otvorení a pri pushi do vetvy, nie
+ * pri zlúčení. Dva súbežne otvorené PR-y tak môžu prejsť s rovnakým číslom
+ * a druhý merge ho ticho použije znova (#231).
+ *
+ * @returns {{ teraz: number, predtym: number|null, sedi: boolean, bezPredchodcu: boolean }}
+ */
+export function skontrolujPosunNaMain({ korenRepozitara, ref = 'HEAD' }) {
+  const teraz = verziaVCommite(korenRepozitara, ref);
+  if (teraz === null) {
+    throw new Error(`${SUBOR_VERZIE} sa nedá prečítať z commitu ${ref}.`);
+  }
+
+  // Prvý commit repozitára nemá s čím porovnávať — to nie je chyba.
+  const predtym = verziaVCommite(korenRepozitara, `${ref}^`);
+  if (predtym === null) {
+    return { teraz, predtym: null, sedi: true, bezPredchodcu: true };
+  }
+
+  return { teraz, predtym, sedi: teraz === predtym + 1, bezPredchodcu: false };
+}
+
 /**
  * Nastaví číslo vo `version.json` na (verzia na `main`) + 1.
  * @returns {{ zmenene: boolean, verzia: number }}
@@ -90,11 +130,46 @@ export function zvysVerziu({ korenRepozitara }) {
   return { zmenene: true, verzia: nova };
 }
 
+/** Hláška pre `--kontrola-main` podľa toho, čo sa s číslom stalo. */
+function hlaskaPosunu({ teraz, predtym }) {
+  if (teraz === predtym) {
+    return `[verzia] main je stále na ${teraz} — posledné zlúčenie číslo nezvýšilo. ` +
+      'Dve rôzne zostavy tak nesú rovnaké číslo a tester ich nemá ako rozlíšiť.';
+  }
+  if (teraz < predtym) {
+    return `[verzia] Číslo na main kleslo z ${predtym} na ${teraz}.`;
+  }
+  return `[verzia] Číslo na main skočilo z ${predtym} na ${teraz} — zostavy ` +
+    `${predtym + 1}–${teraz - 1} neexistujú.`;
+}
+
 function main() {
   const koren = join(dirname(fileURLToPath(import.meta.url)), '..');
   const lenKontrola = process.argv.includes('--kontrola');
+  const kontrolaMain = process.argv.includes('--kontrola-main');
 
   try {
+    if (kontrolaMain) {
+      const { teraz, predtym, sedi, bezPredchodcu } = skontrolujPosunNaMain({ korenRepozitara: koren });
+
+      if (bezPredchodcu) {
+        console.log(`[verzia] ${teraz} — prvý commit, nie je s čím porovnávať.`);
+        return;
+      }
+
+      if (!sedi) {
+        console.error(hlaskaPosunu({ teraz, predtym }));
+        console.error(
+          '[verzia] Pravidlo je jeden zlúčený PR = presne +1 (docs/verziovanie.md). ' +
+          'Spätne sa to už neopraví — ide o signál, aby sa to nedialo ďalej.',
+        );
+        process.exit(1);
+      }
+
+      console.log(`[verzia] main: ${predtym} → ${teraz} — OK.`);
+      return;
+    }
+
     if (lenKontrola) {
       const { vetva, main: naMain, ocakavana, sedi, nezvysena } = skontrolujVerziu({ korenRepozitara: koren });
 
