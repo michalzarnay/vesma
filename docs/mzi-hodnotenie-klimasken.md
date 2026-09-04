@@ -47,14 +47,16 @@ menovateľa ako samostatné plochy.
 
 Škála: **E** ≤ 0,2 · **D** > 0,2–0,3 · **C** > 0,3–0,6 · **B** > 0,6–0,8 · **A** > 0,8
 
-**Iné stavby (krok 4).** Zastavaná plocha oplotenia, chodníka či parkoviska
-vstupuje do B-GOV2 pod kódom A, teda ako nepriepustná plocha (#233). Tá istá
-plocha sa preto v kroku Pozemky do výmer **nezapočítava** — inak by sa zarátala
-dvakrát. Krok 2 na to upozorňuje a ukazuje, koľko m² už je zadaných v kroku 4.
+**Iné stavby (krok 4).** Iná stavba je drobná stavba **bez základov v zemi** —
+altánok, pergola, prístrešok, plechová búda. Jej zastavaná plocha vstupuje do
+B-GOV2 pod kódom A, teda ako nepriepustná plocha (#233). Tá istá plocha sa preto
+v kroku Pozemky do výmer **nezapočítava** — inak by sa zarátala dvakrát. Krok 2
+na to upozorňuje a ukazuje, koľko m² už je zadaných v kroku 4.
 
-Otvorené zostáva, či sa má pri iných stavbách zisťovať **typ povrchu** (#233,
-druhá otázka). Kým sa nerozhodne, parkovisko s priepustnou dlažbou sa hodnotí
-rovnako ako asfaltové — kód A pre všetky iné stavby.
+**Chodníky, terasy a parkoviská nie sú iné stavby** — sú to povrchy pozemku
+a zadávajú sa v kroku 2 podľa priepustnosti (kódy A až C). Typ povrchu
+parkoviska sa teda rozlišuje tam, kde na to sú polia. Jednoduché oplotenie sa
+nezadáva nikam; na koeficient MZI nemá vplyv.
 
 ### B-GOV3 — zeleň a retencia na budovách
 

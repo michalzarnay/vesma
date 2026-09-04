@@ -270,8 +270,9 @@ describe('calculateMZI – odtok zo spevnených plôch', () => {
 
 /**
  * Iné stavby z Kroku 4 v MZI (#233). Rozhodnutie zadávateľa: zastavaná plocha
- * oplotenia, chodníka či parkoviska je nepriepustná plocha a do skóre vstupuje.
- * Dvojité započítanie rieši Krok 2 — výmery sa tam zadávajú bez týchto stavieb.
+ * drobnej stavby bez základov (altánok, prístrešok, plechová búda) je
+ * nepriepustná plocha a do skóre vstupuje. Dvojité započítanie rieši Krok 2 —
+ * výmery sa tam zadávajú bez týchto stavieb.
  */
 describe('calculateMZI – iné stavby (#233)', () => {
   function arealSInouStavbou(zastavanaPlocha: number) {
@@ -282,7 +283,7 @@ describe('calculateMZI – iné stavby (#233)', () => {
     p.priepustnaPlochaByliny = 100; // trávnik, koeficient 0,7
     areal.pozemky = [p];
     const stavba = createEmptyInaStavba();
-    stavba.nazov = 'Parkovisko';
+    stavba.nazov = 'Altánok';
     stavba.zastavanaPlocha = zastavanaPlocha;
     areal.ineStavby = [stavba];
     return areal;
@@ -293,7 +294,7 @@ describe('calculateMZI – iné stavby (#233)', () => {
     const bezStavby = arealSInouStavbou(0);
     expect(calculateMZI(bezStavby).koefOkolie).toBeCloseTo(0.7, 5);
 
-    // + 100 m² parkoviska (0) → 70 / 200 = 0,35.
+    // + 100 m² altánku (0) → 70 / 200 = 0,35.
     const soStavbou = arealSInouStavbou(100);
     expect(calculateMZI(soStavbou).koefOkolie).toBeCloseTo(0.35, 5);
   });
@@ -323,7 +324,7 @@ describe('calculateMZI – iné stavby (#233)', () => {
   it('viac stavieb sa sčíta do jedného riadku rozpisu', () => {
     const areal = arealSInouStavbou(60);
     const druha = createEmptyInaStavba();
-    druha.nazov = 'Chodník';
+    druha.nazov = 'Prístrešok na bicykle';
     druha.zastavanaPlocha = 40;
     areal.ineStavby.push(druha);
 

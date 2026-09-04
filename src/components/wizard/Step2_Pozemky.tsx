@@ -47,10 +47,12 @@ export function Step2_Pozemky({
 
       {/* Nápoveda k rozhodnutiu, kam zaradiť parcelu (pozri issue #37). */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 space-y-1">
-        <p><strong>Čo patrí sem (Pozemky):</strong> nezastavané parcely — trávnaté plochy, dvory, záhrady, spevnené plochy.</p>
-        <p><strong>Čo do výmer nezapočítavajte:</strong> plochy stavieb zadaných v kroku <strong>Iné stavby</strong>
-          — chodník, parkovisko, terasa či oplotenie. Do hodnotenia vstupujú odtiaľ, takže zadané dvakrát by areál
-          zbytočne poškodili.</p>
+        <p><strong>Čo patrí sem (Pozemky):</strong> nezastavané parcely — trávnaté plochy, záhrady, dvory
+          a <strong>chodníky, terasy aj parkoviská</strong>. Tie nie sú samostatné stavby, ale povrchy pozemku —
+          zadajte ich nižšie podľa toho, či vodu prepúšťajú.</p>
+        <p><strong>Čo do výmer nezapočítavajte:</strong> zastavanú plochu stavieb z kroku <strong>Iné stavby</strong>
+          (altánok, prístrešok, búda). Do hodnotenia vstupujú odtiaľ, takže zadané dvakrát by areál zbytočne
+          poškodili.</p>
         <p><strong>Čo patrí do Budov:</strong> parcely, na ktorých stojí budova — zadajte ich v kroku Budovy (pole Parcela).</p>
         <p><strong>Parcela len so stavbou</strong> patrí len medzi Budovy — nezadávajte ju medzi Pozemky.</p>
         <p><strong>Parcela s budovou aj nezastavaným pozemkom:</strong> zaraďte ju podľa toho, čo na nej prevažuje (dominantné využitie) — buď medzi Budovy, alebo medzi Pozemky.</p>
@@ -60,8 +62,9 @@ export function Step2_Pozemky({
 
       {plochaInychStavieb > 0 && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700">
-          V kroku Iné stavby máte zadaných <strong>{formatArea(plochaInychStavieb)}</strong>. Tie sa do
-          hodnotenia pripočítajú ako nepriepustná plocha samy — vo výmerach nižšie ich nechajte nezapočítané.
+          V kroku Iné stavby máte zadaných <strong>{formatArea(plochaInychStavieb)}</strong> zastavanej plochy.
+          Tie sa do hodnotenia pripočítajú ako nepriepustná plocha samy — vo výmerach nižšie ich nechajte
+          nezapočítané.
         </div>
       )}
 

@@ -304,9 +304,9 @@ function sheetBudovy(areal: Areal): (string | number)[][] {
 }
 
 /**
- * Iné stavby z Kroku 4 (issue #209) — oplotenie, chodníky, parkoviská.
- * Do skóre nevstupujú (o tom, či zastavaná plocha patrí do MZI, rozhoduje
- * človek), ale zadané údaje musia byť vo výstupe.
+ * Iné stavby z Kroku 4 (issue #209) — drobné stavby bez základov: altánok,
+ * prístrešok, plechová búda. Zastavaná plocha vstupuje do MZI ako nepriepustná
+ * plocha (#233); chodníky a parkoviská sem nepatria, tie sú povrchy pozemku.
  */
 function sheetIneStavby(areal: Areal): (string | number)[][] {
   const header = [

@@ -26,7 +26,7 @@
 // začnú tieto parametre v súčte reálne vážiť: pri počte budov prispievali jednotkami,
 // kým plošné parametre tisíckami, takže boli prakticky neviditeľné.
 //
-// SEZÓNNE NEVYKUROVANÉ STAVBY (záhradná chata, altánok, sklad náradia) sa do
+// SEZÓNNE NEVYKUROVANÉ STAVBY (murovaná záhradná chata, murovaný sklad náradia) sa do
 // parametrov, ktoré merajú potenciál obálky a vykurovania, nezapočítavajú —
 // zateplovať ani obnovovať zdroj tepla tam, kde sa nekúri, nedáva zmysel a areál
 // by tým dostal potenciál, ktorý nikto nebude realizovať. Týka sa to parametrov

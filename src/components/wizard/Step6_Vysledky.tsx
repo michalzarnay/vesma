@@ -597,9 +597,8 @@ function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
     {
       nadpis: 'Iné stavby',
       krok: 4,
-      // Či má zastavaná plocha iných stavieb vstupovať do MZI, je rozhodnutie
-      // o pravidlách hodnotenia — ostáva na človeka (#209).
-      mimoSkore: 'Do skóre zatiaľ nevstupujú — sú v prehľade a v exporte.',
+      // Zastavaná plocha vstupuje do MZI ako nepriepustná plocha (#233).
+      mimoSkore: 'Zastavaná plocha vstupuje do skóre ako nepriepustná plocha.',
       polozky: areal.ineStavby.map((s, i) => ({
         id: s.id,
         nazov: s.nazov || `Stavba ${i + 1}`,
@@ -633,7 +632,7 @@ function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
  * „Iné stavby" a B&G opatrenia sa predtým nedostali ani sem, ani do exportu —
  * používateľ ich vyplnil a vo výstupe po nich nezostala stopa. Skóre menia
  * len tie skupiny, ktoré doň vstupujú; pri ostatných to prehľad povie rovno,
- * aby si nikto nemyslel, že oplotenie zlepšilo hodnotenie.
+ * aby si nikto nemyslel, že altánok zlepšil hodnotenie.
  */
 function ZadaneEntity({ areal }: { areal: Areal }) {
   const skupiny = skupinyPrehladu(areal).filter((s) => s.polozky.length > 0);
