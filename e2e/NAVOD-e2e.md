@@ -40,6 +40,7 @@ Playwright si sám spustí `npm run dev` (port 5173) a po teste ho zhasne.
 | `stav-bez-dat.spec.ts` | čerstvá relácia, prázdny areál a areál bez budov na Výsledkoch aj v exporte |
 | `sezonna-stavba.spec.ts` | otázka o sezónnej stavbe a nehodnotená energetika vo Výsledkoch aj v exporte |
 | `vysvetlenie-skore.spec.ts` | pri komponente bez bodov je napísané, ktorý údaj chýba (aj v exporte) |
+| `ine-stavby-v-skore.spec.ts` | iná stavba vstupuje do MZI a Krok 2 varuje pred dvojitým zadaním |
 | `nove-polia-verzia.spec.ts` | nové otázky vo formulári budovy, pripomienka pri staršej relácii |
 | `podnety-pokrytie.spec.ts` | ikonka „Pridať podnet" naprieč typmi polí |
 | `pozemok-nadrze-objem.spec.ts` | objem nádrží prijme desatinné m³ |

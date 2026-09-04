@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMZI, calculateOZE } from '../useScoring';
-import { createEmptyAreal, createEmptyPozemok, createEmptyBudova } from '../../types/areal';
+import {
+  createEmptyAreal, createEmptyPozemok, createEmptyBudova, createEmptyInaStavba,
+} from '../../types/areal';
 
 /** Areál len s pozemkami — budovy by inak pridali komponent B-GOV3 s nulovou strechou. */
 function arealSPozemkom(uprav: (p: ReturnType<typeof createEmptyPozemok>) => void) {
@@ -263,5 +265,69 @@ describe('calculateMZI – odtok zo spevnených plôch', () => {
     });
 
     expect(calculateMZI(areal).podielZadrzanehoOdtoku).toBeCloseTo(0, 5);
+  });
+});
+
+/**
+ * Iné stavby z Kroku 4 v MZI (#233). Rozhodnutie zadávateľa: zastavaná plocha
+ * oplotenia, chodníka či parkoviska je nepriepustná plocha a do skóre vstupuje.
+ * Dvojité započítanie rieši Krok 2 — výmery sa tam zadávajú bez týchto stavieb.
+ */
+describe('calculateMZI – iné stavby (#233)', () => {
+  function arealSInouStavbou(zastavanaPlocha: number) {
+    const areal = createEmptyAreal();
+    areal.budovy = [];
+    const p = createEmptyPozemok();
+    p.priepustnaPlochaCelkom = 100;
+    p.priepustnaPlochaByliny = 100; // trávnik, koeficient 0,7
+    areal.pozemky = [p];
+    const stavba = createEmptyInaStavba();
+    stavba.nazov = 'Parkovisko';
+    stavba.zastavanaPlocha = zastavanaPlocha;
+    areal.ineStavby = [stavba];
+    return areal;
+  }
+
+  it('zastavaná plocha znižuje koeficient ako nepriepustná plocha', () => {
+    // 100 m² trávnika (0,7) samo → 0,70.
+    const bezStavby = arealSInouStavbou(0);
+    expect(calculateMZI(bezStavby).koefOkolie).toBeCloseTo(0.7, 5);
+
+    // + 100 m² parkoviska (0) → 70 / 200 = 0,35.
+    const soStavbou = arealSInouStavbou(100);
+    expect(calculateMZI(soStavbou).koefOkolie).toBeCloseTo(0.35, 5);
+  });
+
+  it('stavba bez zadanej plochy skóre nemení', () => {
+    const soStavbouBezPlochy = arealSInouStavbou(0);
+    const bezStavieb = arealSInouStavbou(0);
+    bezStavieb.ineStavby = [];
+
+    expect(calculateMZI(soStavbouBezPlochy).koefOkolie)
+      .toBe(calculateMZI(bezStavieb).koefOkolie);
+  });
+
+  it('areál len s inou stavbou sa dá vypočítať — komponent nie je „bez údajov"', () => {
+    const areal = createEmptyAreal();
+    areal.budovy = [];
+    areal.pozemky = [createEmptyPozemok()];
+    const stavba = createEmptyInaStavba();
+    stavba.zastavanaPlocha = 50;
+    areal.ineStavby = [stavba];
+
+    // Samá nepriepustná plocha → koeficient 0, ale komponent existuje.
+    expect(calculateMZI(areal).koefOkolie).toBe(0);
+    expect(calculateMZI(areal).okolie).not.toBeNull();
+  });
+
+  it('viac stavieb sa sčíta do jedného riadku rozpisu', () => {
+    const areal = arealSInouStavbou(60);
+    const druha = createEmptyInaStavba();
+    druha.nazov = 'Chodník';
+    druha.zastavanaPlocha = 40;
+    areal.ineStavby.push(druha);
+
+    // 60 + 40 = 100 m² nepriepustnej plochy → rovnako ako jedna stavba so 100 m².
+    expect(calculateMZI(areal).koefOkolie).toBeCloseTo(0.35, 5);
   });
 });

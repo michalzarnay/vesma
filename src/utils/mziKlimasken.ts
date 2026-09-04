@@ -225,12 +225,29 @@ export function plochyOkolia(areal: Areal): Plocha[] {
     plochy.push({ nazov: 'Prekoreniteľný priestor pre stromy', kod: 'P', vymera: p.prekorenetelnyPriestorPreStromy, koef: KOEF_OKOLIE.prekorenitelnyPriestor });
   }
 
+  // Iné stavby z Kroku 4 — oplotenie, chodník, parkovisko (#233). Zastavaná
+  // plocha je nepriepustný povrch (kód A) rovnako ako asfalt na pozemku.
+  //
+  // Dvojité započítanie tej istej plochy rieši Krok 2: výmery povrchov sa tam
+  // zadávajú BEZ stavieb z Kroku 4. Preto sa tu plochy pripočítajú, nie
+  // odpočítajú — ide o m², ktoré v Kroku 2 zadané nie sú.
+  // Jeden riadok za všetky — rovnako ako sa povrchy zlučujú naprieč pozemkami.
+  // Ktorá stavba koľko zaberá, je v prehľade Výsledkov a v hárku „Iné stavby".
+  for (const stavba of areal.ineStavby) {
+    plochy.push({
+      nazov: 'Iné stavby (zastavaná plocha)',
+      kod: 'A',
+      vymera: stavba.zastavanaPlocha,
+      koef: KOEF_OKOLIE.nepriepustne,
+    });
+  }
+
   return plochy;
 }
 
 /**
  * B-GOV2 — vážený koeficient MZI plôch areálu (0–1).
- * Vráti `null`, ak na pozemkoch nie je zadaná žiadna výmera.
+ * Vráti `null`, ak nie je zadaná žiadna výmera na pozemkoch ani pri iných stavbách.
  */
 export function koeficientOkolia(areal: Areal): number | null {
   return vazenyKoeficient(plochyOkolia(areal));

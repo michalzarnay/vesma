@@ -30,7 +30,18 @@ export interface ZmenaPravidiel {
  *
  * Verzia 1 je východiskový stav pri zavedení sledovania, preto tu záznam nemá.
  */
-export const ZMENY_PRAVIDIEL: Record<number, ZmenaPravidiel[]> = {};
+export const ZMENY_PRAVIDIEL: Record<number, ZmenaPravidiel[]> = {
+  2: [
+    {
+      oblast: 'Skóre areálu',
+      popis:
+        'Zastavaná plocha stavieb z kroku Iné stavby (oplotenie, chodník, parkovisko) sa už ' +
+        'započítava do skóre modro-zelenej infraštruktúry ako nepriepustná plocha. Ak ste tie ' +
+        'plochy zadali aj do výmer v kroku Pozemky, odrátajte ich tam — inak sa zarátajú dvakrát ' +
+        'a skóre bude nižšie, než má byť.',
+    },
+  ],
+};
 
 /**
  * Prvá verzia, od ktorej vieme zmeny vymenovať. Relácia uložená skôr (verzia 0)

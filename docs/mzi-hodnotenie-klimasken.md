@@ -33,7 +33,7 @@ menovateľa ako samostatné plochy.
 
 | Kód | Popis | k | Pole v dotazníku VESMA |
 |---|---|---|---|
-| A | nepriepustné spevnené plochy | 0 | `spevnenaPlochaCelkom` |
+| A | nepriepustné spevnené plochy | 0 | `spevnenaPlochaCelkom`, `InaStavba.zastavanaPlocha` |
 | B | dlažba so škárou < 15 mm, mlatová plocha | 0,2 | `polopriepustnaMlatovyPovrch` |
 | C | priepustný kryt, nespevnená plocha bez rastlinného krytu | 0,4 | priepustný asfalt/betón, vodopriepustná dlažba, živica + kremičitý štrk, Stered, `priepustnaPlochaObrabanaPoda` |
 | G | súvislý rastlinný kryt na silno zhutnenom podklade | 0,4 | `polopriepustnaPlnevegetacneTvarnice` |
@@ -46,6 +46,15 @@ menovateľa ako samostatné plochy.
 | S | plošné objekty HDV umožňujúce vsak | 1,0 | `dazdovaZahradaPlocha`, `jazierkoPlocha`, `vsakovaciaPrehlbenaBezpecnostnyPrepad` |
 
 Škála: **E** ≤ 0,2 · **D** > 0,2–0,3 · **C** > 0,3–0,6 · **B** > 0,6–0,8 · **A** > 0,8
+
+**Iné stavby (krok 4).** Zastavaná plocha oplotenia, chodníka či parkoviska
+vstupuje do B-GOV2 pod kódom A, teda ako nepriepustná plocha (#233). Tá istá
+plocha sa preto v kroku Pozemky do výmer **nezapočítava** — inak by sa zarátala
+dvakrát. Krok 2 na to upozorňuje a ukazuje, koľko m² už je zadaných v kroku 4.
+
+Otvorené zostáva, či sa má pri iných stavbách zisťovať **typ povrchu** (#233,
+druhá otázka). Kým sa nerozhodne, parkovisko s priepustnou dlažbou sa hodnotí
+rovnako ako asfaltové — kód A pre všetky iné stavby.
 
 ### B-GOV3 — zeleň a retencia na budovách
 
