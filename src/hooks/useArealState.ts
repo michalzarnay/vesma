@@ -1,5 +1,6 @@
 import { useReducer, useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import {
+  AKTUALNA_VERZIA_PRAVIDIEL,
   Areal, Pozemok, Budova, InaStavba, BGOpatrenie, MediaItem, ScoringWeights,
   createEmptyAreal, createEmptyPozemok, createEmptyBudova,
   createEmptyInaStavba, createEmptyBGOpatrenie,
@@ -129,6 +130,9 @@ export function migrateAreal(raw: unknown): Areal {
     ...data,
     // issue #177: relácia bez čísla verzie pochádza spred jeho zavedenia
     schemaVersion: data.schemaVersion ?? 1,
+    // Relácia bez verzie pravidiel bola vyhodnotená ešte pred zavedením ich
+    // sledovania — verzia 0 znamená „nevieme, ktoré pravidlá vtedy platili".
+    pravidlaVersion: data.pravidlaVersion ?? 0,
     organizaciaVZriadovatelskejPobnonosti: data.organizaciaVZriadovatelskejPobnonosti ?? '',
     obhliadkuVykonal: data.obhliadkuVykonal ?? '',
     datumObhliadky: data.datumObhliadky ?? '',
@@ -312,11 +316,16 @@ const STORAGE_KEY = 'sma-nastroj-areal';
 // Serializovaný „odtlačok" areálu na porovnanie neuložených zmien.
 // dataUrl médií ignorujeme (rovnako ako pri ukladaní do localStorage), aby
 // asynchrónne donačítanie médií z IndexedDB nevyvolalo falošný príznak zmeny.
+// `pravidlaVersion` je metaúdaj o hodnotení, nie odpoveď používateľa — jeho
+// posun (potvrdenie upozornenia o zmene pravidiel) nesmie vyzerať ako
+// neuložená zmena areálu.
 function serializeForCompare(areal: Areal): string {
-  return JSON.stringify({
+  const odtlacok: Areal = {
     ...areal,
     media: areal.media.map((m) => ({ ...m, dataUrl: '' })),
-  });
+  };
+  delete odtlacok.pravidlaVersion;
+  return JSON.stringify(odtlacok);
 }
 
 export function useArealState() {
@@ -446,11 +455,19 @@ export function useArealState() {
     setBaseline(serializeForCompare(areal));
   }, [areal]);
 
+  // Používateľ vzal na vedomie, že sa zmenili pravidlá hodnotenia. Areál sa
+  // označí za vyhodnotený podľa aktuálnych pravidiel, takže sa upozornenie
+  // neopakuje pri každom obnovení stránky. Neuložené zmeny to neovplyvňuje.
+  const potvrdZmenuPravidiel = useCallback(() => {
+    dispatch({ type: 'UPDATE_AREAL', payload: { pravidlaVersion: AKTUALNA_VERZIA_PRAVIDIEL } });
+  }, []);
+
   return {
     areal,
     mediaReady,
     isDirty,
     markSaved,
+    potvrdZmenuPravidiel,
     updateAreal,
     addPozemok, updatePozemok, removePozemok,
     addBudova, updateBudova, removeBudova,

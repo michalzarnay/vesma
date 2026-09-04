@@ -25,7 +25,9 @@ Tu sa zastav, napíš, čo navrhuješ a prečo, a počkaj:
 2. **Pravidlá hodnotenia.** Skóre areálu (`useScoring.ts`) a váhy porovnania
    (`comparisonWeights.ts`). Menia poradie areálov, teda to, kam pôjdu peniaze.
    Prepočet jednotky alebo oprava zjavnej chyby vo vzorci sem nepatrí — tie
-   sprav a popíš v PR.
+   sprav a popíš v PR. Keď pravidlá naozaj meníš, zvýš aj
+   `AKTUALNA_VERZIA_PRAVIDIEL` a doplň zoznam zmien — inak sa používateľovi
+   ticho prečíslujú areály v uloženej relácii (`docs/verziovanie-pravidiel.md`).
 3. **Nezvratné a von smerujúce kroky.** Zlúčenie PR, mazanie vetiev, zásah
    priamo do `main`, čokoľvek smerom von z repozitára.
 4. **Rozbitie existujúceho exportného kontraktu** na xMatik a Klimasken

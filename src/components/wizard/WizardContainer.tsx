@@ -20,6 +20,8 @@ import { FilePlus, GitCompare } from 'lucide-react';
 import { useState } from 'react';
 import { chybajuceNovePolia, verziaArealu } from '../../utils/schemaVersion';
 import { NovePoliaPripomienka } from './NovePoliaPripomienka';
+import { upozornenieNaZmenuPravidiel } from '../../utils/pravidlaVersion';
+import { ZmenaPravidielDialog } from './ZmenaPravidielDialog';
 
 export function WizardContainer() {
   const wizard = useWizard();
@@ -31,6 +33,13 @@ export function WizardContainer() {
   const chybajucePolia = useMemo(
     () => (zavretaPripomienkaPre === arealState.areal.id ? [] : chybajuceNovePolia(arealState.areal)),
     [arealState.areal, zavretaPripomienkaPre],
+  );
+  // Upozornenie na zmenu pravidiel hodnotenia od posledného vyplnenia relácie.
+  // Potvrdenie sa zapíše do areálu (`pravidlaVersion`), takže sa dialóg
+  // neopakuje po obnovení stránky.
+  const zmenaPravidiel = useMemo(
+    () => upozornenieNaZmenuPravidiel(arealState.areal),
+    [arealState.areal],
   );
   const recommendations = useRecommendations(arealState.areal);
   const step6Unlocked = recommendations.length > 0;
@@ -149,6 +158,13 @@ export function WizardContainer() {
           </>
         }
       />
+
+      {zmenaPravidiel && (
+        <ZmenaPravidielDialog
+          upozornenie={zmenaPravidiel}
+          onZavriet={arealState.potvrdZmenuPravidiel}
+        />
+      )}
 
       {zobrazitPorovnanie && (
         <AreaComparisonView
