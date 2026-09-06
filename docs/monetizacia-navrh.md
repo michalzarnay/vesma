@@ -22,6 +22,32 @@ Ako čítať značky:
 
 ---
 
+## Zhrnutie na jednu minútu
+
+**Rozhodnuté:**
+
+- Základná verzia je pre obce Žilinského kraja **platená**, cena podľa **počtu
+  obyvateľov**. Dôvod, ktorý dala zadávateľka: nástroj s cenovkou je vnímaný
+  ako hodnotnejší než nástroj zadarmo.
+- **Župa neplatí** — ani za vlastné budovy, ani za obce v kraji.
+- **Bude prechodné obdobie bez poplatku** (návrh termínu: do 31. 12. 2026).
+- Funkcie s variabilným nákladom (vyťaženie skenov, fotografie) tvoria
+  **balík PLUS: +50 %** k ročnému poplatku, s limitom **tri dokumenty na
+  zmapovaný objekt**. Kvóta platí aj počas prechodného obdobia.
+- Obci, ktorá nezaplatí, sa účet prepne do režimu **len na čítanie na 12 mesiacov**
+  — dáta si vie kedykoľvek vyexportovať, mazanie až po dvoch upozorneniach.
+
+**Otvorené a horí do 8. 9.:** potvrdiť termín a cenník · zmerať, čo nás stojí
+spracovanie jedného skenu · skryť atrapy AI a exportov v aplikácii · získať
+od župy písomné potvrdenie.
+
+**Čo si treba uvedomiť:** 31. 12. nie je len marketingový termín, ale
+**vývojový deadline**. Platba od 1. 1. 2027 vyžaduje účet, databázu, úložisko
+a evidenciu predplatného — dnes je všetko v prehliadači používateľa a server
+o dátach nevie nič. Čo to znamená a čo na to treba, je v časti D.
+
+---
+
 ## A. Dohodnutý model
 
 ### A.1 Čo sa zmenilo oproti pôvodnému zadaniu
@@ -120,10 +146,11 @@ to rozhodnutie.
 
 ### A.5 Balík PLUS — funkcie s variabilným nákladom
 
-**Spoplatnenie funkcií, ktoré nám generujú náklady, o zhruba +50 % ročného
-poplatku [dohodnuté v princípe]**; podoba nižšie je návrh.
+**Funkcie, ktoré nám generujú variabilný náklad, sa spoplatňujú príplatkom
++50 % k ročnému poplatku [dohodnuté].** Podoba balíka nižšie je odsúhlasená
+6. 9. 2026.
 
-**Návrh: PLUS ako druhý rozmer, nie piata kategória.** Veľkostné kategórie
+**PLUS je druhý rozmer cenníka, nie piata kategória [dohodnuté].** Veľkostné kategórie
 hovoria *kto* je zákazník; vyťažovanie dokumentov hovorí, *koľko nás ten
 zákazník stojí*. Sú to nezávislé veci — mesto s 30 000 obyvateľmi môže mať všetky
 certifikáty naskenované aj v tabuľke. Piata kategória by ich zlepila dokopy.
@@ -153,7 +180,7 @@ rovnako ako veľkosť obce, takže pomer „cena PLUS / počet dokumentov" vych�
 vo všetkých štyroch kategóriách približne rovnako. Nie je to náhoda a je to
 argument, prečo je model férový — dá sa to takto povedať aj obciam.
 
-**Limit — bez neho model nefunguje [návrh]:**
+**Limit — bez neho model nefunguje [dohodnuté]:**
 
 > V balíku PLUS je zahrnuté spracovanie **troch dokumentov na každý zmapovaný
 > objekt** (typicky list vlastníctva, energetický certifikát a jeden ďalší).
@@ -164,11 +191,14 @@ navyše. PLUS neobmedzený byť nesmie, lebo tam každé použitie stojí peniaz
 Pravidlo naviazané na počet objektov sa vysvetlí jednou vetou, škáluje samo
 s veľkosťou obce a zastaví prípad, keď niekto nahrá dvetisíc skenov.
 
-**PLUS počas prechodného obdobia [návrh]:** nedávať zadarmo v plnom rozsahu,
-len s malou kvótou (napríklad 5 dokumentov na obec, nech si to vyskúšajú).
+**PLUS počas prechodného obdobia [dohodnuté]:** ani počas prechodného obdobia
+nie je PLUS zadarmo v plnom rozsahu — platí preň kvóta, aby si ho obce mohli
+vyskúšať bez toho, aby nám odtiekla hotovosť. **Výška kvóty [návrh]: 5 dokumentov
+na obec.**
+
 Štyri mesiace neobmedzeného spracovania skenov zadarmo sú jediné miesto v celom
 modeli, kde nám môže reálne odtiecť hotovosť — a to práve v čase, keď ešte
-nevieme, koľko to stojí (B.1).
+nevieme, koľko nás jeden dokument stojí (B.1). Preto kvóta, a nie dobrá viera.
 
 ### A.6 Čo zostáva bezplatné navždy
 
@@ -353,16 +383,27 @@ funkciu je oveľa silnejší signál než zaplatenie vstupného.
 
 ## C. Otvorené rozhodnutia
 
+Čísla rozhodnutí zostávajú stabilné aj po vyriešení — na uzavreté sa odkazuje
+inde a prečíslovaním by odkazy prestali sedieť. Vyriešené položky preto z tabuľky
+miznú a sú vypísané nižšie.
+
+### Rozhodnuté 6. 9. 2026
+
+| # | Rozhodnutie | Výsledok |
+| --- | --- | --- |
+| C3 | PLUS ako druhý rozmer, alebo ako piata kategória | **druhý rozmer** |
+| C4 | Limit balíka PLUS | **tri dokumenty na zmapovaný objekt** |
+| C5 | Rozsah balíka PLUS počas prechodného obdobia | **kvóta sa použije** (výška ešte na potvrdenie) |
+
 ### Pred 8. 9. 2026
 
 | # | Rozhodnutie | Odkaz |
 | --- | --- | --- |
 | C1 | Potvrdiť termín prechodného obdobia (návrh 31. 12. 2026) | A.3 |
 | C2 | Potvrdiť cenník 50 / 100 / 250 / 500 € a doplniť, či je s DPH | A.4 |
-| C3 | PLUS ako druhý rozmer, alebo ako piata kategória (návrh: druhý rozmer) | A.5 |
-| C4 | Limit balíka PLUS — „3 dokumenty na objekt", alebo pevné číslo na kategóriu | A.5 |
-| C5 | Rozsah balíka PLUS počas prechodného obdobia (návrh: kvóta 5 dokumentov) | A.5 |
+| C5b | Potvrdiť výšku kvóty PLUS počas prechodného obdobia (návrh 5 dokumentov) | A.5 |
 | C6 | Zmerať náklad na spracovanie jedného skenu | B.1 |
+| C16 | Potvrdiť cloud namiesto vlastného servera (návrh: cloud, región EU) | D.2 |
 | C7 | Atrapy AI a exportov v UI — skryť alebo prerobiť na „pripravujeme" | B.2 |
 | C8 | Vyžadovať e-mail na vstupe alebo pred výsledkom (návrh: pred výsledkom) | B.3 |
 | C9 | Získať písomné potvrdenie od župy | B.4 |
@@ -377,36 +418,132 @@ funkciu je oveľa silnejší signál než zaplatenie vstupného.
 | C13 | Pravidlo pre verzie pravidiel v platenej verzii | B.8 |
 | C14 | Rozsah tréningového režimu a formulára záujmu mimo ŽSK | B.9 |
 | C15 | Kedy a ako zmapovať budovy kraja ako referenciu | B.5 |
+| C17 | Výber konkrétnych služieb — databáza, prihlásenie, úložisko, e-maily | D.3 |
+| C18 | VOP a aktualizované zásady ochrany osobných údajov | D.7 |
+| C19 | Kto rieši podporu používateľov a na akej adrese | D.5, D.7 |
 
 ---
 
-## D. Čo z modelu vyplýva pre vývoj
+## D. Infraštruktúra a čo treba pripraviť
 
-Toto je najpodceňovanejšia časť rozhodnutia. Platená verzia od 1. 1. 2027
-znamená, že do konca roka musí existovať niečo, čo dnes neexistuje vôbec.
+Toto je najpodceňovanejšia časť rozhodnutia. Platba od 1. 1. 2027 znamená, že
+do konca roka musí existovať niečo, čo dnes neexistuje vôbec.
 
-**Dnešný stav:** relácie sú v `localStorage` prehliadača, fotografie v IndexedDB
-(`src/utils/mediaDb.ts`, databáza `sma-nastroj-media`). Server o dátach používateľa
-nevie nič. Jediné serverové časti sú `api/feedback.ts` (most do Google Sheetu),
-`api/pvgis.ts` a `api/svp-flood.ts`.
+### D.1 Kde sme dnes
 
-**Čo musí pribudnúť do 31. 12. 2026:**
+Relácie sú v `localStorage` prehliadača, fotografie v IndexedDB
+(`src/utils/mediaDb.ts`, databáza `sma-nastroj-media`). **Server o dátach
+používateľa nevie nič — a žiadna databáza neexistuje.** Jediné serverové časti
+sú tri bezstavové funkcie na Verceli: `api/feedback.ts` (most do Google Sheetu),
+`api/pvgis.ts` a `api/svp-flood.ts`. Nasadenie beží pod `inovia.sk/vesma/` cez
+reverse proxy (`docs/nasadenie-inovia-sk.md`).
 
-| Čo | Prečo to model vyžaduje |
-| --- | --- |
-| Účet a prihlásenie | A.2 — bez identity sa nedá povedať, kto zaplatil |
-| Serverové úložisko relácií | A.8 — režim „len na čítanie" po skončení predplatného nemá čo zamykať, kým sú dáta v prehliadači |
-| Kategória obce na účte | A.4 — cena sa odvodzuje od počtu obyvateľov |
-| Evidencia predplatného a jeho platnosti | A.3, A.8 |
-| Fakturačný mechanizmus | B.6 |
-| Spracovanie skenov + počítadlo dokumentov | A.5 — limit sa musí dať odmerať |
-| Skúšobný režim bez uloženia a exportu | A.6 |
+Dôsledok, ktorý treba povedať nahlas: dnes **nemáme čo zamykať ani zálohovať**.
+Režim „len na čítanie" z A.8 aj limit balíka PLUS z A.5 predpokladajú, že dáta
+a počítadlá sú na našej strane.
 
-Je toho viac než dokončenie energetického modulu. **Termín 31. 12. nie je len
-marketingový — je to vývojový deadline** a to je ďalší dôvod, prečo bol
-15. 11. nereálny.
+### D.2 Vlastný server, alebo cloud?
 
----
+**Odporúčanie: cloud, a vlastný server neriešiť [návrh].**
+
+Vlastný server by znamenal, že niekto v INOVII aktualizuje operačný systém,
+obnovuje certifikáty, sleduje výpadky, robí zálohy a skúša ich obnovu. Pri
+jednom vývojárovi na čiastočný úväzok je to práca, ktorá zožerie kapacitu
+určenú na samotný nástroj. Objem dát je pritom malý — rádovo stovky obcí,
+tisíce objektov a fotografie.
+
+Dve podmienky, ktoré z toho robím:
+
+1. **Región EU.** Databáza aj úložisko musia byť v Európskej únii a poskytovateľ
+   musí byť menovaný v zásadách ochrany osobných údajov. Toto sa obce aj kraj
+   budú pýtať.
+2. **Žiadne uzamknutie na dodávateľa.** Držať sa obyčajného PostgreSQL a
+   S3-kompatibilného úložiska, bez proprietárnych vychytávok. Ak by raz kraj
+   vyžadoval prevádzku u seba, presun má byť sťahovanie, nie prepisovanie.
+
+Náklad na tento objem je pri bežných službách rádovo jednotky až nižšie desiatky
+eur mesačne — **presné sumy si treba vytiahnuť z aktuálnych cenníkov [zmerať]**,
+menia sa a nechcem ich odhadovať. Pri výnose z B.11 to nie je zanedbateľná
+položka a patrí do kalkulácie skôr než do prezentácie.
+
+### D.3 Čo všetko treba okrem databázy
+
+Databáza je len jedna zo siedmich vecí. Zvyšok sa zvykne objaviť až v decembri.
+
+| Čo | Načo to je | Poznámka |
+| --- | --- | --- |
+| **Databáza** (PostgreSQL) | účty, relácie, predplatné, počítadlá | jadro, bez nej nič ďalšie nedáva zmysel |
+| **Prihlásenie a overenie e-mailu** | A.2 — bez identity nevieme, kto zaplatil | **nepísať vlastné**, použiť hotovú službu |
+| **Úložisko súborov** | fotografie objektov, dnes v IndexedDB | S3-kompatibilné, objemovo najväčšia položka |
+| **Odosielanie e-mailov** | overenie adresy, upozornenia 30 a 7 dní pred zmazaním, faktúry | pozri D.5 — už dnes máme hlásený problém s doručovaním |
+| **Serverové spracovanie skenov** | balík PLUS (A.5) | kľúč k modelu **nikdy nesmie byť v prehliadači** |
+| **Počítadlo dokumentov** | limit „tri na objekt" (A.5) | limit, ktorý sa nedá odmerať, nie je limit |
+| **Zálohovanie a skúška obnovy** | predávame „vaše dáta sú u nás v bezpečí" | záloha, ktorá sa nikdy neobnovovala, nie je záloha |
+
+Poznámka k prihláseniu: existujú služby, ktoré dávajú databázu, prihlásenie aj
+úložisko súborov v jednom balíku. Pri našej veľkosti to je pravdepodobne
+rozumnejšie než skladať tri veci od troch dodávateľov — ale to je technické
+rozhodnutie, ktoré patrí kolegom, nie do tohto dokumentu.
+
+### D.4 Fakturácia — pravdepodobne netreba platobnú bránu
+
+Obce neplatia kartou, ale na faktúru. Namiesto platobnej brány preto treba:
+
+- prehľad, ktorá obec má akú kategóriu a dokedy má zaplatené,
+- vygenerovanie podkladu na faktúru,
+- ručné alebo poloautomatické označenie „zaplatené".
+
+Je to výrazne menej práce než integrácia brány a pre samosprávy je to zároveň
+jediná forma, ktorá im vyhovuje. Bránu zvážiť až vtedy, ak by sa nástroj otvoril
+mimo B2G.
+
+### D.5 Doručovanie e-mailov — vyriešiť skôr než sa naň spoľahneme
+
+Zo zápisnice: jedna adresa bola hlásená ako neplatná, s podozrením na blacklist
+alebo plnú schránku. Model teraz na e-mailoch stojí — overenie adresy,
+upozornenia pred zmazaním dát aj faktúry. Ak nedoručíme upozornenie 30 dní pred
+zmazaním, je to nielen zlá služba, ale aj právny problém.
+
+Treba **službu na transakčné e-maily** a poriadne nastavené SPF, DKIM a DMARC
+pre doménu, z ktorej sa odosiela. Nie posielanie z bežnej schránky.
+
+### D.6 Postupnosť — nie všetko naraz
+
+Otázka „od ktorej verzie" sa nedá zodpovedať číslom: verzia sa zvyšuje o jedna
+pri každom zlúčenom PR, takže ktoré číslo to vyjde, sa dopredu nedá povedať.
+Dajú sa však pomenovať tri míľniky.
+
+**M1 — do 8. 9. 2026: žiadna nová infraštruktúra.**
+Na prezentácie stačí zbierať e-mailové adresy a spätnú väzbu. To vie existujúci
+most `api/feedback.ts` → Google Apps Script → Google Sheet, ktorý beží.
+Databáza, účty ani úložisko na to netreba. **Toto je dôležité povedať kolegom:
+pred pondelkom nie je čo stavať.**
+
+**M2 — do 31. 12. 2026: celý zvyšok z D.3.**
+Účty, databáza, úložisko fotografií, evidencia predplatného, režim len na
+čítanie, podklad na fakturáciu. Toto je ten skutočný projekt a je ho viac než
+dokončenie energetického modulu. Šestnásť týždňov je reálnych len vtedy, ak sa
+začne teraz.
+
+**M3 — po spustení: balík PLUS.**
+Spracovanie skenov má zmysel stavať až po zmeraní nákladu (B.1). Kvóta počas
+prechodného obdobia (A.5) sa dá dovtedy riešiť aj ručne — obec pošle dokumenty,
+spracujeme ich a započítame. Neelegantné, ale funkčné a lacné.
+
+### D.7 Čo treba okrem techniky
+
+Toto sa na poradách zvykne prehliadnuť, hoci to blokuje spustenie rovnako
+spoľahlivo ako chýbajúca databáza:
+
+- **VOP alebo objednávkový formulár** pre obce, vrátane pravidla z A.8.
+- **Aktualizované zásady ochrany osobných údajov** s menovaným poskytovateľom
+  cloudu a umiestnením dát.
+- **Rozhodnutie o DPH** — sumy v A.4 musia byť uvedené tak, ako ich obec zaplatí.
+- **Meno človeka, ktorý fakturuje a vymáha** (B.6).
+- **Meno človeka, ktorý rieši podporu** — starosta, ktorý si zabudne heslo,
+  napíše niekomu.
+- **Funkčná adresa na podporu**, nadväzne na D.5.
+
 
 ## Súvisiace súbory
 
