@@ -1,265 +1,353 @@
-# VESMA — model monetizácie: zhrnutie návrhu a pripomienky
+# VESMA — model monetizácie
 
-Podklad pre rozhodovanie. Vznikol zlúčením dvoch zdrojov:
+Stav: **po rozhovore so zadávateľkou (4. 9. 2026)**. Oproti prvej verzii tohto
+dokumentu sa model zmenil zásadne — základná verzia už nie je bezplatná.
+
+Podklady, z ktorých dokument vznikol:
 
 - poznámky z porady (OneNote: *Zápisy z porád → VESMA - monetizácia*, 31. 8. 2026),
-- zápisnica z porady AT Park spracovaná z audiozáznamu (`Zapisnica_AT_Park_VESMA.docx`, GreenHUB).
+- zápisnica z porady AT Park z audiozáznamu (`Zapisnica_AT_Park_VESMA.docx`, GreenHUB),
+- rozhovor so zadávateľkou 4. 9. 2026 a následná diskusia.
 
-Časť **A** je zhrnutie toho, na čom sme sa dohodli. Časť **B** sú moje pripomienky
-z pohľadu kódu a doterajšieho vývoja — nie sú dohodnuté a treba o nich rozhodnúť.
-Časť **C** je zoznam otvorených rozhodnutí zoradený podľa toho, dokedy ich treba spraviť.
+Ako čítať značky:
+
+- **[dohodnuté]** — rozhodnuté človekom, nemeniť bez novej dohody,
+- **[návrh]** — moje odporúčanie, čaká na rozhodnutie,
+- **[zmerať]** — hodnota, ktorú nikto nevie a nesmie sa odhadovať.
+
+> **Pozor na starý dokument.** `docs/VESMA_monetizacia_podklad_pre_rozhovor_2026-09-04.docx`
+> je podklad pripravený **pred** rozhovorom. Sľubuje, že základná verzia zostane
+> bezplatná natrvalo — čo už neplatí. Neposielať ďalej; je tam len ako záznam
+> východiskovej pozície.
 
 ---
 
-## A. Zhrnutie navrhovaného modelu
+## A. Dohodnutý model
 
-### A.1 Východisko
+### A.1 Čo sa zmenilo oproti pôvodnému zadaniu
 
-VESMA vzniká v INOVII na zadanie Žilinského samosprávneho kraja: hodnotí areály
-samospráv z pohľadu modrozelenej infraštruktúry a energetiky. Pôvodné zadanie
-predpokladá **bezodplatné poskytnutie nástroja samosprávam Žilinského kraja**.
+Pôvodné zadanie Žilinského samosprávneho kraja predpokladalo bezodplatné
+poskytnutie nástroja samosprávam kraja. **Zadávateľka súhlasila so spoplatnením
+aj pre obce v Žilinskom kraji [dohodnuté]** s odôvodnením, že nástroj s cenovkou
+bude vnímaný ako hodnotnejší než nástroj zadarmo.
 
-Podnet na monetizáciu prišiel zo synchronizačnej porady: hľadá sa cesta
-k udržateľnosti INOVIE z vlastných zdrojov do roku 2029, pri zachovaní
-verejnoprospešnej funkcie. Prioritný segment je **B2G**; validácia B2B a B2C sa
-odkladá.
+Model sa tým mení z **freemium** (jadro zadarmo navždy, platia sa nadstavby)
+na **platený produkt s bezplatnou skúškou**. Nie je to kozmetická zmena — mení
+obsah prezentácií pre samosprávy aj to, čo musí byť hotové v kóde do konca roka
+(časť D).
 
-### A.2 Štyri piliere modelu
+### A.2 Kto platí a kto nie
 
-1. **Bezplatné jadro zostáva bezplatné.** Všetko, čo je dnes vyvinuté — vrátane
-   záverečného hodnotenia — zostáva pre samosprávy ŽSK bezplatné. Rozsah
-   bezplatnej a platenej verzie sa má zadefinovať **pred prvou prezentáciou**,
-   aby sa neskôr nemuseli obmedzovať už poskytnuté funkcie.
-2. **Spoplatní sa to, čo generuje náklady** — AI tokeny, server, úložisko.
-   Dnešné prevádzkové náklady sú minimálne: dáta sa ukladajú lokálne v prehliadači
-   používateľa, metodika beží na zatiaľ bezplatnom serveri.
-3. **Cena sa diferencuje podľa veľkosti samosprávy**, resp. počtu hodnotených
-   objektov. Malé obce bez obmedzenia; väčšie mestá platia nad stanovený počet
-   objektov (v diskusii padla hranica cca 20 – 35). Kategorizácia obcí podľa
-   počtu obyvateľov je bežná aj v legislatíve.
-4. **Územný rozsah = Žilinský kraj.** Podkladové vodozádržné mapy spracovala ČZU
-   na náklady župy a existujú len pre ŽSK; výstupy pre obce z iných krajov by boli
-   nevierohodné. Pri obci mimo ŽSK sa zobrazí upozornenie, prípadne sa hodnotenie
-   nevydá vôbec (tréningový režim).
-
-### A.3 Kandidáti na platené nadstavby
-
-| Nadstavba | Poznámka z porady |
+| | |
 | --- | --- |
-| Párovanie objektov s výzvami + predvypĺňanie žiadostí | Preferuje sa integrácia existujúceho nástroja (Maroš) namiesto vlastného vývoja. Model: poplatok za vypracovanie + success fee. |
-| Zálohovanie a úložisko dát u INOVIE | Bezplatná alternatíva zostáva „exportuj si k sebe". Platená verzia vyžaduje nákladový model na server/cloud. |
-| Automatické vyťažovanie listov vlastníctva | Kandidát kvôli AI tokenom. |
-| Spracovanie fotografií | Dnes sa fotografie iba prikladajú, bez analýzy. |
-| Integrácia na inventarizačné systémy obcí | Pôvodná požiadavka VÚC. Treba preskúmať používané systémy a prepojenie cez jednotný identifikátor. |
+| Obce a mestá v ŽSK | **platia** ročný poplatok podľa veľkosti [dohodnuté] |
+| Žilinský samosprávny kraj — za vlastné budovy | **neplatí** [dohodnuté] |
+| Žilinský samosprávny kraj — za obce v kraji | **neplatí** [dohodnuté] |
 
-### A.4 Hodnotová argumentácia pre samosprávy
+Dôvod, prečo kraj neplatí: je zriaďovateľ INOVIE aj zadávateľ projektu a na
+začiatku sa dohodlo, že ho nástroj nebude stáť nič. Rozhodnutie je vedomé aj
+za cenu výpadku príjmu. Formulácia „zatiaľ" ponecháva dvere otvorené — cestou,
+ako ich otvoriť, je bod B.5.
 
-Približne **75 – 80 % investícií obcí do infraštruktúry** je financovaných
-z externých zdrojov. VESMA uľahčuje prístup k nim a pomáha prioritizovať
-investície aj prevádzkové úspory.
+Praktický dôsledok pre komunikáciu: správa smerom k obciam je jednoduchšia než
+predtým — *„Vývoj nástroja zaplatil kraj. My účtujeme len prevádzku."*
 
-### A.5 Podmienky používania
+### A.3 Prechodné obdobie bez poplatku
 
-Používanie aplikácie bude podmienené **registráciou e-mailovej adresy so súhlasom
-v zmysle GDPR**, vrátane validácie adresy. Umožní to zasielať dotazníky
-a informácie o novinkách.
+**Prechodné obdobie bude [dohodnuté]**; jeho dĺžka je ešte na potvrdenie.
 
-### A.6 Rozšírenie mimo ŽSK
+**Návrh: do 31. 12. 2026** (alternatíva bola 15. 11.). Rozhoduje o tom jeden
+argument, ktorý prebíja ostatné:
 
-Podmienené **zafinancovaním dátového podkladu treťou stranou** (iná VÚC, prípadne
-B2B partner v rámci CSR). V takom prípade môže byť spoplatnená aj základná verzia.
-Záujemcovia z iných krajov slúžia ako **databáza dopytu** pri rokovaniach s ďalšími
-krajmi. Rovnaké obmedzenie zatiaľ limituje aj B2B segment — medzikrajské porovnania
-nie sú možné.
+> **Rozpočtový cyklus obcí.** Obec schvaľuje rozpočet na ďalší rok v novembri
+> až decembri. Pri poplatku od 15. 11. nemá obec v rozpočte 2026 položku,
+> z ktorej by ho zaplatila — a nemôže ho zaplatiť, ani keby chcela. Termín
+> 31. 12. trafí okno, keď starostovia položku na rok 2027 tvoria.
 
-### A.7 Validácia na prezentáciách
+Tri ďalšie dôvody:
 
-- Prvá prezentácia **8. 9. 2026**, ďalšie postupne po regióne.
-- Komunikačný rámec: základná verzia je bezplatná vďaka kraju a INOVII,
-  pripravované nadstavby budú spoplatnené; **konkrétne ceny sa zatiaľ neuvádzajú**.
-- Zber ochoty platiť (v diskusii padli testovacie sumy 2 € a 10 €), po prezentácii
-  online dotazník.
-- Spätná väzba priamo v aplikácii — existujúci formulár podnetov sa rozšíri o výzvu
-  bezprostredne po zobrazení hodnotenia.
-- Komunikácia cez partnerstvá so **ZMOS a Úniou miest** (M. Červenák), nie
-  oslovovaním jednotlivých starostov.
+- Prezentácie pokračujú po regióne. Obec, ktorá príde na prezentáciu v októbri,
+  by pri termíne 15. 11. mala tri týždne.
+- Fakturácia je čistá: prvé faktúry k 1. 1. 2027, celý rok, žiadne pomerné časti.
+- Je to zároveň **náš vývojový deadline** (časť D). Pri 15. 11. by sme spustili
+  platenú verziu, ktorá nemá kam ukladať dáta.
+
+**Znenie pre prezentáciu [návrh]** — termín má byť odmena, nie hrozba:
+
+> Do 31. 12. 2026 je nástroj bezplatný v plnom rozsahu. **Čo si do vtedy
+> zmapujete, to vám zostáva** — dáta aj exporty, bez podmienok. Kto sa do
+> 31. 12. zaregistruje, má rok 2027 za zavádzaciu cenu.
+
+Prvá veta odstraňuje strach zo straty práce a technicky nás nestojí nič (export
+už funguje). Druhá dáva dôvod nečakať.
+
+Zamietnutá alternatíva: „prvý rok zadarmo od registrácie" — 315 rôznych dátumov
+ukončenia, žiadna urgencia, nikto si nespomenie, kedy mu to končí.
+
+### A.4 Cenník podľa počtu obyvateľov
+
+**Diferenciácia podľa počtu obyvateľov [dohodnuté]** (nie podľa počtu objektov —
+ten používateľ pri registrácii ešte nepozná, kým kategória obce je známa okamžite
+a je zakotvená v legislatíve).
+
+Tri pravidlá, na ktorých záleží viac než na konkrétnych sumách:
+
+1. Cena musí byť **pod hranicou, kde o nej rozhoduje starosta sám** — bez
+   zastupiteľstva a bez verejného obstarávania.
+2. **Fakturuje sa raz ročne, jednou faktúrou obci.** Nie mesačne, nie kartou —
+   mesačných 5 € je administratívne drahších než sama suma.
+3. Cena rastie **oveľa pomalšie než počet obyvateľov**. Žilina nemá 80× viac
+   budov než obec s tisíc obyvateľmi.
+
+**Návrh cenníka** — východisková hypotéza na otestovanie v dotazníku:
+
+| Kategória | Obyvatelia | Základ / rok | S balíkom PLUS |
+| --- | --- | --- | --- |
+| A | do 1 000 | **50 €** | **75 €** |
+| B | 1 001 – 5 000 | **100 €** | **150 €** |
+| C | 5 001 – 20 000 | **250 €** | **375 €** |
+| D | nad 20 000 | **500 €** | **750 €** |
+
+Zámerne okrúhle čísla, nie 49/99 — pre samosprávu vyzerá okrúhla suma
+serióznejšie a lepšie sa rozpočtuje.
+
+**Otvorené: DPH.** Treba doplniť, či sú sumy s DPH alebo bez. Obce si DPH
+väčšinou neodpočítajú, takže ich zaujíma suma s DPH a tak by mala byť aj uvedená.
+
+Test dostupnosti: pre obec do 1 000 obyvateľov je 50 €/rok rádovo stotina percenta
+rozpočtu, teda asi 4 € mesačne. Cenovka, ktorá signalizuje hodnotu, ale nie je
+to rozhodnutie.
+
+### A.5 Balík PLUS — funkcie s variabilným nákladom
+
+**Spoplatnenie funkcií, ktoré nám generujú náklady, o zhruba +50 % ročného
+poplatku [dohodnuté v princípe]**; podoba nižšie je návrh.
+
+**Návrh: PLUS ako druhý rozmer, nie piata kategória.** Veľkostné kategórie
+hovoria *kto* je zákazník; vyťažovanie dokumentov hovorí, *koľko nás ten
+zákazník stojí*. Sú to nezávislé veci — mesto s 30 000 obyvateľmi môže mať všetky
+certifikáty naskenované aj v tabuľke. Piata kategória by ich zlepila dokopy.
+
+Do balíka patrí **všetko, čo generuje variabilný náklad**, nie len listy
+vlastníctva:
+
+- vyťaženie **naskenovaných** listov vlastníctva a energetických certifikátov,
+- analýza fotografií objektov,
+- opätovné spracovanie pri obnove certifikátu alebo pri zmene v katastri.
+
+Posledná odrážka je dôležitá: robí z PLUS zmysluplné **ročné** predplatné.
+Bez nej by obec zaplatila balík raz počas mapovania a druhý rok ho zrušila —
+oprávnene, lebo by za nič neplatila.
+
+**Textové PDF zostávajú v základe zadarmo.** Dnes ich číta `pdfjs-dist` priamo
+v prehliadači, bez nášho servera a bez tokenov (`src/utils/pdfParser.ts`).
+Spoplatniť ich by bolo neobhájiteľné. Platí sa až za to, čo dnes nefunguje
+vôbec — **skeny bez textovej vrstvy**, teda presne tie dokumenty, ktoré
+starostovia reálne majú.
+
+**Párovanie s výzvami do balíka nepatrí** — je to služba s iným typom
+zodpovednosti (pozri B.7) a patrí mimo cenník.
+
+**Prečo +50 % dáva zmysel:** počet dokumentov na spracovanie rastie zhruba
+rovnako ako veľkosť obce, takže pomer „cena PLUS / počet dokumentov" vychádza
+vo všetkých štyroch kategóriách približne rovnako. Nie je to náhoda a je to
+argument, prečo je model férový — dá sa to takto povedať aj obciam.
+
+**Limit — bez neho model nefunguje [návrh]:**
+
+> V balíku PLUS je zahrnuté spracovanie **troch dokumentov na každý zmapovaný
+> objekt** (typicky list vlastníctva, energetický certifikát a jeden ďalší).
+> Nad tento rámec po dohode.
+
+Základ môže byť neobmedzený — obec so 40 objektmi nás nestojí prakticky nič
+navyše. PLUS neobmedzený byť nesmie, lebo tam každé použitie stojí peniaze.
+Pravidlo naviazané na počet objektov sa vysvetlí jednou vetou, škáluje samo
+s veľkosťou obce a zastaví prípad, keď niekto nahrá dvetisíc skenov.
+
+**PLUS počas prechodného obdobia [návrh]:** nedávať zadarmo v plnom rozsahu,
+len s malou kvótou (napríklad 5 dokumentov na obec, nech si to vyskúšajú).
+Štyri mesiace neobmedzeného spracovania skenov zadarmo sú jediné miesto v celom
+modeli, kde nám môže reálne odtiecť hotovosť — a to práve v čase, keď ešte
+nevieme, koľko to stojí (B.1).
+
+### A.6 Čo zostáva bezplatné navždy
+
+Cenovka signalizuje hodnotu len tomu, kto už videl, za čo platí. Preto musí
+zostať trvalý bezplatný skúšobný režim [návrh]:
+
+> Jeden areál, hodnotenie na obrazovke, **bez uloženia a bez exportu.**
+
+Obec vidí, že nástroj funguje; výsledok si odnesie až po zaplatení. Bez tohto
+sa nikto nezaregistruje a zadávateľkin argument o cenovke prestane platiť.
+
+### A.7 Územný rozsah — nezmenené
+
+Podkladové vodozádržné mapy spracovala ČZU na náklady kraja a existujú len pre
+Žilinský kraj; výstupy pre obce z iných krajov by boli nevierohodné. Obec mimo
+ŽSK dostane upozornenie, prípadne tréningový režim bez záverečného hodnotenia.
+
+Rozšírenie do ďalších krajov je podmienené zafinancovaním dátového podkladu
+treťou stranou. Záujemcovia z iných krajov slúžia ako databáza dopytu pri
+rokovaniach s ďalšími krajmi (pozri B.9).
+
+### A.8 Dáta obce, ktorá nezaplatí
+
+**[dohodnuté]** — znenie do VOP:
+
+> Po skončení predplatného sa účet prepne do režimu **len na čítanie**: obec
+> vidí svoje areály a môže si ich kedykoľvek vyexportovať (XLSX, CSV, PDF, JSON),
+> ale nemôže zadávať nové údaje ani prepočítavať hodnotenie. Tento režim trvá
+> **12 mesiacov**. Na zmazanie upozorníme e-mailom 30 a 7 dní vopred. Skoršie
+> zmazanie na požiadanie kedykoľvek.
+
+Dvanásť mesiacov preto, že je to presne jeden rozpočtový cyklus — obec, ktorá to
+nestihla dať do rozpočtu, má šancu to napraviť budúci rok bez toho, aby prišla
+o odvedenú prácu.
+
+Toto musí byť hotové **pred 8. 9.**, lebo patrí do VOP a do GDPR informácie,
+ktorú ľudia podpíšu už pri septembrovej registrácii.
+
+### A.9 Validácia a dotazník
+
+Prvá prezentácia **8. 9. 2026**, ďalšie postupne po regióne. Po nich online
+dotazník; spätná väzba sa zbiera aj priamo v aplikácii hneď po zobrazení
+hodnotenia. Komunikácia cez **ZMOS a Úniu miest** (M. Červenák), nie
+oslovovaním jednotlivých starostov.
+
+Sumy 2 € a 10 € z pôvodnej diskusie už nedávajú zmysel. **Otázky do dotazníka
+[návrh]:**
+
+- Ročný poplatok pre obec vašej veľkosti by ste považovali za primeraný:
+  **do 50 € / 50 – 150 € / 150 – 300 € / viac ako 300 € / nezaplatili by sme nič**
+- Kto o takom výdavku vo vašej obci rozhoduje: **starosta / ekonóm / zastupiteľstvo**
+- Dokedy to potrebujete vedieť, aby sa to stihlo do rozpočtu na rok 2027?
+
+Tretia otázka je diagnostická — ak väčšina odpovie „do konca novembra", vieme
+hneď, či bol termín 31. 12. správny, alebo či máme s cenníkom von skôr.
+
+Energetický modul nie je dokončený; komunikuje sa ako pripravovaný. Vodozádržná
+časť je funkčná a hodnotí sa v plnom rozsahu.
 
 ---
 
-## B. Moje pripomienky
+## B. Pripomienky a otvorené riziká
 
-Vychádzajú z toho, čo je v kóde k verzii 198, a z doterajšieho priebehu vývoja.
-Zoradené podľa toho, ako veľmi menia návrh.
+Vychádzajú zo stavu kódu a z doterajšieho priebehu vývoja. Zoradené podľa
+naliehavosti.
 
-### B.1 „Spoplatníme to, čo generuje náklady" je slabý základ ceny
+### B.1 Cenu balíka PLUS sme stanovili bez toho, aby sme poznali náklad [zmerať]
 
-Náklady dnes sú takmer nulové a ešte dlho budú. Ak sa cena odvodí od nákladov,
-predávame tokeny — a obec bude porovnávať 2 € s cenou tokenu, nie s hodnotou
-dotácie, ktorú vďaka nástroju získa. Argument z A.4 (75 – 80 % investícií
-z externých zdrojov) je pritom oveľa silnejší a ide proti tomu.
+Nikdy sme nezmerali, **čo stojí spracovanie jedného naskenovaného dokumentu**.
+Doteraz to bola poznámka v zozname; teraz je z toho cenotvorná premenná. Bez nej
+je +50 % odôvodnené pocitovo, nie nákladovo — a PLUS je jediná časť cenníka,
+kde nám môže vzniknúť strata.
 
-**Návrh:** oddeliť dve veci, ktoré sa v zápisnici zlievajú do jednej vety.
+Odhadovať sa to nesmie. Zmerať sa dá za jedno popoludnie: vziať **10 reálnych
+naskenovaných certifikátov** od starostov, prehnať ich a pozrieť sa na účet.
+Patrí to do `docs/chybajuce-hodnoty.md` a malo by to byť hotové **pred 8. 9.**,
+nie „priebežne".
 
-- **Kde je hranica bezplatnosti** — odvodiť od nákladov a od zneužiteľnosti.
-  Toto je interná logika, nemusí zaznieť na prezentácii.
-- **Koľko stojí to nad hranicou** — odvodiť od hodnoty pre obec. Toto zaznie
-  na prezentácii.
+### B.2 V aplikácii sú tlačidlá, ktoré nič nerobia
 
-Prakticky ide o jednu vetu navyše pri príprave prezentácie, ale mení to, či
-o cene vyjednávame my alebo obec.
+- `src/components/ai-ready/ChatAssistant.tsx` a `PhotoAnalyzer.tsx` —
+  zobrazia `alert('Táto funkcia bude dostupná čoskoro…')`.
+- Export do **Xmatik** a **URBIS** v kroku 6 (`Step6_Vysledky.tsx`) — takisto
+  `alert` o tom, že integrácia príde po dodaní špecifikácie.
 
-### B.2 Najsilnejšia platená funkcia dnes nie je AI, ale trvalosť dát
+Ak na prezentácii povieme, že analýza fotografií je súčasťou plateného balíka
+PLUS, niekto na to tlačidlo v ten istý deň klikne. Pri bezplatnom nástroji je to
+trápne; pri platenom je to sľub, ktorý sme nesplnili.
 
-Fakt z kódu: relácie sú v `localStorage` prehliadača, fotografie v IndexedDB
-(`sma-nastroj-media`). Server o nich nevie nič. Z toho plynie:
-
-- vyčistenie prehliadača = strata celej práce,
-- iný počítač = iné dáta, žiadna synchronizácia,
-- kolega nevidí, čo som zadal,
-- pri výmene zamestnanca alebo starostu nezostane obci nič.
-
-Pre obec s jedným areálom je to nepríjemnosť. Pre mesto s 30 objektmi, kde na
-mapovaní robia traja ľudia, je to **prekážka nasadenia**, nie chýbajúci komfort.
-
-Zároveň je to funkcia, ktorú aj tak musíme postaviť — registrácia e-mailom
-z bodu A.5 znamená, že backend s používateľmi bude existovať. „Účet VESMA"
-(dáta u nás, viac používateľov za obec, história hodnotení) je preto:
-
-- najzrozumiteľnejší dôvod platiť, aký dnes máme,
-- to, čo zákazníka udrží (kto má dáta u nás, neodíde),
-- a to, čo prirodzene rastie s veľkosťou obce, teda **nesie aj diferenciáciu ceny
-  z bodu A.3**.
-
-**Návrh:** postaviť účet a úložisko do stredu platenej verzie, nie ako jednu
-z piatich položiek v zozname nadstavieb.
+**Návrh:** pred 8. 9. atrapy skryť, alebo prerobiť na jednoznačné karty
+„pripravujeme" bez vzhľadu funkčného tlačidla. Malá zmena, treba len rozhodnúť
+ktorú z dvoch možností.
 
 ### B.3 Registrácia hneď na vstupe zníži množstvo spätnej väzby
 
-Bod A.5 hovorí, že používanie bude podmienené registráciou. Prezentácie 8. 9.
-však robíme kvôli validácii — potrebujeme, aby si to čo najviac ľudí vyskúšalo
-a povedalo nám, čo im chýba. Tvrdá bariéra na vstupe ide priamo proti tomu.
+Prezentácie robíme kvôli validácii — potrebujeme, aby si to čo najviac ľudí
+vyskúšalo. Tvrdá bariéra na vstupe ide proti tomu.
 
 **Návrh:** e-mail pýtať **až pred zobrazením alebo exportom hodnotenia**, nie
-pri otvorení aplikácie. Vyskúšať sa dá bez registrácie; kto si chce odniesť
-výsledok, identifikuje sa. Je to lepší konverzný bod (človek už vidí, že to
-funguje) aj čistejšie GDPR (jasný a viditeľný účel). Adresy získame prakticky
-tie isté — len od ľudí, ktorí dosiaľli až po výsledok, čo je presne tá skupina,
-ktorej odpovede nás zaujímajú.
+pri otvorení aplikácie. Zapadá to do bezplatného skúšobného režimu z A.6:
+pozrieť si hodnotenie sa dá bez registrácie, odniesť si ho nie. Lepší konverzný
+bod (človek už vidí, že to funguje) aj čistejšie GDPR (jasný a viditeľný účel).
 
-### B.4 Vyťažovanie LV dnes AI nepoužíva — a to mení, čo sa dá spoplatniť
+### B.4 Písomné potvrdenie od župy je teraz dôležitejšie, nie menej
 
-Zápisnica uvádza vyťažovanie LV a certifikátov medzi kandidátmi „kvôli AI
-tokenom". V kóde (`src/utils/pdfParser.ts`) sa však PDF číta cez `pdfjs-dist`
-priamo v prehliadači: **nula tokenov, nula servera**. Spoplatniť to v dnešnej
-podobe by bolo ťažko obhájiteľné.
+Predtým sme župe sľubovali „čo ste zaplatili, zostáva zadarmo". Teraz
+spoplatnenie otvorila sama — výborne, ale **musí to byť napísané.** Inak to
+o rok zvonku vyzerá tak, že INOVIA speňažila nástroj financovaný z verejných
+zdrojov, a odpoveď „zadávateľka s tým súhlasila po telefóne" nikoho zaujímať
+nebude.
 
-Čo nefunguje, sú **skenované PDF bez textovej vrstvy** — a to sú presne tie,
-ktoré starostovia majú (staršie certifikáty z eurofondov, papierové LV).
-Skutočná platená funkcia teda nie je „načítanie certifikátu", ale
-**„prepíšeme vám aj naskenované dokumenty"**. To je jasne ohraničené,
-zrozumiteľné a náklad je reálny.
+Stačí e-mail s potvrdením troch vecí: že kraj so spoplatnením obcí súhlasí,
+že kraj sám neplatí, a odkedy poplatok platí.
 
-Úloha 7 zo zápisnice („overiť tokenové náklady") má teda dve odpovede:
-textové PDF stojí 0 €, sken stojí jedno volanie modelu nad obrázkami strán.
-**Konkrétne číslo si netrúfam odhadnúť** — navrhujem ho zmerať na desiatich
-skutočných certifikátoch od starostov a až potom cenníkovať. Do dovtedy patrí
-do `docs/chybajuce-hodnoty.md`.
+### B.5 Budovy kraja zmapovať zadarmo aj tak
 
-### B.5 Na prezentácii nesmú byť tlačidlá, ktoré nič nerobia
+Stredné školy, sociálne zariadenia a kultúrne budovy ŽSK sú najväčšie portfólio
+v regióne. Nebude to príjem, ale bude to **referenčný dataset a prípadová
+štúdia** — presne to, čo potrebujeme ukazovať mestám aj ďalšej VÚC. Zadarmo
+odvedená práca, ktorá sa dá predať dvakrát.
 
-Dnes v aplikácii sú:
+Je to zároveň najlepšia cesta, ako sa raz môže „zatiaľ" z bodu A.2 zmeniť.
 
-- `ChatAssistant.tsx` a `PhotoAnalyzer.tsx` — tlačidlá, ktoré zobrazia
-  `alert('Táto funkcia bude dostupná čoskoro…')`,
-- export do **Xmatik** a **URBIS** v Krok 6 — takisto `alert` s textom, že
-  integrácia bude implementovaná po dodaní špecifikácie.
+### B.6 Fakturácia je prevádzka, ktorú musí niekto robiť
 
-Ak na prezentácii povieme „AI funkcie a integrácie budú platené", niekto to
-v ten istý deň skúsi a nájde `alert`. Pôsobí to horšie, než keby tam neboli
-vôbec.
+Aj 50 € je zmluvný vzťah s obcou: VOP alebo objednávka, faktúra, upomienka,
+evidencia. Pri stovke platiacich obcí je to celoročná agenda a pri kategórii A
+zožerie veľkú časť z tých 50 €.
 
-**Návrh:** pred 8. 9. tieto atrapy buď skryť, alebo prerobiť na jednoznačné
-karty „pripravujeme" bez vzhľadu funkčného tlačidla. Je to malá zmena a viem
-ju spraviť — potrebujem len rozhodnutie, ktorú z dvoch možností.
+Treba na to **meno**, nie predpoklad — a treba rozhodnúť, či sa fakturuje
+automatizovane (systém pošle faktúru e-mailom) alebo ručne. Pri navrhovaných
+sumách je ručná fakturácia stratová.
 
-### B.6 Success fee otvára iný typ podnikania, než aký dnes robíme
+### B.7 Success fee otvára iný typ podnikania
 
 Poplatok za úspech pri žiadosti znamená zmluvu, zodpovednosť za kvalitu žiadosti
-a potenciálny spor o to, či žiadosť uspela vďaka nám. Pre verejnoprospešnú
-organizáciu je to aj otázka súladu s tým, na čo je nastavená.
+a možný spor o to, či žiadosť uspela vďaka nám. Pre verejnoprospešnú organizáciu
+je to aj otázka súladu s tým, na čo je nastavená.
 
-**Návrh:** v prvej fáze len **fixný poplatok za spracovanie**. Success fee
-na prezentácii vôbec neotvárať — nie je to niečo, čo sa dá povedať polovične.
+**Návrh:** v prvej fáze len fixný poplatok za spracovanie. Success fee na
+prezentácii vôbec neotvárať — nie je to niečo, čo sa dá povedať polovične.
 
-### B.7 Hranica podľa počtu objektov je zrozumiteľná, ale nemerateľná dopredu
+### B.8 Verziovanie pravidiel sa s platenou verziou stretne
 
-Počet objektov je legitímna cenotvorná metrika — škáluje s veľkosťou obce a je
-férová. Má však dve slabiny:
+Máme `AKTUALNA_VERZIA_PRAVIDIEL` a dialóg pri otvorení staršej relácie (#230).
+Pri bezplatnom nástroji je prečíslovanie areálov po zmene pravidiel nepríjemnosť.
+Pri platenom je to sťažnosť — najmä ak sa medzitým podľa poradia areálov
+rozhodlo o investícii.
 
-- **Používateľ ju dopredu nepozná.** Starosta pri registrácii nevie, koľko
-  objektov nakoniec zmapuje. Kategória obce podľa počtu obyvateľov (spomínaná
-  na porade) je známa okamžite a je zakotvená v legislatíve.
-- **Nesúvisí s nákladom**, kým dáta ležia v prehliadači. Prvá bystrá obec nám
-  povie „veď to beží u mňa v počítači".
+**Návrh:** pravidlo mať hotové pred spustením platenej verzie — uložená relácia
+si drží verziu pravidiel, s ktorou vznikla, a prepočet je vždy vedomé rozhodnutie
+používateľa. Pozri `docs/verziovanie-pravidiel.md`.
 
-**Návrh:** cenník postaviť na **kategórii obce podľa počtu obyvateľov**
-(zrozumiteľné, overiteľné, nediskutovateľné) a počet objektov použiť len ako
-férový strop v rámci kategórie. Toto je rozhodnutie pre človeka — dávam obe
-možnosti, nerozhodujem ho.
+### B.9 Obce mimo ŽSK — spraviť z upozornenia funkciu
 
-### B.8 „2 € alebo 10 €" — chýba jednotka, a bez nej je odpoveď bezcenná
+Obec mimo kraja dostane tréningový režim **a formulár „máme záujem"**. Je to
+takmer tá istá práca ako samotné upozornenie a vzniká z toho najlacnejší možný
+podklad pri rokovaní s inou VÚC — *„máme X obcí z vášho kraja, ktoré si to už
+vyskúšali."*
 
-V dotazníku po prezentácii treba povedať **za čo a ako často**. „Zaplatili by ste
-10 €?" bez jednotky nedáva použiteľnú odpoveď.
+### B.10 Počet budov samospráv v ŽSK
 
-Dôležitejšie: **obec neplatí ako spotrebiteľ.** Suma 2 € či 10 € mesačne je
-administratívne drahšia než sama suma — faktúra, rozpočtová položka, podpis.
-Reálne to znamená **jeden ročný poplatok fakturovaný raz za rok**, nie
-mikroplatby kartou.
+Odhad 5 500 bol na porade spochybnený. Na to, na čo číslo potrebujeme (veľkosť
+trhu, nastavenie limitov), stačí odvodenie: **ŽSK má 315 obcí, z toho 19 miest,
+v 11 okresoch** (overené). Typický počet objektov na obec sa zistí zo vzorky
+5 – 10 obcí, ktoré nástroj po prezentáciách reálne prejdú. Do dovtedy neuvádzať
+žiadne číslo — nepresný odhad v prezentácii je horší než žiadny.
 
-**Návrh:** v dotazníku testovať ročnú sumu za obec, nie mesačnú za používateľa,
-a pýtať sa aj na to, **kto o výdavku rozhoduje** (starosta / ekonóm / zastupiteľstvo).
-Ochota platiť a schopnosť zaplatiť sú pri samospráve dve rôzne veci.
+### B.11 Prvý rok nie je o výnose, ale o dôkaze
 
-### B.9 Riziko, ktoré v zápisnici nie je: ako to bude vnímať župa
+Pri 315 obciach s drvivou väčšinou v kategóriách A a B a realistickej adopcii
+15 – 25 % v prvom roku vychádza hrubý výnos rádovo **8 – 10 tisíc € za základ**,
+plus **1,5 – 2,5 tisíca**, ak si PLUS kúpi asi tretina platiacich. Spolu niečo
+medzi 10 a 12 tisíc.
 
-Župa zaplatila vývoj aj dátový podklad. To, že INOVIA na tom istom nástroji
-začne zarábať — hoci len na nadstavbách — si zaslúži vysvetlenie skôr, než sa
-to dozvie od niekoho iného alebo z prezentácie pre obce.
-
-**Návrh:** mať pripravenú a **písomne potvrdenú** vetu v duchu: *„Všetko, čo
-kraj zaplatil, zostáva pre obce Žilinského kraja bezplatné natrvalo. Spoplatnené
-je len to, čo pribudne nad rámec zadania a čo nám vytvára prevádzkové náklady."*
-Ústna dohoda pri tomto nestačí — o rok si to nikto nebude pamätať rovnako.
-
-Toto je vlastne hlavný účel dokumentu, ktorý ide zadávateľke pred telefonátom.
-
-### B.10 Verziovanie pravidiel sa s platenou verziou stretne
-
-Už dnes máme `AKTUALNA_VERZIA_PRAVIDIEL` a dialóg pri otvorení staršej relácie
-(#230). Pri bezplatnom nástroji je prečíslovanie areálov po zmene pravidiel
-nepríjemnosť. Pri platenom je to sťažnosť — najmä ak sa medzitým podľa poradia
-areálov rozhodlo o investícii.
-
-**Návrh:** ešte pred spustením platenej verzie mať k tomu pravidlo a vedieť ho
-povedať nahlas (napr.: uložená relácia si drží verziu pravidiel, s ktorou vznikla,
-a prepočet je vždy vedomé rozhodnutie používateľa).
-
-### B.11 Obce mimo ŽSK — spraviť z upozornenia funkciu
-
-Zápisnica správne hovorí o „databáze dopytu". Odporúčam to nenechať pri poznámke:
-obec mimo kraja dostane tréningový režim **a formulár „máme záujem"**. Je to
-takmer tá istá práca ako samotné upozornenie (úloha 5) a vzniká z toho najlacnejší
-možný podklad pri rokovaní s inou VÚC — *„máme X obcí z vášho kraja, ktoré si to
-už vyskúšali."*
-
-### B.12 Počet budov v ŽSK — netreba presné číslo, treba obhájiteľné
-
-Odhad 5 500 bol na porade spochybnený a cez ZMOS sa overuje ťažko. Na to, na čo
-to potrebujeme (veľkosť trhu a nastavenie hraníc), stačí odvodenie: počet obcí
-v kraji je verejne známy, typický počet objektov na obec vieme zistiť **zo
-vzorky 5 – 10 obcí, ktoré nástroj reálne prejdú** po prezentáciách. Do dovtedy
-neuvádzať žiadne číslo — nepresný odhad v prezentácii je horší než žiadny.
+Treba to povedať dopredu, aby to o rok nebolo prekvapenie: **prvý rok je o dôkaze,
+že obce sú ochotné platiť.** To je to, čo sa dá predať ďalšej VÚC alebo donorovi.
+PLUS tomu dôkazu pomáha viac než základ — ochota priplatiť si za konkrétnu
+funkciu je oveľa silnejší signál než zaplatenie vstupného.
 
 ---
 
@@ -267,33 +355,64 @@ neuvádzať žiadne číslo — nepresný odhad v prezentácii je horší než �
 
 ### Pred 8. 9. 2026
 
-| # | Rozhodnutie | Poznámka |
+| # | Rozhodnutie | Odkaz |
 | --- | --- | --- |
-| C1 | Presná hranica bezplatnej verzie (počet objektov / kategória obce) | A.3 vs. B.7 |
-| C2 | Vyžadovať e-mail na vstupe alebo pred výsledkom | A.5 vs. B.3 |
-| C3 | Čo s atrapami AI a exportov v UI — skryť alebo prerobiť na „pripravujeme" | B.5 |
-| C4 | Znenie a jednotka cenových otázok v dotazníku | B.8 |
-| C5 | Písomné potvrdenie od župy, že bezplatné jadro zostáva bezplatné | B.9 |
-
-**Cenník pred 8. 9. potrebný nie je** a je rizikom — číslo, ktoré raz zaznie
-na prezentácii, sa už nedá vziať späť. Stačia tri vety: čo je zadarmo a zostane
-zadarmo, čo bude platené a prečo, a že ceny nastavíme podľa toho, čo nám poviete.
+| C1 | Potvrdiť termín prechodného obdobia (návrh 31. 12. 2026) | A.3 |
+| C2 | Potvrdiť cenník 50 / 100 / 250 / 500 € a doplniť, či je s DPH | A.4 |
+| C3 | PLUS ako druhý rozmer, alebo ako piata kategória (návrh: druhý rozmer) | A.5 |
+| C4 | Limit balíka PLUS — „3 dokumenty na objekt", alebo pevné číslo na kategóriu | A.5 |
+| C5 | Rozsah balíka PLUS počas prechodného obdobia (návrh: kvóta 5 dokumentov) | A.5 |
+| C6 | Zmerať náklad na spracovanie jedného skenu | B.1 |
+| C7 | Atrapy AI a exportov v UI — skryť alebo prerobiť na „pripravujeme" | B.2 |
+| C8 | Vyžadovať e-mail na vstupe alebo pred výsledkom (návrh: pred výsledkom) | B.3 |
+| C9 | Získať písomné potvrdenie od župy | B.4 |
+| C10 | Znenie cenových otázok v dotazníku | A.9 |
 
 ### Priebežne
 
-| # | Rozhodnutie | Poznámka |
+| # | Rozhodnutie | Odkaz |
 | --- | --- | --- |
-| C6 | Či je platená verzia postavená na účte a úložisku, alebo na AI funkciách | B.2 |
-| C7 | Success fee áno/nie, a kedy | B.6 |
-| C8 | Náklad na OCR jedného skenovaného dokumentu (zmerať, nie odhadnúť) | B.4, patrí do `docs/chybajuce-hodnoty.md` |
-| C9 | Pravidlo pre verzie pravidiel v platenej verzii | B.10 |
-| C10 | Rozsah tréningového režimu a formulára záujmu mimo ŽSK | B.11 |
+| C11 | Kto a ako fakturuje; automatizovaná alebo ručná fakturácia | B.6 |
+| C12 | Success fee áno/nie, a kedy | B.7 |
+| C13 | Pravidlo pre verzie pravidiel v platenej verzii | B.8 |
+| C14 | Rozsah tréningového režimu a formulára záujmu mimo ŽSK | B.9 |
+| C15 | Kedy a ako zmapovať budovy kraja ako referenciu | B.5 |
+
+---
+
+## D. Čo z modelu vyplýva pre vývoj
+
+Toto je najpodceňovanejšia časť rozhodnutia. Platená verzia od 1. 1. 2027
+znamená, že do konca roka musí existovať niečo, čo dnes neexistuje vôbec.
+
+**Dnešný stav:** relácie sú v `localStorage` prehliadača, fotografie v IndexedDB
+(`src/utils/mediaDb.ts`, databáza `sma-nastroj-media`). Server o dátach používateľa
+nevie nič. Jediné serverové časti sú `api/feedback.ts` (most do Google Sheetu),
+`api/pvgis.ts` a `api/svp-flood.ts`.
+
+**Čo musí pribudnúť do 31. 12. 2026:**
+
+| Čo | Prečo to model vyžaduje |
+| --- | --- |
+| Účet a prihlásenie | A.2 — bez identity sa nedá povedať, kto zaplatil |
+| Serverové úložisko relácií | A.8 — režim „len na čítanie" po skončení predplatného nemá čo zamykať, kým sú dáta v prehliadači |
+| Kategória obce na účte | A.4 — cena sa odvodzuje od počtu obyvateľov |
+| Evidencia predplatného a jeho platnosti | A.3, A.8 |
+| Fakturačný mechanizmus | B.6 |
+| Spracovanie skenov + počítadlo dokumentov | A.5 — limit sa musí dať odmerať |
+| Skúšobný režim bez uloženia a exportu | A.6 |
+
+Je toho viac než dokončenie energetického modulu. **Termín 31. 12. nie je len
+marketingový — je to vývojový deadline** a to je ďalší dôvod, prečo bol
+15. 11. nereálny.
 
 ---
 
 ## Súvisiace súbory
 
-- `docs/VESMA_monetizacia_pre_zadavatela.docx` — verzia pre zadávateľku (bez
-  interných pochybností a bez čísel, ktoré nie sú rozhodnuté).
-- `docs/chybajuce-hodnoty.md` — register hodnôt, ktoré čakajú na potvrdenie.
-- `docs/verziovanie-pravidiel.md` — mechanizmus verzií pravidiel hodnotenia (B.10).
+- `docs/VESMA_monetizacia_podklad_pre_rozhovor_2026-09-04.docx` — podklad
+  pripravený **pred** rozhovorom so zadávateľkou. Popisuje prekonanú
+  východiskovú pozíciu (jadro zadarmo natrvalo). Neposielať ďalej.
+- `docs/chybajuce-hodnoty.md` — register hodnôt, ktoré čakajú na potvrdenie;
+  patrí doň náklad na spracovanie skenu (B.1).
+- `docs/verziovanie-pravidiel.md` — mechanizmus verzií pravidiel hodnotenia (B.8).
