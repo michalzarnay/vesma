@@ -9,7 +9,7 @@
 
 import { Areal } from '../types/areal';
 import {
-  EnergiaScore, MZIScore, OZEScore, RozpisPodskore, saHodnotiEnergetika, saHodnotiOZE,
+  EnergiaScore, MZIScore, OZEScore, RozpisPodskore, saHodnotiEnergetika, saHodnotiMZI, saHodnotiOZE,
 } from '../types/scoring';
 import {
   Plocha, detailAkumulacie, detailOdtoku, odtokovaPlochaArealu, plochyBudov, plochyOkolia,
@@ -202,6 +202,7 @@ function vysvetlenieOdtoku(areal: Areal, score: MZIScore): VysvetlenieKomponentu
 
 /** Vysvetlenia všetkých komponentov MZI, ktoré sa dali vypočítať. */
 export function vysvetleniaMZI(areal: Areal, score: MZIScore): VysvetlenieKomponentu[] {
+  if (!saHodnotiMZI(score)) return [];
   return [
     vysvetlenieOkolia(areal, score),
     vysvetlenieBudov(areal, score),
@@ -235,6 +236,7 @@ export const NADPISY_MZI: Record<KlucMZI, string> = {
  */
 export function chybajuceUdajeMZI(areal: Areal, score: MZIScore): Map<KlucMZI, string> {
   const chyba = new Map<KlucMZI, string>();
+  if (!saHodnotiMZI(score)) return chyba;
 
   if (score.okolie === null) {
     chyba.set('okolie',

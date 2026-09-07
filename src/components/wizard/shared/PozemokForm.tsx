@@ -7,6 +7,8 @@ import { ConditionalSection } from '../../ui/ConditionalSection';
 import { YES_NO } from '../../../data/constants';
 import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
+import { mapujeEnergiu, mapujeVodu } from '../../../utils/rozsahMapovania';
+import { useRozsah } from '../../../hooks/useRozsah';
 
 interface PozemokFormProps {
   pozemok: Pozemok;
@@ -25,6 +27,7 @@ function applyLVToPozemok(doc: ParsedDocument, onChange: (data: Partial<Pozemok>
 }
 
 export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
+  const rozsah = useRozsah();
   return (
     <div className="space-y-6">
       {/* Identifikacia */}
@@ -90,6 +93,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
       </div>
 
       {/* Odvod vody — 7 kategórií */}
+      {mapujeVodu(rozsah) && (<>
       <PercentageGroup
         title="Odvod vody z pozemku"
         tooltipText="Kam odteká voda (zrejme najmä dažďová) z vášho pozemku? Rozdeľte 100% plochy medzi jednotlivé spôsoby odvodu."
@@ -257,8 +261,10 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
           </p>
         )}
       </div>
+      </>)}
 
       {/* Potenciál pre FV / solárne kolektory na pozemku (issue #184) */}
+      {mapujeEnergiu(rozsah) && (
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">
           Potenciál pre fotovoltiku alebo solárne kolektory
@@ -276,8 +282,10 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
           Zadanú plochu berte ako orientačný, nie záväzný potenciál.
         </div>
       </div>
+      )}
 
       {/* Existujuca infrastruktura */}
+      {mapujeVodu(rozsah) && (
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">
           Už zrealizovaná infraštruktúra na pozemkoch
@@ -385,6 +393,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
           tooltipText="Špeciálne upravený podzemný priestor, ktorý umožňuje koreňom stromov rásť pod spevnenými plochami."
         />
       </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,8 @@ import { computeBudovaEnPI } from '../../../utils/energyIndicators';
 import { maPocetSvietidiel, podielLED } from '../../../utils/lighting';
 import { jeNevyplneneNovePole } from '../../../utils/schemaVersion';
 import { apiUrl } from '../../../utils/apiUrl';
+import { mapujeEnergiu, mapujeVodu } from '../../../utils/rozsahMapovania';
+import { useRozsah } from '../../../hooks/useRozsah';
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 
@@ -102,6 +104,7 @@ function applyDocToBudova(doc: ParsedDocument, onChange: (data: Partial<Budova>)
 const fmt = (n: number, digits = 0) => n.toLocaleString('sk', { maximumFractionDigits: digits });
 
 export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: BudovaFormProps) {
+  const rozsah = useRozsah();
   const zvyrazniNovePole = (pole: keyof Budova) =>
     verziaRelacie !== undefined && jeNevyplneneNovePole(verziaRelacie, budova, pole);
   const [svpLoading, setSvpLoading] = useState(false);
@@ -316,6 +319,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           </div>
         )}
 
+        {mapujeEnergiu(rozsah) && (<>
         <h4 className="text-xs font-semibold text-gray-600 mt-4">Plochy strechy a fasády</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <NumberInput
@@ -345,9 +349,11 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             Do potenciálu pre fotovoltiku sa započítavajú iba ploché a málo šikmé strechy (do 15°) – pri šikmej streche rozhoduje orientácia a sklon, ktoré nástroj nezachytáva.
           </p>
         )}
+        </>)}
       </Section>
 
       {/* Ohrozenie záplavami */}
+      {mapujeVodu(rozsah) && (
       <Section title="Ohrozenie budovy záplavami">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -409,8 +415,10 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           ))}
         </div>
       </Section>
+      )}
 
       {/* Voda */}
+      {mapujeVodu(rozsah) && (
       <Section title="Voda a splašky">
         <SelectCard
           label="Odvod splaškov a dažďovej vody"
@@ -458,8 +466,10 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           tooltipText="Či sa dažďová voda zbiera a používa vnútri budovy (napr. na splachovanie WC, zavlažovanie)."
         />
       </Section>
+      )}
 
       {/* Uspory energie */}
+      {mapujeEnergiu(rozsah) && (
       <Section title="Úspory energie">
         {jeSezonna && <SezonnaStavbaPoznamka />}
         <TextInput
@@ -549,8 +559,10 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           tooltipText="Celkový objem vzduchu, ktorý sa vymení vetraním za deň. Reálna hodnota závisí od nastavenia (denný/nočný režim, s bypasom/bez bypasu a pod.) – zadajte priemerný odhad podľa bežného používania, nie projektované maximum."
         />
       </Section>
+      )}
 
       {/* Vykurovanie */}
+      {mapujeEnergiu(rozsah) && (
       <Section title="Vykurovanie">
         {jeSezonna && <SezonnaStavbaPoznamka />}
         {/* Nápoveda pre spotrebu */}
@@ -898,8 +910,10 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           </div>
         </ConditionalSection>
       </Section>
+      )}
 
       {/* Elektricka energia */}
+      {mapujeEnergiu(rozsah) && (
       <Section title="Elektrická energia">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <NumberInput
@@ -963,9 +977,11 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           tooltipKey="PCsietDef"
         />
       </Section>
+      )}
 
       {/* Dokumentacia */}
       <Section title="Projektová dokumentácia">
+        {mapujeEnergiu(rozsah) && (<>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectCard
             label="Energetický certifikát"
@@ -1035,6 +1051,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             />
           </ConditionalSection>
         </div>
+        </>)}
 
         {/* PD 1 */}
         <p className="text-xs text-gray-500">Môžete zadať aj viac ako jednu projektovú dokumentáciu (až 3) – ďalšie polia sa zobrazia po vyplnení názvu predchádzajúcej.</p>
@@ -1079,6 +1096,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
       {/* Existujuca infrastruktura */}
       <Section title="Už zrealizovaná infraštruktúra">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {mapujeVodu(rozsah) && (
           <NumberInput
             label="Zelená strecha – plocha celkom"
             value={budova.zelenaStrechaPlocha}
@@ -1086,6 +1104,8 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             unit="m²"
             tooltipKey="zelenaStrechaDef"
           />
+          )}
+          {mapujeEnergiu(rozsah) && (
           <NumberInput
             label="Solárne kolektory – plocha"
             value={budova.solarnePanelyPlocha}
@@ -1093,7 +1113,9 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             unit="m²"
             tooltipKey="solarnePanelyDef"
           />
+          )}
         </div>
+        {mapujeVodu(rozsah) && (
         <ConditionalSection title="Typy zelenej strechy (detail)" show={budova.zelenaStrechaPlocha > 0} defaultOpen>
           <p className="text-xs text-gray-500">Rozdeľte celkovú plochu zelenej strechy podľa typu (m²):</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1129,6 +1151,8 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             />
           </div>
         </ConditionalSection>
+        )}
+        {mapujeVodu(rozsah) && (
         <NumberInput
           label="Zelená stena budovy"
           value={budova.zelenaStenaBudov}
@@ -1136,6 +1160,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           unit="m²"
           tooltipText="Fasáda pokrytá rastlinami (napr. brečtan, popínavé rastliny na konštrukcii). Zadajte plochu v m². Zelená stena zlepšuje izoláciu a ochladzuje fasádu v lete."
         />
+        )}
       </Section>
     </div>
   );

@@ -104,6 +104,7 @@ describe('POST /api/feedback', () => {
     // Most zapisuje hodnoty do hárku v poradí, v akom prídu v payloade,
     // a kľúče `secret` + `action` preskočí. Poradie preto určuje stĺpce:
     //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis | G meno testera
+    //   H e-mail | I e-mail overený
     const { payload } = poslanyPayload(fetchMock);
     expect(Object.keys(payload)).toEqual([
       'secret',
@@ -115,6 +116,8 @@ describe('POST /api/feedback', () => {
       'prvok',
       'opis',
       'menoTestera',
+      'email',
+      'emailOvereny',
     ]);
 
     // Hodnoty v poradí stĺpcov A–G (bez secret/action).
@@ -128,6 +131,8 @@ describe('POST /api/feedback', () => {
     expect(stlpce[4]).toBe('Materiál povrchu strechy'); // E kde
     expect(stlpce[5]).toBe('nedoplniť?'); // F opis
     expect(stlpce[6]).toBe('Ján Novák'); // G meno testera
+    expect(stlpce[7]).toBe(''); // H e-mail – bez prihlásenia prázdny
+    expect(stlpce[8]).toBe('nie'); // I e-mail overený
   });
 
   it('meno testera je nepovinné a bez neho sa pošle prázdne', async () => {

@@ -133,6 +133,9 @@ export function migrateAreal(raw: unknown): Areal {
     // Relácia bez verzie pravidiel bola vyhodnotená ešte pred zavedením ich
     // sledovania — verzia 0 znamená „nevieme, ktoré pravidlá vtedy platili".
     pravidlaVersion: data.pravidlaVersion ?? 0,
+    // Relácia spred zavedenia rozsahu mapovania mapovala všetko — „oboje"
+    // zachová jej dotazník aj skóre nezmenené.
+    rozsahMapovania: data.rozsahMapovania ?? 'oboje',
     organizaciaVZriadovatelskejPobnonosti: data.organizaciaVZriadovatelskejPobnonosti ?? '',
     obhliadkuVykonal: data.obhliadkuVykonal ?? '',
     datumObhliadky: data.datumObhliadky ?? '',

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, ChevronDown, Bot } from 'lucide-react';
 import { Areal } from '../../types/areal';
 import { apiUrl } from '../../utils/apiUrl';
+import { poliaOdosielatela, usePouzivatel } from '../../hooks/usePouzivatel';
 
 interface Sprava {
   id: string;
@@ -263,6 +264,7 @@ function formatText(text: string): React.ReactNode {
 }
 
 export function ChatPanel({ currentStep }: ChatPanelProps) {
+  const { pouzivatel } = usePouzivatel();
   const [otvoreny, setOtvoreny] = useState(false);
   const [spravy, setSpravy] = useState<Sprava[]>([
     {
@@ -313,6 +315,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
           question: textOtazky,
           step: currentStep,
           timestamp: new Date().toISOString(),
+          ...poliaOdosielatela(pouzivatel),
         }),
       }).catch(() => {
         // fire-and-forget – chyba nezobrazí sa používateľovi

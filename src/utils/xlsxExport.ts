@@ -1,9 +1,10 @@
 import * as XLSX from 'xlsx';
-import { Areal } from '../types/areal';
+import { Areal, ROZSAHY_MAPOVANIA } from '../types/areal';
 import { xlsxFilename } from './exportFilenames';
 import {
   KlimaskenStupen, MZIKomponent, ScoreResult,
-  dovodNehodnoteniaEnergetiky, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
+  dovodNehodnoteniaEnergetiky, dovodNehodnoteniaOZE, saHodnotiEnergetika, saHodnotiMZI, saHodnotiOZE,
+  vazeneCelkoveSkore,
 } from '../types/scoring';
 import { Odporucanie } from '../types/catalog';
 import {
@@ -31,11 +32,31 @@ function mziRiadok(
 
 const weightedScore = vazeneCelkoveSkore;
 
+const rozsahText = (areal: Areal) =>
+  ROZSAHY_MAPOVANIA.find((r) => r.value === areal.rozsahMapovania)?.label ?? areal.rozsahMapovania;
+
+const TEXT_MZI_MIMO_ROZSAHU = 'MZI sa nehodnotí — areál sa mapuje len pre energiu.';
+
+function textNehodnoteniaOZE(score: ScoreResult): string {
+  return dovodNehodnoteniaOZE(score.oze) === 'mimoRozsahu'
+    ? 'OZE sa nehodnotí — areál sa mapuje len pre vodu.'
+    : 'OZE sa nehodnotí — areál nemá zadanú žiadnu budovu.';
+}
+
+function textNehodnoteniaEnergetiky(score: ScoreResult): string {
+  switch (dovodNehodnoteniaEnergetiky(score.energia)) {
+    case 'mimoRozsahu': return 'Energetika sa nehodnotí — areál sa mapuje len pre vodu.';
+    case 'bezBudov': return 'Energetika sa nehodnotí — areál nemá zadanú žiadnu budovu.';
+    default: return 'Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.';
+  }
+}
+
 /** Text do bunky skóre — nula nehodnotenej oblasti sa nemá tváriť ako výsledok. */
 function skoreCell(hodnoti: boolean, skore: number): string | number {
   return hodnoti ? skore : 'nehodnotené';
 }
 
+const mziCell = (score: ScoreResult) => skoreCell(saHodnotiMZI(score.mzi), score.mzi.celkove);
 const ozeCell = (score: ScoreResult) => skoreCell(saHodnotiOZE(score.oze), score.oze.celkove);
 const energiaCell = (score: ScoreResult) => skoreCell(saHodnotiEnergetika(score.energia), score.energia.celkove);
 
@@ -70,7 +91,8 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     [],
     ['SKÓRE', '', ''],
     ['Oblasť', 'Skóre (0–100)', 'Váha'],
-    ['MZI – Modro-zelená infraštruktúra', score.mzi.celkove, areal.vahy.mzi],
+    ['Rozsah mapovania', rozsahText(areal)],
+    ['MZI – Modro-zelená infraštruktúra', mziCell(score), areal.vahy.mzi],
     ['OZE – Obnoviteľné zdroje energie', ozeCell(score), areal.vahy.oze],
     ['Energia – Energetická efektívnosť', energiaCell(score), areal.vahy.energia],
     [],
@@ -78,6 +100,7 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Nevážené celkové skóre', score.celkove],
     [],
     ['DETAIL MZI (metodika KLIMASKEN)'],
+    ...(saHodnotiMZI(score.mzi) ? [] : [[TEXT_MZI_MIMO_ROZSAHU, '', '']]),
     ['Komponent', 'Body', 'Maximum', 'Hodnota indikátora', 'Stupeň A–E'],
     mziRiadok('Priepustnosť a zeleň areálu (B-GOV2)', score.mzi.okolie,
       score.mzi.koefOkolie === null ? null : `koeficient MZI ${score.mzi.koefOkolie.toFixed(2)}`,
@@ -96,20 +119,14 @@ function sheetSuhrn(areal: Areal, score: ScoreResult): (string | number)[][] {
       null, chyba.get('odtok')),
     [],
     ['DETAIL OZE'],
-    ...(saHodnotiOZE(score.oze)
-      ? []
-      : [['OZE sa nehodnotí — areál nemá zadanú žiadnu budovu.', '', '']]),
+    ...(saHodnotiOZE(score.oze) ? [] : [[textNehodnoteniaOZE(score), '', '']]),
     ['Vhodnosť strechy pre solár', score.oze.vhodnostStrechyPreSolar, '/ 30'],
     ['Existujúce OZE', score.oze.existujuceOZE, '/ 20'],
     ['Potenciál tepelného čerpadla', score.oze.potencialTepelnehoCerpadla, '/ 25'],
     ['Potenciál ďalších OZE', score.oze.potencialDalsichOZE, '/ 25'],
     [],
     ['DETAIL ENERGIA'],
-    ...(saHodnotiEnergetika(score.energia)
-      ? []
-      : [[dovodNehodnoteniaEnergetiky(score.energia) === 'bezBudov'
-        ? 'Energetika sa nehodnotí — areál nemá zadanú žiadnu budovu.'
-        : 'Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.', '', '']]),
+    ...(saHodnotiEnergetika(score.energia) ? [] : [[textNehodnoteniaEnergetiky(score), '', '']]),
     ['Zateplenie', score.energia.zateplenie, '/ 30'],
     ['Kvalita okien', score.energia.kvalitaOkien, '/ 20'],
     ['Vykurovací systém', score.energia.vykurovaciSystem, '/ 25'],
@@ -148,20 +165,18 @@ function sheetVypocetSkore(areal: Areal, score: ScoreResult): (string | number)[
     {
       nazov: 'MZI – MODRO-ZELENÁ INFRAŠTRUKTÚRA',
       vysvetlenia: vysvetleniaMZI(areal, score.mzi),
-      prazdne: 'Žiadny komponent MZI sa nedal vypočítať:',
-      chybajuce: chybaMZI,
+      prazdne: saHodnotiMZI(score.mzi) ? 'Žiadny komponent MZI sa nedal vypočítať:' : TEXT_MZI_MIMO_ROZSAHU,
+      chybajuce: saHodnotiMZI(score.mzi) ? chybaMZI : undefined,
     },
     {
       nazov: 'OZE – OBNOVITEĽNÉ ZDROJE ENERGIE',
       vysvetlenia: vysvetleniaOZE(score.oze),
-      prazdne: 'OZE sa nehodnotí — areál nemá zadanú žiadnu budovu.',
+      prazdne: textNehodnoteniaOZE(score),
     },
     {
       nazov: 'ENERGETICKÁ EFEKTÍVNOSŤ',
       vysvetlenia: vysvetleniaEnergetiky(score.energia),
-      prazdne: dovodNehodnoteniaEnergetiky(score.energia) === 'bezBudov'
-        ? 'Energetika sa nehodnotí — areál nemá zadanú žiadnu budovu.'
-        : 'Energetika sa nehodnotí — všetky budovy areálu sú sezónne nevykurované stavby.',
+      prazdne: textNehodnoteniaEnergetiky(score),
     },
   ];
 
@@ -361,8 +376,8 @@ function sheetOdporucania(recommendations: Odporucanie[]): (string | number)[][]
 }
 
 function sheetVahy(areal: Areal, score: ScoreResult): (string | number)[][] {
-  const { mzi } = areal.vahy;
   // Váhy nehodnotených oblastí sa do súčtu nezapočítajú — pozri vazeneCelkoveSkore().
+  const mzi = saHodnotiMZI(score.mzi) ? areal.vahy.mzi : 0;
   const oze = saHodnotiOZE(score.oze) ? areal.vahy.oze : 0;
   const energia = saHodnotiEnergetika(score.energia) ? areal.vahy.energia : 0;
   const sumVah = mzi + oze + energia;
@@ -370,7 +385,7 @@ function sheetVahy(areal: Areal, score: ScoreResult): (string | number)[][] {
     ['Nastavenie váh pre porovnanie areálov'],
     [],
     ['Oblasť', 'Skóre (0–100)', 'Váha', 'Vážená hodnota'],
-    ['MZI', score.mzi.celkove, mzi, sumVah > 0 ? Math.round(score.mzi.celkove * mzi / sumVah) : 0],
+    ['MZI', mziCell(score), mzi, sumVah > 0 ? Math.round(score.mzi.celkove * mzi / sumVah) : 0],
     ['OZE', ozeCell(score), oze, sumVah > 0 ? Math.round(score.oze.celkove * oze / sumVah) : 0],
     ['Energia', energiaCell(score), energia, sumVah > 0 ? Math.round(score.energia.celkove * energia / sumVah) : 0],
     [],

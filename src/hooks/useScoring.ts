@@ -7,6 +7,7 @@ import { calculateMZI } from '../utils/mziKlimasken';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
 import { podielLED } from '../utils/lighting';
 import { budovyNaEnergetickeHodnotenie } from '../utils/sezonnaStavba';
+import { mapujeEnergiu } from '../utils/rozsahMapovania';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -51,12 +52,14 @@ function prazdnyRozpis(max: number): RozpisPodskore {
 export { calculateMZI };
 
 export function calculateOZE(areal: Areal): OZEScore {
-  // Bez jedinej budovy sa OZE nehodnotí — celé skóre stojí na budovách
-  // a nula by sa čítala ako zlý stav (issue #205).
-  const budovy = areal.budovy;
+  // Mimo rozsahu mapovania (len voda) sa OZE nehodnotí vôbec. Bez jedinej
+  // budovy takisto — celé skóre stojí na budovách a nula by sa čítala ako
+  // zlý stav (issue #205).
+  const mimoRozsahu = !mapujeEnergiu(areal);
+  const budovy = mimoRozsahu ? [] : areal.budovy;
   if (budovy.length === 0) {
     return {
-      celkove: 0, vhodnostStrechyPreSolar: 0, existujuceOZE: 0,
+      celkove: 0, mimoRozsahu, vhodnostStrechyPreSolar: 0, existujuceOZE: 0,
       potencialTepelnehoCerpadla: 0, potencialDalsichOZE: 0, hodnotenychBudov: 0,
       rozpis: {
         vhodnostStrechyPreSolar: prazdnyRozpis(30),
@@ -153,7 +156,7 @@ export function calculateOZE(areal: Areal): OZEScore {
   const celkove = vhodnostStrechyPreSolar + existujuceOZE + potencialTepelnehoCerpadla + potencialDalsichOZE;
 
   return {
-    celkove, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE,
+    celkove, mimoRozsahu, vhodnostStrechyPreSolar, existujuceOZE, potencialTepelnehoCerpadla, potencialDalsichOZE,
     hodnotenychBudov: budovy.length,
     rozpis: {
       vhodnostStrechyPreSolar: rozpisStrechy,
@@ -165,13 +168,15 @@ export function calculateOZE(areal: Areal): OZEScore {
 }
 
 export function calculateEnergia(areal: Areal): EnergiaScore {
+  // Mimo rozsahu mapovania (len voda) sa energetika nehodnotí vôbec.
   // Sezónne nevykurované stavby (záhradná chata a pod.) sa nehodnotia — nemá
   // zmysel merať zateplenie ani vykurovanie tam, kde sa nekúri.
-  const budovy = budovyNaEnergetickeHodnotenie(areal.budovy);
-  const vynechanychSezonnych = areal.budovy.length - budovy.length;
+  const mimoRozsahu = !mapujeEnergiu(areal);
+  const budovy = mimoRozsahu ? [] : budovyNaEnergetickeHodnotenie(areal.budovy);
+  const vynechanychSezonnych = mimoRozsahu ? 0 : areal.budovy.length - budovy.length;
   if (budovy.length === 0) {
     return {
-      celkove: 0, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0,
+      celkove: 0, mimoRozsahu, zateplenie: 0, kvalitaOkien: 0, vykurovaciSystem: 0, vetranie: 0,
       hodnotenychBudov: 0, vynechanychSezonnych,
       rozpis: {
         zateplenie: prazdnyRozpis(30),
@@ -249,7 +254,7 @@ export function calculateEnergia(areal: Areal): EnergiaScore {
   const celkove = zateplenie + kvalitaOkien + vykurovaciSystem + vetranie;
 
   return {
-    celkove, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie,
+    celkove, mimoRozsahu, zateplenie, kvalitaOkien, vykurovaciSystem, vetranie,
     hodnotenychBudov: budovy.length, vynechanychSezonnych,
     rozpis: {
       zateplenie: rozpisZateplenie,
@@ -306,8 +311,11 @@ export function computeScore(areal: Areal): ScoreResult {
 
   // Do priemeru vstupujú len oblasti, ktoré sa naozaj hodnotia — nula
   // nehodnotenej oblasti by inak stiahla celý areál dole (#203, #204, #205).
+  // Bez jedinej hodnotenej oblasti (len energia bez budov) je skóre nula.
   const hodnotene = hodnoteneOblasti(ciastkove);
-  const celkove = Math.round(hodnotene.reduce((acc, o) => acc + o.skore, 0) / hodnotene.length);
+  const celkove = hodnotene.length === 0
+    ? 0
+    : Math.round(hodnotene.reduce((acc, o) => acc + o.skore, 0) / hodnotene.length);
 
   return { ...ciastkove, celkove };
 }
