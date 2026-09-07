@@ -24,6 +24,8 @@ export interface MZIKomponent {
  */
 export interface MZIScore {
   celkove: number; // 0-100
+  /** Areál sa mapuje len pre energiu — MZI je mimo rozsahu a nehodnotí sa. */
+  mimoRozsahu: boolean;
   /** B-GOV2 — priepustnosť a zeleň plôch areálu */
   okolie: MZIKomponent | null;
   /** B-GOV3 — zeleň a retencia na strechách a fasádach */
@@ -76,6 +78,8 @@ export interface RozpisPodskore {
 
 export interface OZEScore {
   celkove: number;
+  /** Areál sa mapuje len pre vodu — OZE je mimo rozsahu a nehodnotí sa. */
+  mimoRozsahu: boolean;
   vhodnostStrechyPreSolar: number; // 0-30
   existujuceOZE: number; // 0-20
   potencialTepelnehoCerpadla: number; // 0-25
@@ -96,6 +100,8 @@ export interface OZEScore {
 
 export interface EnergiaScore {
   celkove: number;
+  /** Areál sa mapuje len pre vodu — energetika je mimo rozsahu a nehodnotí sa. */
+  mimoRozsahu: boolean;
   zateplenie: number; // 0-30
   kvalitaOkien: number; // 0-20
   vykurovaciSystem: number; // 0-25
@@ -114,21 +120,39 @@ export interface EnergiaScore {
 }
 
 /**
+ * Má sa MZI skóre brať do úvahy?
+ *
+ * Nie, keď mapér zvolil rozsah mapovania „len energia" — voda sa v areáli
+ * vôbec nemapuje, takže nula by bola len dôsledok prázdneho dotazníka.
+ */
+export function saHodnotiMZI(mzi: MZIScore): boolean {
+  return !mzi.mimoRozsahu;
+}
+
+/**
  * Má sa energetické skóre vôbec brať do úvahy?
  *
- * Nie, keď do hodnotenia nevstúpila ani jedna budova — či už preto, že areál
- * budovy nemá (issue #204), alebo preto, že sú všetky sezónne nevykurované
- * stavby (issue #203). Oba prípady sú to isté: nie je čo hodnotiť a nula by sa
+ * Nie, keď je energia mimo rozsahu mapovania (mapér mapuje len vodu), ani keď
+ * do hodnotenia nevstúpila ani jedna budova — či už preto, že areál budovy
+ * nemá (issue #204), alebo preto, že sú všetky sezónne nevykurované stavby
+ * (issue #203). Všetky prípady sú to isté: nie je čo hodnotiť a nula by sa
  * čítala ako „veľký priestor na zlepšenie".
  */
 export function saHodnotiEnergetika(energia: EnergiaScore): boolean {
-  return energia.hodnotenychBudov > 0;
+  return !energia.mimoRozsahu && energia.hodnotenychBudov > 0;
 }
 
 /** Prečo sa energetika nehodnotí — rozlišuje texty pre používateľa. */
-export function dovodNehodnoteniaEnergetiky(energia: EnergiaScore): 'bezBudov' | 'lenSezonne' | null {
+export function dovodNehodnoteniaEnergetiky(energia: EnergiaScore): 'mimoRozsahu' | 'bezBudov' | 'lenSezonne' | null {
   if (saHodnotiEnergetika(energia)) return null;
+  if (energia.mimoRozsahu) return 'mimoRozsahu';
   return energia.vynechanychSezonnych > 0 ? 'lenSezonne' : 'bezBudov';
+}
+
+/** Prečo sa OZE nehodnotí — rozlišuje texty pre používateľa. */
+export function dovodNehodnoteniaOZE(oze: OZEScore): 'mimoRozsahu' | 'bezBudov' | null {
+  if (saHodnotiOZE(oze)) return null;
+  return oze.mimoRozsahu ? 'mimoRozsahu' : 'bezBudov';
 }
 
 /**
@@ -143,7 +167,7 @@ export function dovodNehodnoteniaEnergetiky(energia: EnergiaScore): 'bezBudov' |
  * chaty je pre fotovoltiku rovnako použiteľná ako ktorákoľvek iná.
  */
 export function saHodnotiOZE(oze: OZEScore): boolean {
-  return oze.hodnotenychBudov > 0;
+  return !oze.mimoRozsahu && oze.hodnotenychBudov > 0;
 }
 
 /**
@@ -151,9 +175,8 @@ export function saHodnotiOZE(oze: OZEScore): boolean {
  * jej nula by inak stiahla celý areál dole (issues #203, #204, #205).
  */
 export function hodnoteneOblasti(score: ScoreResult): Array<{ oblast: 'mzi' | 'oze' | 'energia'; skore: number }> {
-  const oblasti: Array<{ oblast: 'mzi' | 'oze' | 'energia'; skore: number }> = [
-    { oblast: 'mzi', skore: score.mzi.celkove },
-  ];
+  const oblasti: Array<{ oblast: 'mzi' | 'oze' | 'energia'; skore: number }> = [];
+  if (saHodnotiMZI(score.mzi)) oblasti.push({ oblast: 'mzi', skore: score.mzi.celkove });
   if (saHodnotiOZE(score.oze)) oblasti.push({ oblast: 'oze', skore: score.oze.celkove });
   if (saHodnotiEnergetika(score.energia)) oblasti.push({ oblast: 'energia', skore: score.energia.celkove });
   return oblasti;

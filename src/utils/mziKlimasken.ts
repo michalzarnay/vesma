@@ -28,6 +28,7 @@
 //    tvárnice, „iný povrch"), sú zaradené medzi kódy B a C hodnotou 0,3.
 
 import { Areal, Budova, Pozemok } from '../types/areal';
+import { mapujeVodu } from './rozsahMapovania';
 import { KlimaskenStupen, MZIKomponent, MZIScore } from '../types/scoring';
 
 /** Funkčné koeficienty MZI pre povrchy v okolí budovy — metodický list B-GOV2. */
@@ -609,6 +610,9 @@ export function calculateMZI(areal: Areal): MZIScore {
 
   return {
     celkove: maxSpolu > 0 ? Math.round((bodySpolu / maxSpolu) * 100) : 0,
+    // Len energia → MZI je mimo rozsahu; komponenty sa spočítajú, ale skóre
+    // ich nepoužije (pozri saHodnotiMZI v types/scoring.ts).
+    mimoRozsahu: !mapujeVodu(areal),
     ...komponenty,
     koefOkolie,
     koefBudovy,

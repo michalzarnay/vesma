@@ -22,6 +22,7 @@ import { chybajuceNovePolia, verziaArealu } from '../../utils/schemaVersion';
 import { NovePoliaPripomienka } from './NovePoliaPripomienka';
 import { upozornenieNaZmenuPravidiel } from '../../utils/pravidlaVersion';
 import { ZmenaPravidielDialog } from './ZmenaPravidielDialog';
+import { RozsahContext } from '../../hooks/useRozsah';
 
 export function WizardContainer() {
   const wizard = useWizard();
@@ -114,6 +115,7 @@ export function WizardContainer() {
   };
 
   return (
+    <RozsahContext.Provider value={arealState.areal.rozsahMapovania}>
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header
         progress={wizard.progress}
@@ -199,5 +201,6 @@ export function WizardContainer() {
       {/* Chatbot asistent */}
       <ChatPanel areal={arealState.areal} currentStep={wizard.currentStep} />
     </div>
+    </RozsahContext.Provider>
   );
 }

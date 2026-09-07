@@ -41,6 +41,21 @@ export interface ScoringWeights {
   energia: number;
 }
 
+/**
+ * Rozsah mapovania — čo si mapér vybral, že chce mapovať.
+ *
+ * Podľa rozsahu sa skrývajú nerelevantné časti dotazníka aj hodnotenia
+ * (pozri `src/utils/rozsahMapovania.ts`). Relácie spred zavedenia rozsahu sú
+ * „oboje", takže ich dotazník ani skóre sa nemenia.
+ */
+export type RozsahMapovania = 'voda' | 'energia' | 'oboje';
+
+export const ROZSAHY_MAPOVANIA: Array<{ value: RozsahMapovania; label: string; description: string }> = [
+  { value: 'voda', label: 'Voda', description: 'Modro-zelená infraštruktúra, odvod a zadržiavanie vody' },
+  { value: 'energia', label: 'Energia', description: 'Obnoviteľné zdroje, zateplenie, vykurovanie' },
+  { value: 'oboje', label: 'Voda aj energia', description: 'Celý dotazník a celé hodnotenie' },
+];
+
 export type KategoriaObjektu = 'verejny_sektor' | 'firma' | 'sukromne';
 
 export const KATEGORIE_OBJEKTU: Array<{ value: KategoriaObjektu; label: string }> = [
@@ -116,6 +131,9 @@ export interface Areal {
 
   kategoriaObjektu?: KategoriaObjektu;
   typObjektu?: string;
+
+  /** Čo sa v areáli mapuje — voda, energia alebo oboje. */
+  rozsahMapovania: RozsahMapovania;
 
   // Záznam z obhliadky
   organizaciaVZriadovatelskejPobnonosti: string;
@@ -702,6 +720,7 @@ export function createEmptyAreal(): Areal {
     pocetZamestnancov: 0,
     nadrzNieJeMozna: 0,
     nadrzNemoznaDovod: '',
+    rozsahMapovania: 'oboje',
     zaverBG: '',
     zaverOZE: '',
     pozemky: [createEmptyPozemok()],
