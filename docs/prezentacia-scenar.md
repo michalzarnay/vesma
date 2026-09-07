@@ -73,9 +73,11 @@ PPTX pre rečníka. „Vizuál" = návrh obrázka.
 - VESMA — Voda a energia: sprievodca mapovaním areálov
 - INOVIA · [subregión] · [dátum]
 - Meno rečníka, rola
+- Tvorcovia: Žilinský samosprávny kraj · Žilinská univerzita · INOVIA
 
-**Povedať:** jedna veta o sebe a o tom, že VESMA vznikla v INOVII pre obce
-ŽSK. Bez dlhého úvodu — publikum čakalo na iné body programu.
+**Povedať:** jedna veta o sebe a o tom, že VESMA vznikla v spolupráci ŽSK,
+UNIZA a INOVIE pre obce kraja. Bez dlhého úvodu — publikum čakalo na iné body
+programu.
 
 ### S2 — Čo si dnes odnesiete
 
@@ -166,7 +168,7 @@ preskočiť — obsah odznel pri Výsledkoch.
 
 ### S9 — Kde VESMA dnes je (otvorene)
 
-- Testovacia verzia — hodnotenie MZI podľa metodiky KLIMASKEN, energetika v spolupráci s expertmi
+- Verzia na overenie v praxi — hodnotenie MZI vychádza z metodiky KLIMASKEN, energetika z vyhlášky 179/2015 a z pripomienok expertov
 - Časť referenčných hodnôt (ceny, váhy) je návrh a čaká na potvrdenie expertov
 - Pripravuje sa: prepojenie na systémy ŽSK (xMatik) a evidenciu majetku (URBIS), AI asistent
 - Preto vás potrebujeme: reálne areály, reálne otázky
@@ -177,15 +179,16 @@ hotové, než aby ste na to prišli sami." Zoznam otvorených hodnôt je verejn�
 
 ### S10 — Vyskúšajte VESMU
 
-- Adresa + QR kód: [URL]
-- Príručka: [odkaz/QR]
+- Adresa + QR kód: **inovia.sk/vesma**
+- Príručka: **inovia.sk/vesma/prirucka.pdf** (návrh, pozri kap. 6 bod 10)
 - Spätná väzba: tlačidlo **Podnet** priamo v aplikácii (pri každom poli aj v hlavičke)
-- Alebo e-mail: [kontakt]
 - Čo prosíme: vyplňte **jeden svoj areál** do [termín] a povedzte nám, kde ste sa zasekli
 
 **Povedať:** Konkrétna, malá prosba. Nie „používajte", ale „jeden areál do
-konca mesiaca". Ponúknuť pomoc: „Ak chcete, prídeme a prvý areál vyplníme
-s vami." (Len ak sa na to tím dohodne — pozri rozhodnutia.)
+[termín]". Zásada tímu: všetko sa má dať zvládnuť s nástrojom a Príručkou —
+„ak sa zaseknete, nie je to vaša chyba, je to náš podnet. Napíšte nám ho
+tlačidlom Podnet a my nástroj upravíme." Bez ponuky, že prídeme vyplniť
+areál za nich.
 
 **Vizuál:** veľký QR kód, adresa čitateľne, screenshot tlačidla Podnet.
 
@@ -198,7 +201,7 @@ s vami." (Len ak sa na to tím dohodne — pozri rozhodnutia.)
 ### Záložné snímky (za S11, nepremietajú sa, ak netreba)
 
 - **Z1 – Ukážka bez internetu:** 5–6 screenshotov ukážky v poradí (krok 1, krok 2, krok 3, výsledky, vysvetlenie bodov, porovnanie). Použije sa, ak zlyhá pripojenie.
-- **Z2 – Zdroje dát a metodiky:** KLIMASKEN (CI2, LIFE DELIVER), Open-Meteo, PVGIS, SVP mapy povodňového ohrozenia, vyhláška 179/2015 Z. z. (energetika).
+- **Z2 – Zdroje dát a metodiky:** Open-Meteo (zrážky), PVGIS (slnečný svit), SVP mapy povodňového ohrozenia, vyhláška 179/2015 Z. z. (energetika), KLIMASKEN (CI2, LIFE DELIVER) — metodika MZI. Tvorcovia nástroja: ŽSK, UNIZA, INOVIA.
 - **Z3 – Slovníček:** MZI, OZE, B&G opatrenia, HDV (hospodárenie s dažďovou vodou), koeficient MZI, tepelné čerpadlo, ETICS.
 - **Z4 – Ako sa počíta skóre MZI:** tabuľka indikátorov B-GOV2 / B-GOV3 / B-AD10 + odtok (pre odborné publikum).
 - **Z5 – Súkromie dát:** kde dáta sú (prehliadač), čo odchádza na server (len podnety a nezodpovedané otázky do Google Sheetu tímu), ako sa zdieľa relácia (súbor JSON / e-mail).
@@ -214,8 +217,9 @@ efektné (načítanie dát podľa adresy, prepnutie hrozby v porovnaní, export)
 ### Príprava (deň vopred, na notebooku rečníka)
 
 1. Otvoriť aplikáciu na adrese, ktorá sa bude komunikovať publiku (nie inú).
-2. Importovať pripravené relácie (JSON) cez **Relácie**: prípadový areál
-   subregiónu + 1–2 ďalšie areály na porovnanie. Overiť, že sa otvoria bez
+2. Importovať pripravené relácie (JSON) cez **Relácie**: tri areály
+   z `docs/prezentacia-pripadova-studia.md` (A úrad, B škola, C zdravotné
+   stredisko), v A prepísať adresu na miesto konania. Overiť, že sa otvoria bez
    dialógu o zmene pravidiel hodnotenia (ak vyskočí, potvrdiť prepočet a
    reláciu znova uložiť).
 3. Priblíženie prehliadača 125–150 %, zavrieť ostatné karty, vypnúť
@@ -235,7 +239,7 @@ efektné (načítanie dát podľa adresy, prepnutie hrozby v porovnaní, export)
 | 3:30 – 4:30 | Krok 3 Budovy | Jedna budova: strecha, vykurovanie, spotreba; spomenúť import energetického certifikátu z PDF (ukázať tlačidlo, nespúšťať) | „Kto má energetický certifikát, nahrá PDF a polovica polí sa vyplní." |
 | 4:30 – 5:00 | Kroky 4 a 5 | Len preletieť: altánok/prístrešok; zamýšľané opatrenia | „Iné stavby sú drobné stavby bez základov. Piaty krok — čo už plánujete, aby to vedel zohľadniť." |
 | 5:00 – 7:00 | Krok 6 Výsledky | Tri skóre + vážené; **rozkliknúť vysvetlenie bodov** („prečo toľko"); odporúčané opatrenia s cenou/návratnosťou; **naživo** export XLSX alebo PDF | „Skóre vám nepovie len číslo, ale prečo. Tu vidíte, čo vám body dalo a čo zobralo." + „Toto si stiahnete a idete s tým za projektantom." |
-| 7:00 – 8:00 | Porovnanie areálov | Vybrať 2–3 uložené areály; **naživo** prepnúť hrozbu (prívalový dážď → sucho → teplo) a ukázať, že sa poradie mení | „Toto je hlavná otázka starostu: ktorý areál prvý? A odpoveď závisí od toho, čoho sa bojíte viac." |
+| 7:00 – 8:00 | Porovnanie areálov | Vybrať 3 uložené areály (A, B, C z prípadovej štúdie); ukázať tabuľku s poradím v stĺpcoch Sucho / Horúčavy / Voda / Energia — škola je prvá pri vode, zdravotné stredisko pri energii | „Toto je hlavná otázka starostu: ktorý areál prvý? A odpoveď závisí od toho, čoho sa bojíte viac — pri záplavách škola, pri účtoch za energiu stredisko." |
 
 ### Ak niečo zlyhá
 
@@ -254,14 +258,15 @@ efektné (načítanie dát podľa adresy, prepnutie hrozby v porovnaní, export)
 | Kde sú moje dáta? Kto ich vidí? | Vo vašom prehliadači. Na server odchádza len podnet, ktorý pošlete. Reláciu zdieľate súborom alebo e-mailom, keď chcete vy. | Z5 |
 | Ako presné je skóre? Dá sa použiť do žiadosti o dotáciu? | Je to porovnávací nástroj, nie znalecký posudok. MZI je podľa metodiky KLIMASKEN, energetika podľa vyhlášky 179/2015. Do žiadosti ako podklad a argument áno, ako náhrada projektu nie. | Z2, Z4 |
 | Nemám údaje o spotrebe / plochách. | Stačí odhad. Nástroj hodnotí len to, čo zadáte, a nepenalizuje nezodpovedané otázky. Čím viac doplníte, tým presnejšie. | S6 |
-| Kto určil váhy a ceny opatrení? | Časť KLIMASKEN, časť expert MZI a energetický expert; časť je návrh a čaká na potvrdenie — zoznam je verejný. | S9 |
+| Kto určil váhy a ceny opatrení? | Váhy vznikli v tíme ŽSK, UNIZA a INOVIA s expertmi na MZI a energetiku; hodnotenie MZI vychádza z metodiky KLIMASKEN. Časť hodnôt je návrh a čaká na potvrdenie — zoznam je verejný. | S9 |
 | Prečo sa mi zmenilo skóre po čase? | Pravidlá hodnotenia sa vyvíjajú; pri otvorení staršej relácie na to aplikácia upozorní a prepočíta. | `docs/verziovanie-pravidiel.md` |
 | Funguje to na mobile? | Áno, v prehliadači. V teréne sa dajú nahrať fotky a poznámky. | — |
 | Prepojí sa to s xMatik / URBIS / GIS mesta? | Pripravujeme, čakáme na špecifikáciu formátu. Dnes je export XLSX/CSV, ktorý sa dá importovať. | — |
 | Čo keď mám 15 areálov? | Každý ako samostatná relácia, potom Porovnanie areálov. | ukážka |
 | Môže to vyplniť aj externá firma / školník? | Áno, reláciu si posielate súborom. Odporúčaný postup: kancelária → terén → doplniť. | S6 |
 | Bude aj pre firmy / bytové domy? | Dnes je cielené na areály obcí. Podnet radi zapíšeme. | — |
-| Čo bude ďalej / kedy „ostrá" verzia? | Po tomto kole spätnej väzby a potvrdení hodnôt expertmi. [termín — rozhodnúť] | rozhodnutie |
+| Čo bude ďalej? | Podnety sa spracúvajú priebežne, opravy sa objavia v ďalších verziách na tej istej adrese. [termín ďalšieho kola — rozhodnúť] | kap. 6 bod 6 |
+| Dostanem odpoveď na podnet? | Každý podnet čítame a zapisujeme ako úlohu. Ak chcete odpoveď, napíšte do podnetu kontakt. | kap. 6 bod 6 |
 
 Členka tímu má pri technických otázkach (ako sa presne počíta, zdroje dát)
 právo povedať: „Toto vám odpovie kolega písomne — napíšte to ako podnet."
@@ -269,80 +274,97 @@ Nemá vymýšľať čísla.
 
 ---
 
-## 6. Čo treba rozhodnúť (pred tvorbou PPTX)
+## 6. Rozhodnutia
 
-Zoradené podľa toho, čo blokuje najviac.
+Stav po diskusii (7. 9. 2026). Vyriešené položky sú tu preto, aby členka
+tímu videla, z čoho scenár vychádza; otvorené sú označené **OTVORENÉ**.
 
-### A. Prípadová štúdia (blokuje S7 a ukážku)
+### Prípadová štúdia
 
-1. **Jeden areál pre všetkých 5 subregiónov, alebo jeden na subregión?**
-   Návrh: jeden pre každý subregión (5 relácií JSON), lebo „blízky obecenstvu"
-   je hlavná požiadavka. Náklad: každý treba vyplniť a overiť. Kompromis: 1
-   dôkladne vyplnený „referenčný" areál (napr. ZŠ) + 1 lokálny na subregión
-   len na porovnanie.
-2. **Reálny areál so súhlasom obce, alebo typický fiktívny?** Reálny je
-   presvedčivejší, ale treba súhlas starostu a možno mu vopred ukázať výsledok
-   (nikto nechce byť verejne „najhorší"). Fiktívny (napr. „ZŠ Lipová, 1978,
-   plochá strecha, plyn") je bezpečný, ale slabší.
-3. **Kto areály vyplní a odkiaľ dáta** (kataster, certifikát, obhliadka)?
-   Kto ich skontroluje, že skóre dáva zmysel?
-4. **Druhý a tretí areál na porovnanie** — musia byť reálne odlišné (jeden
-   „vodný" problém, jeden „energetický"), aby prepnutie hrozby zmenilo poradie.
+1. **Fiktívny, typický areál.** Tri areály (obecný úrad s kultúrnym domom,
+   základná škola s materskou školou, zdravotné stredisko) sú navrhnuté v
+   `docs/prezentacia-pripadova-studia.md`. Vypĺňa hlavný tvorca. Adresa sa
+   mení podľa subregiónu, areál nie.
 
-### B. Ukážka a technika
+### Adresa a verzie
 
-5. **Adresa, ktorú komunikujeme:** `inovia.sk/vesma` (ak je proxy nasadená,
-   pozri `docs/nasadenie-inovia-sk.md`) alebo priama Vercel adresa? Musí to
-   byť jedna adresa na QR kóde, v Príručke aj v ukážke.
-6. **Zmrazenie verzie počas turné:** nezlučovať do `main` nič medzi prvou a
-   poslednou prezentáciou (alebo len opravy). Inak sa ukážka a Príručka
-   rozídu s tým, čo ľudia otvoria.
-7. **Hlavička „VESMA Test 199":** nechať (podporuje otvorenosť z S9) alebo
-   prezentovať bez „Test"? Návrh: nechať.
-8. **Internet na miestach konania** — overiť vopred; ak neistý, rečník má
-   mobilný hotspot a záložné snímky Z1. Zvážiť aj 2-minútovú nahrávku
-   obrazovky ako tretiu poistku.
-9. **Kto klikne pri dvoch subregiónoch členky tímu:** ona sama (najlepšie, ale
-   treba 2 nácviky), alebo kliká druhý člen tímu a ona hovorí.
+2. **Adresa pre publikum: `inovia.sk/vesma`.** Jedna adresa na QR, v
+   Príručke aj v ukážke.
+3. **Stabilná verzia pre verejnosť — návrh, OTVORENÉ.** Odporúčanie: áno,
+   oddeliť stabilné nasadenie od testovacieho, ale **bez „verzie 1.0"**.
+   Dôvody a mechanika:
+   - Publikum dostane adresu, ktorá sa mu počas piatich stretnutí a zberu
+     podnetov nemení pod rukami. Testovacie nasadenie ďalej prijíma každé
+     zlúčenie do `main`.
+   - Číslovanie zostáva bežiace (jeden PR = +1). Verejne sa ukáže „VESMA 199",
+     na testovacom „VESMA Test 214". Označenie „1.0" nič nepridá — verzia
+     je už dnes jednoznačná číslom.
+   - Podnety z oboch verzií idú do toho istého hárku; podnet nesie URL, takže
+     je vidieť, z ktorej verzie prišiel.
+   - Nasadenie: na Verceli nastaviť produkčnú vetvu na `stabilna` (alebo
+     `produkcia`), `main` nechať na preview adrese pre testerov. Proxy na
+     `inovia.sk/vesma` mieri na produkciu. Vydanie = zlúčenie `main` do
+     `stabilna` — ľudské rozhodnutie, nie automat.
+   - Čo treba v kóde: hlavička rozlíši „Test" podľa prostredia (premenná
+     pri builde), inak nič. Zmeny pravidiel hodnotenia pri otvorení staršej
+     relácie už aplikácia oznamuje sama.
+   - Riziko: podnet na chybu, ktorá je na testovacej už opravená. Prijateľné.
+   Návrh je zapísaný ako issue v repozitári (odkaz v poslednej správe
+   z tejto relácie).
+4. **Hlavička „Test":** na stabilnej verzii bez „Test", na testovacej s ním.
+   Ak stabilná verzia nevznikne, „Test" ostáva a S9 to otvorene povie.
 
-### C. Spätná väzba a čo sľubujeme
+### Ukážka
 
-10. **Kanál spätnej väzby:** tlačidlo Podnet ide do Google Sheetu tímu.
-    Pridávame e-mail? Krátky formulár? Kto podnety spracúva a ako rýchlo
-    odpovedá (aspoň „prijaté")?
-11. **Konkrétna prosba a termín:** „vyplňte jeden areál do [dátum]". Bez
-    termínu sa to nestane.
-12. **Ponúkame asistované mapovanie** (INOVIA príde a vyplní prvý areál s
-    obcou)? Silný ťah, ale kapacita.
-13. **Čo bude po kole spätnej väzby** — termín ďalšej verzie, či bude druhé
-    stretnutie. Publikum sa opýta.
+5. **Kto ovláda notebook** pri dvoch prezentáciách členky tímu: buď kliká a
+   hovorí sama (vtedy 2 nácviky ukážky podľa kap. 4), alebo hovorí ona a
+   kliká druhý člen tímu (vtedy stačí jeden spoločný nácvik, ale treba
+   dohodnúť, kto hovorí „ďalej"). **OTVORENÉ** — jednoduché rozhodnutie
+   členky tímu.
+6. **Internet:** Wi-Fi na mieste, rečník má ako zálohu mobilný hotspot,
+   v PPTX sú záložné screenshoty (Z1).
 
-### D. Obsah a partneri
+### Spätná väzba
 
-14. **Čo hovoriť o otvorených hodnotách** (S9): koľko detailu. Návrh: jedna
-    snímka otvorene, detail len na otázku. Ideálne pred prvou prezentáciou
-    získať aspoň potvrdenie energetických váh (E2) a váh MZI (M1) — sú to
-    hodnoty, ktoré menia poradie areálov, teda hlavný výstup ukážky.
-15. **Koho menovať ako partnera / zdroj:** ŽSK, KLIMASKEN (CI2), SHMÚ (ak
-    sedia v sále, zdroje dát treba mať presne), xMatik, URBIS. Treba súhlas
-    s použitím loga?
-16. **Príručka:** kde je zverejnená (PDF na inovia.sk? v aplikácii?), či sa
-    tlačí na stretnutie, či má vlastný QR.
-17. **Snímky INOVIA, ktoré dodáš:** ktoré a kam — na začiatok (kto je INOVIA)
-    pred S2, alebo na koniec pred S10? Návrh: 1–2 snímky pred S2, nie viac,
-    aby sa nestratil čas.
-18. **Jazyk poznámok:** slovensky, plné vety, aby členka tímu vedela
-    prezentáciu odviesť bez skúšky s autorom. (Predpokladám áno.)
+7. **Kanál:** tlačidlo Podnet → Google Sheet (VESMA most) → spracovanie do
+   GitHub issues. Nič ďalšie sa nezavádza. V prezentácii sa povie, že každý
+   podnet sa číta a zapisuje ako úloha; kto chce odpoveď, napíše do podnetu
+   kontakt (formulár dnes nemá pole na e-mail — navrhnuté ako issue).
+8. **Bez asistovaného mapovania.** Všetko sa má dať zvládnuť s nástrojom a
+   Príručkou. Ak sa niekto zasekne, je to podnet na úpravu nástroja.
+9. **Termín prosby „jeden areál do…":** **OTVORENÉ**. Návrh: 4 týždne po
+   poslednom subregióne.
 
-### E. Logistika
+### Obsah a partneri
 
-19. Poradie v programe dňa — čo je pred nami a po nás (ovplyvňuje S1–S2).
-20. Technika: projektor, HDMI, možnosť vlastného notebooku, prezentér.
-21. Kto zapisuje otázky z publika (aj tie sú spätná väzba).
+10. **Príručka:** finálny súbor je
+    `VESMA_prirucka_v1.2_CITACIE_UPRAVA_FINAL.docx` v SharePointe
+    (Samosprávy – Mapovanie areálov / … / FINAL prirucka). Návrh verejnej
+    linky: exportovať do PDF a uložiť ako `public/prirucka.pdf` v repozitári,
+    čím bude na **`inovia.sk/vesma/prirucka.pdf`** — jedna doména, jeden QR,
+    Príručka sa verziuje spolu s aplikáciou. Alternatíva: PDF na
+    `inovia.sk` mimo aplikácie (linka sa dopíše, keď bude). Do S10 a S11 sa
+    doplní finálna linka + QR.
+11. **Otvorené hodnoty (S9):** tím pracuje na potvrdení; ak sa nestihne,
+    použijú sa navrhnuté hodnoty a S9 to povie otvorene.
+12. **Tvorcovia:** ŽSK, UNIZA, INOVIA. KLIMASKEN len pri zmienke o metodike
+    MZI, bez loga.
+13. **Snímky INOVIA:** dodá hlavný tvorca; návrh umiestnenia 1–2 snímky pred
+    S2. **OTVORENÉ**, ktoré.
+14. **Poznámky pre rečníka:** slovensky, plné vety.
+
+### Logistika — OTVORENÉ
+
+15. Poradie v programe dňa (čo je pred nami a po nás).
+16. Technika: projektor, HDMI, vlastný notebook, prezentér.
+17. Kto zapisuje otázky z publika — aj tie sú podnety.
 
 ---
 
 ## 7. Ďalší krok
 
-Po rozhodnutiach A a B sa dá pripraviť: 5 relácií JSON, screenshoty pre Z1,
-QR kódy a PPTX v šablóne INOVIA s poznámkami pre rečníka.
+1. Hlavný tvorca vyplní tri areály podľa `docs/prezentacia-pripadova-studia.md`,
+   uloží relácie ako JSON a spraví screenshoty pre Z1.
+2. Rozhodnúť bod 3 (stabilná verzia) a bod 9 (termín).
+3. Dodať šablónu INOVIA a snímky INOVIA → potom vzniká PPTX s poznámkami
+   pre rečníka, QR kódmi a záložnými snímkami.
