@@ -30,8 +30,19 @@ zrážky a iné slnko — nástroj to vie sám."
 Meno obce v názve areálu nepoužívaj (aby si nikto nemyslel, že ide o jeho
 obec). Návrh: **„Ukážková obec"**.
 
-Pri všetkých troch areáloch: kategória *Samospráva a verejný sektor*,
-obhliadku vykonal *tím VESMA*, dátum obhliadky deň vyplnenia. Polia, ktoré tu
+Pri všetkých troch areáloch: **rozsah mapovania „Voda aj energia"**,
+kategória *Samospráva a verejný sektor*, obhliadku vykonal *tím VESMA*,
+dátum obhliadky deň vyplnenia.
+
+Rozsah musí byť pri všetkých troch „oboje" — stĺpce v Porovnaní areálov sa
+ukazujú podľa rozsahu práve otvoreného areálu, a v ukážke majú byť vidieť
+všetky štyri (Sucho, Horúčavy, Voda, Energia). Zúženie na „Voda" sa v ukážke
+len predvedie a hneď vráti späť.
+
+Pred vypĺňaním sa treba **prihlásiť e-mailom** (brána na začiatku aplikácie).
+Relácie sa ukladajú do prehliadača, v ktorom si prihlásený — vypĺňaj ich v tom
+istom profile prehliadača, z ktorého budeš prezentovať, alebo si ich exportuj
+ako JSON a na prezentačnom notebooku importuj. Polia, ktoré tu
 nie sú spomenuté, nechaj prázdne alebo na predvolenej hodnote — aj to je
 súčasť ukážky („stačí odhad, nevyplnené sa nepenalizuje").
 
@@ -224,3 +235,4 @@ mal byť C prvý.
 2. Screenshoty pre záložné snímky: Krok 1 (po načítaní dát), Krok 2, Krok 3,
    Výsledky s tromi skóre, rozbalené vysvetlenie bodov, Porovnanie areálov.
 3. Poznámku, čo pri vypĺňaní prekvapilo — ide do testovania.
+4. Screenshot prihlasovacej obrazovky (prvá snímka série Z1).
