@@ -1,13 +1,34 @@
-# Nasadenie na https://inovia.sk/vesma/
+# Nasadenie na https://vesma.inovia.sk
 
-VESMA naďalej beží na Verceli. Zmena je len v tom, že appka je nasadená
-pod cestou `/vesma/` — takže sa dá cez reverse proxy „zavesiť" pod doménu
-`inovia.sk`, ktorá beží na WordPresse na inom hostingu.
+Verejná adresa VESMY je **`https://vesma.inovia.sk`**. Je to jediná adresa,
+ktorá sa komunikuje von — na QR kódoch, v Príručke, v prezentáciách aj
+v premennej `APP_URL`, z ktorej sa skladá prihlasovací odkaz
+(`docs/prihlasenie-emailom.md`). Keď sa adresa rozíde s `APP_URL`, používateľ
+sa prihlási na inej doméne, než na ktorej mapuje, a keďže relácia je
+v `localStorage` domény, na „svojej" adrese zostane odhlásený.
+
+Appka je zostavená pod cestou `/vesma/` (`vite.config.ts`), takže skutočný
+koreň aplikácie je `https://vesma.inovia.sk/vesma/`. Koreň domény sa naň
+presmeruje (`vercel.json`), preto stačí komunikovať `vesma.inovia.sk`.
 
 ```
-prehliadač → https://inovia.sk/vesma/…  →  (proxy na hostingu inovia.sk)
-                                        →  https://<projekt>.vercel.app/vesma/…
+prehliadač → https://vesma.inovia.sk/       → 307 → /vesma/
+             https://vesma.inovia.sk/vesma/ → Vercel (vetva `stabilna`)
 ```
+
+## Ako je subdoména napojená
+
+Odporúčaný a najjednoduchší variant: **subdoménu obsluhuje priamo Vercel.**
+
+1. Vercel → Settings → Domains → pridať `vesma.inovia.sk`.
+2. V DNS zóny `inovia.sk` pridať `CNAME vesma → cname.vercel-dns.com`
+   (presnú hodnotu ukáže Vercel).
+3. Vercel vystaví certifikát sám, proxy netreba.
+
+Ak by subdoménu musel obsluhovať hosting `inovia.sk` (napr. kvôli pravidlám
+zóny), použije sa reverse proxy — konfigurácie sú nižšie v kapitole
+„Príloha: proxy". Platí pre ne to isté, len sa `/vesma` nahradí koreňom
+subdomény.
 
 ## Čo je pripravené v kóde
 
@@ -33,9 +54,9 @@ curl -I https://<projekt>.vercel.app/               # 307 → /vesma/
 curl -s  "https://<projekt>.vercel.app/vesma/api/pvgis?lat=49.2&lon=18.7"   # JSON
 ```
 
-Až keď toto platí, má zmysel nastavovať proxy na inovia.sk.
+Až keď toto platí, má zmysel nastavovať doménu alebo proxy.
 
-## Krok 2 — proxy na hostingu inovia.sk
+## Príloha: proxy (len keď subdoménu neobsluhuje Vercel)
 
 Vyber variant podľa toho, čo hosting umožňuje. `<projekt>` nahraď skutočnou
 Vercel doménou nasadenia.
@@ -76,7 +97,7 @@ location = /vesma {
 
 ### C) Cloudflare Worker (ak doména ide cez Cloudflare)
 
-Worker na route `inovia.sk/vesma*`:
+Worker na route `vesma.inovia.sk/*`:
 
 ```js
 export default {
@@ -109,11 +130,11 @@ Cesta sa nemení (`/vesma/…` ostáva `/vesma/…`), mení sa len cieľový ser
 ## Krok 3 — kontrola po nasadení
 
 ```bash
-curl -I  https://inovia.sk/vesma/                         # 200, text/html
-curl -sI https://inovia.sk/vesma/favicon.svg              # 200, image/svg+xml
-curl -s  "https://inovia.sk/vesma/api/pvgis?lat=49.2&lon=18.7"   # JSON so "solar"
+curl -I  https://vesma.inovia.sk/                          # 200, text/html
+curl -sI https://vesma.inovia.sk/vesma/favicon.svg              # 200, image/svg+xml
+curl -s  "https://vesma.inovia.sk/vesma/api/pvgis?lat=49.2&lon=18.7"   # JSON so "solar"
 ```
 
-V prehliadači potom: otvor `https://inovia.sk/vesma/`, prejdi wizardom po
+V prehliadači potom: otvor `https://vesma.inovia.sk`, prejdi wizardom po
 Výsledky, skús export XLSX a odošli testovací podnet (tlačidlo spätnej väzby).
 V konzole prehliadača nesmú byť 404 na `/vesma/assets/…`.

@@ -7,7 +7,7 @@ tu je len to, čo je na snímkach a v poznámkach rečníka.
 
 Formát: každá snímka je blok medzi riadkami `---`. Kľúče `id`, `rozlozenie`,
 `nadpis`, `podnadpis`, `odrazky` (riadky začínajúce `- `), `vizual`,
-`poznamky`. Prázdny kľúč sa vynechá. Text v `poznamky` ide do poznámok
+`qr` (adresa, z ktorej sa vygeneruje QR kód), `poznamky`. Prázdny kľúč sa vynechá. Text v `poznamky` ide do poznámok
 snímky, `vizual` sa vloží ako prázdny rámček s popisom.
 
 Rozloženia: `titulna`, `obsah` (nadpis + odrážky), `obsah_obrazok`
@@ -19,11 +19,12 @@ Hranaté zátvorky = doplniť pred prezentáciou.
 id: S1
 rozlozenie: titulna
 nadpis: VESMA
-podnadpis: Voda a energia — sprievodca mapovaním areálov
+podnadpis: Voda a energia
 odrazky:
-- [Subregión] · [dátum]
-- [Meno rečníka], [rola]
-- Tvorcovia: Žilinský samosprávny kraj · Žilinská univerzita · INOVIA
+- Sprievodca mapovaním areálov
+- "[Meno rečníka], [rola]"
+- "[subregión] · [dátum]"
+- ŽSK · UNIZA · INOVIA
 poznamky: Jedna veta o sebe a o tom, že VESMA vznikla v spolupráci ŽSK, UNIZA a INOVIE pre obce kraja. Bez dlhého úvodu — publikum čakalo na iné body programu. Cieľ prvej minúty je, aby ľudia vedeli, že toto je o ich škole a ich úrade, nie o klíme vo všeobecnosti.
 ---
 id: S2
@@ -39,10 +40,10 @@ id: S3
 rozlozenie: obsah_obrazok
 nadpis: Areály, ktoré má každá obec
 odrazky:
-- Škola, škôlka, úrad, kultúrny dom, zdravotné stredisko, športový areál
-- Každý má strechu, dvor, parkovisko, vykurovanie, osvetlenie
-- Voda: prívalový dážď, sucho, všetko do kanalizácie
-- Energia: účty za teplo a elektrinu, staré obálky budov
+- Škola, škôlka, úrad, kultúrny dom, stredisko
+- Každý má strechu, dvor, parkovisko, kotolňu
+- Voda: prívalový dážď, sucho, odtok do kanalizácie
+- Energia: účty za teplo a elektrinu
 - Peniaze: výzvy chcú dáta a poradie priorít
 vizual: Fotka typického areálu obce — škola s asfaltovým dvorom, alebo úrad s parkoviskom.
 poznamky: Hovoriť rečou starostu — účet za plyn, zatopený dvor školy po búrke, rozpálené parkovisko pred úradom. "Väčšina z vás má tri až pätnásť takýchto areálov a nikto nemá na jednom mieste prehľad, ktorý je na tom najhoršie."
@@ -60,10 +61,10 @@ id: S5
 rozlozenie: obsah_obrazok
 nadpis: Čo je VESMA
 odrazky:
-- Webová aplikácia, zadarmo, bez inštalácie, v prehliadači
-- Vyberiete si rozsah - Voda, Energia, alebo oboje
-- Šesť krokov - Úvod, Pozemky, Budovy, Iné stavby, B&G opatrenia, Výsledky
-- Výstup - skóre, odporúčané opatrenia, poradie areálov
+- Webová aplikácia, zadarmo, bez inštalácie
+- Vyberiete si rozsah - Voda, Energia, oboje
+- Šesť krokov - od pozemkov po výsledky
+- Výstup - skóre, opatrenia, poradie areálov
 vizual: Schéma šiestich krokov s ikonami plus screenshot výberu "Čo chcete mapovať" z kroku 1.
 poznamky: Tri oblasti hodnotenia jednou vetou každú. Modro-zelená infraštruktúra je to, ako areál zadržiava vodu a chladí sa zeleňou. Obnoviteľné zdroje sú to, koľko energie si vie areál vyrobiť sám. Energetická efektívnosť je to, koľko energie zbytočne míňa. Dôležité povedať nahlas - "Viacerí ste nám povedali, že energetika vás až tak nezaujíma, kalkulačiek a povinností je dosť. Preto si na začiatku vyberiete Voda a dotazník aj hodnotenie sa zúžia len na ňu." Skratku B&G rozviesť ako blue-green, teda modro-zelené.
 ---
@@ -84,9 +85,9 @@ rozlozenie: obsah_obrazok
 nadpis: Ukážka - obecný úrad s kultúrnym domom
 odrazky:
 - Areál, aký má takmer každá obec
-- Budova z roku 1975, plochá strecha, plynový kotol
-- Asfaltové parkovisko, všetka voda do kanalizácie
-- Porovnáme ho so školou a so zdravotným strediskom
+- Budova z roku 1975, plochá strecha, plyn
+- Asfaltové parkovisko, voda do kanalizácie
+- Porovnáme so školou a zdravotným strediskom
 vizual: Ilustračná fotka úradu s kultúrnym domom, prípadne jednoduchý pôdorys areálu.
 poznamky: "Zoberieme areál, aký má každý z vás. Je vymyslený, aby sa nikto nespoznal, ale čísla sú typické." Potom prepnúť na web. Podľa subregiónu sa mení len adresa zadaná v aplikácii, nie táto snímka.
 ---
@@ -114,21 +115,22 @@ id: S10
 rozlozenie: obsah_obrazok
 nadpis: Vyskúšajte VESMU
 odrazky:
-- "[verejná adresa]"
-- Príručka je odkazom priamo v hlavičke aplikácie
+- vesma.inovia.sk
+- Príručka je odkazom v hlavičke aplikácie
 - Spätná väzba - tlačidlo Podnet pri každom poli
-- Prosba - vyplňte jeden svoj areál do [termín] a napíšte nám, kde ste sa zasekli
-vizual: Veľký QR kód na verejnú adresu, vedľa neho screenshot tlačidla Podnet.
+- Prosba - vyplňte jeden svoj areál do [termín]
+- Napíšte nám, kde ste sa zasekli
+qr: https://vesma.inovia.sk
 poznamky: Konkrétna, malá prosba. Nie "používajte", ale "jeden areál do [termín]". Zásada tímu - "Ak sa zaseknete, nie je to vaša chyba, je to náš podnet. Napíšte nám ho tlačidlom Podnet a my nástroj upravíme." Neponúkať, že prídeme areál vyplniť za nich; nástroj a Príručka na to majú stačiť.
 ---
 id: S11
 rozlozenie: zaver
 nadpis: Ďakujem
-podnadpis: Otázky?
 odrazky:
-- "[verejná adresa]"
-- "[kontakt na tím]"
-vizual: QR kód na verejnú adresu, rovnaký ako na predchádzajúcej snímke.
+- Otázky?
+- vesma.inovia.sk
+- "[meno a kontakt rečníka]"
+qr: https://vesma.inovia.sk
 poznamky: Snímka ostáva na plátne počas celej diskusie, aby si ľudia stihli odfotiť QR kód. Otázky si niekto z tímu zapisuje - sú to podnety.
 ---
 id: Z1

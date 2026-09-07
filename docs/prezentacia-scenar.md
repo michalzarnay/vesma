@@ -199,7 +199,7 @@ v repozitári, na požiadanie ho pošleme.
 
 ### S10 — Vyskúšajte VESMU
 
-- Adresa + QR kód: **[verejná adresa — potvrdiť, pozri kap. 6 bod 2]**
+- Adresa + QR kód: **vesma.inovia.sk**
 - Príručka: odkaz priamo v hlavičke aplikácie
 - Spätná väzba: tlačidlo **Podnet** pri každom poli
 - Čo prosíme: vyplňte **jeden svoj areál** do [termín] a povedzte nám, kde ste sa zasekli
@@ -333,31 +333,29 @@ z čoho scenár vychádza; otvorené sú označené **OTVORENÉ**.
 
 ### Adresa, verzie, prihlásenie
 
-2. **Verejná adresa — OTVORENÉ, drobnosť.** Dokumentácia si protirečí:
-   `docs/nasadenie-inovia-sk.md` a `docs/verziovanie.md` hovoria
-   `inovia.sk/vesma`, `docs/prihlasenie-emailom.md` (`APP_URL`) hovorí
-   `vesma.inovia.sk/vesma`. Na QR kóde, v Príručke aj v ukážke musí byť
-   **jedna** adresa a musí sedieť s `APP_URL`, inak prihlasovací odkaz
-   vedie inam, než kam ide publikum. Potvrdiť, ktorá platí.
+2. **Verejná adresa: `vesma.inovia.sk` — rozhodnuté.** Toto ide na QR kód,
+   do Príručky aj do ukážky. Dokumentácia je zjednotená
+   (`docs/nasadenie-inovia-sk.md`, `docs/verziovanie.md`); `APP_URL` pre
+   prihlasovacie odkazy je `https://vesma.inovia.sk/vesma`, lebo appka beží
+   pod cestou `/vesma/` a koreň domény sa na ňu presmeruje.
 3. **Stabilné a testovacie nasadenie — hotové** (#236). Verejná adresa beží
    z vetvy `stabilna`, testovacia dostáva každé zlúčenie do `main`. Hlavička
    ukazuje „VESMA 201" na stabilnom a „VESMA Test 201" na testovacom.
    Vydanie = zlúčenie `main` do `stabilna`, ľudské rozhodnutie.
 4. **Zmrazenie počas turné.** Medzi prvou a poslednou prezentáciou nevydávať
    do stabilného kanála nič okrem opráv. Testovací kanál beží ďalej.
-5. **Prihlásenie e-mailom — hotové** (#238). Pred prvou prezentáciou treba
-   ešte **nastaviť Resend a premenné na Verceli** (`RESEND_API_KEY`,
-   `EMAIL_ODOSIELATEL`, `OVERENIE_SECRET`, `APP_URL`) a doplniť hárky vo
-   VESMA moste. Kým to nie je, brána sa neukáže a podnet pýta e-mail ako
-   neoverený. Postup je v `docs/prihlasenie-emailom.md`. **OTVORENÉ — kto
-   a kedy to nastaví.**
+5. **Prihlásenie e-mailom — hotové v kóde** (#238), nasadenie ešte nie.
+   Resend, premenné na Verceli a hárky vo VESMA moste sa riešia v issue
+   [#245](https://github.com/michalzarnay/vesma/issues/245). Kým to nie je,
+   brána sa neukáže a podnet pýta e-mail ako neoverený.
 6. **Rozsah mapovania — hotové** (#238). Do prezentácie zaradené ako
    odpoveď na „energetika nás nezaujíma".
 
 ### Ukážka
 
 7. **Kto ovláda notebook** pri dvoch prezentáciách členky tímu: kliká a hovorí
-   sama (2 nácviky), alebo hovorí ona a kliká druhý člen tímu. **OTVORENÉ.**
+   sama (2 nácviky), alebo hovorí ona a kliká druhý člen tímu. **OTVORENÉ —
+   rozhodne členka tímu.**
 8. **Internet:** Wi-Fi na mieste, mobilný hotspot ako záloha, screenshoty Z1
    v PPTX.
 9. **Prihlásenie v ukážke:** ukazuje sa naživo v anonymnom okne, na tímovú
@@ -374,18 +372,17 @@ z čoho scenár vychádza; otvorené sú označené **OTVORENÉ**.
 
 ### Obsah a partneri
 
-13. **Príručka — OTVORENÉ.** Odkaz v hlavičke je hotový (#238), zapne sa
-    premennou `VITE_PRIRUCKA_URL`. Treba **online adresu** finálnej Príručky
-    (`VESMA_prirucka_v1.2_CITACIE_UPRAVA_FINAL.docx` v SharePointe → PDF
-    niekde na `inovia.sk`) a doplniť do nej dva nové odseky: prihlásenie
-    a výber rozsahu (návrhy textov sú v `docs/prihlasenie-emailom.md`
-    a `docs/rozsah-mapovania.md`).
+13. **Príručka.** Odkaz v hlavičke je hotový (#238), zapne sa premennou
+    `VITE_PRIRUCKA_URL`. Online adresa a dva nové odseky (prihlásenie, výber
+    rozsahu) sa riešia v issue
+    [#245](https://github.com/michalzarnay/vesma/issues/245).
 14. **Otvorené hodnoty (S9):** ak sa nestihne potvrdenie expertmi, použijú sa
     navrhnuté hodnoty a S9 to povie otvorene.
 15. **Tvorcovia:** ŽSK, UNIZA, INOVIA. KLIMASKEN len pri zmienke o metodike,
     bez loga.
-16. **Firemné snímky INOVIA na úvod a záver — OTVORENÉ**, ktoré presne.
-    Pozri kap. 7.
+16. **Firemné snímky INOVIA — hotové.** Úvod tvoria snímky 1 – 3 zo šablóny
+    `Prezentacia_Žarnay_samospráva.pptx`, záver je klonovaná kontaktná
+    snímka 12. Podrobne v kap. 7.
 17. **Poznámky pre rečníka:** slovensky, plné vety.
 
 ### Logistika — OTVORENÉ
@@ -396,76 +393,72 @@ z čoho scenár vychádza; otvorené sú označené **OTVORENÉ**.
 
 ---
 
-## 7. Ako sa dostaneme k PPTX s čo najmenej ručnej práce
+## 7. PPTX — ako vzniká a ako sa mení
 
-Cieľ: súbor `.pptx`, ktorý sa dá ďalej normálne upravovať v PowerPointe,
-postavený na šablóne INOVIA, s firemnými snímkami na úvode a závere.
+Prezentácia sa **generuje** skriptom `scripts/prezentacia-pptx.py` zo šablóny
+INOVIA a z textov v `docs/prezentacia-snimky.md`.
 
-### Nájdená šablóna
+```bash
+pip install python-pptx "qrcode[pil]"
+python3 scripts/prezentacia-pptx.py --sablona Prezentacia_Zarnay_samosprava.pptx \
+    --vystup VESMA_prezentacia.pptx --uvod 1,2,3
+```
 
-`INOVIA_Samosprávy_šablóna_PP_prezentácia.pptx` — SharePoint, Marketing →
-`01 INOVIA brand / 2 – Corporate_Identity / Šablony_prezentácie /
-FINAL_PP_prezentácie_šablóny/`. Je to správna vetva šablóny pre toto publikum.
+### Prečo generovaním a nie ručne
 
-### Prečo to nejde spraviť úplne bez teba
+Šablóna INOVIA nie je postavená na placeholderoch — každá snímka je ručne
+zložená z pozadia, farebných oválov, log a textových polí. Skript preto nové
+snímky **klonuje zo vzorových snímok šablóny** a mení v nich len text. Nová
+snímka má tak presne to isté pozadie, logá, fonty aj farby ako originál.
 
-Konektory na SharePoint vracajú text dokumentov, nie samotný súbor. Aby nové
-snímky **dedili** rozloženia, fonty a farby šablóny (a nie boli len
-„vizuálne podobné"), potrebujem šablónu ako súbor.
+Použité vzory (čísla snímok v šablóne `Prezentacia_Žarnay_samospráva.pptx`):
 
-### Postup
+| Typ snímky | Vzor | Kde sa použije |
+|---|---|---|
+| `titulna` | 4 (INOVAČNÉ PROJEKTY PRE SAMOSPRÁVY) | S1 |
+| `obsah` | 7 (MOŽNOSTI PRE INOVAČNÉ PROJEKTY) | S2, S4, S6, S8, S9, Z1–Z5 |
+| `obsah_obrazok` | 7 + zúžený text a miesto na obrázok vpravo | S3, S5, S7, S10 |
+| `zaver` | 12 (ZOSTAŇME V KONTAKTE) | S11 |
 
-Skript `scripts/prezentacia-pptx.py` je hotový a otestovaný. Vkladá snímky
-**do súboru šablóny**, takže dedia jej rozloženia, fonty, farby aj pozadia,
-a firemné snímky, ktoré v súbore už sú, ostávajú nedotknuté.
+Riadky zoznamov sa zmenšujú (22 / 20 / 18 / 24 b), lebo naše texty sú dlhšie
+než vo vzoroch a v pôvodnej veľkosti by pretiekli zo snímky.
 
-1. **Ty (2 minúty):** priložíš do tejto relácie jeden súbor `.pptx` — šablónu
-   INOVIA, ideálne rovno s firemnými snímkami na začiatku a na konci
-   (stačí ich tam nakopírovať a povedať, koľko ich je na úvode). Ak sú
-   firemné snímky v inom súbore, priložíš oba.
-2. **Ja:** spustím skript a pošlem hotový `.pptx`:
+### Zloženie výslednej prezentácie (19 snímok)
 
-   ```bash
-   pip install python-pptx
-   # najprv sa pozrieť, aké rozloženia a snímky šablóna má
-   python3 scripts/prezentacia-pptx.py --sablona SABLONA.pptx --iba-zoznam
-   # potom zložiť prezentáciu
-   python3 scripts/prezentacia-pptx.py --sablona SABLONA.pptx \
-       --vystup VESMA_prezentacia.pptx --vlozit-po 2 --zmazat 3,4,5
-   ```
+| Snímky | Čo to je |
+|---|---|
+| 1–3 | firemné úvodné snímky INOVIA, prevzaté nezmenené |
+| 4–14 | S1 – S11, naše snímky |
+| 15–19 | Z1 – Z5, záložné (nepremietajú sa) |
 
-   `--zmazat` odstráni ukážkové snímky šablóny („NADPIS / Text Text"),
-   `--vlozit-po` povie, za ktorú snímku sa vložia naše. Skript vypíše, ktoré
-   rozloženie na aký typ snímky použil; keď sa netrafí, priradenie sa dá zadať
-   ručne cez `--rozlozenia '{"obsah_obrazok":8}'`.
-3. **Ty (ručne, ~15 minút):** doplníš fotky a QR kód do pripravených miest
-   a prípadne prehodíš poradie. Text meniť netreba — mení sa v
-   `docs/prezentacia-snimky.md` a prezentácia sa zloží nanovo.
+Firemný záver je snímka 14 („Ďakujem"), klonovaná z firemnej kontaktnej
+snímky 12 — má rovnaké pozadie aj logá, len iný text a QR kód. Samostatnú
+firemnú záverečnú snímku som nepridával, aby v prezentácii neboli dva
+kontaktné závery za sebou. Snímky 13 – 17 v šablóne sú skryté, preto sa
+nepoužili.
 
-### Čo skript spraví sám
+### Čo treba doplniť ručne (~15 minút)
 
-- 16 snímok (11 prezentačných + 5 záložných) s finálnymi textami,
-- poznámky pre rečníka v poznámkach snímky, plnými vetami po slovensky,
-- na snímkach s obrázkom nechá prázdny obrázkový placeholder šablóny a popis
-  toho, čo tam patrí, dá do poznámok; ak rozloženie taký placeholder nemá,
-  vloží rámček s popisom priamo na snímku.
+- **Fotky** na snímky 6, 8, 10 — sú tam biele rámčeky s popisom, čo tam patrí.
+- **Screenshoty ukážky** na snímku 15 (Z1), keď budú vyplnené ukážkové areály.
+- **Mená a termíny** v hranatých zátvorkách na snímkach 4, 13 a 14.
 
-### Čo urýchli druhý krok
+QR kód na `vesma.inovia.sk` je vygenerovaný a vložený na snímkach 13 a 14.
 
-- Ak povieš, ktoré rozloženia šablóny sa majú použiť na titulnú, obsahovú,
-  obrázkovú a záverečnú snímku, použijem ich; inak ich vyberiem podľa názvov
-  a napíšem, čo som vybral.
-- QR kód vygenerujem a vložím, len čo bude potvrdená verejná adresa
-  (kap. 6 bod 2).
-- Screenshoty z ukážky vznikajú tak či tak pre záložné snímky Z1 — keď mi ich
-  dáš, vložím ich rovno na miesto.
+### Keď sa mení text
+
+Text sa needituje v PPTX, ale v `docs/prezentacia-snimky.md`, a prezentácia sa
+zloží nanovo tým istým príkazom. Ručné doplnky (fotky) sa potom vkladajú
+znova — preto sa oplatí najprv doladiť texty a až potom vkladať obrázky.
 
 ## 8. Ďalší krok
 
-1. Potvrdiť verejnú adresu (kap. 6 bod 2) a nastaviť Resend s premennými na
-   Verceli (bod 5) — bez toho prihlásenie na prezentácii nefunguje.
-2. Hlavný tvorca vyplní tri areály podľa
-   `docs/prezentacia-pripadova-studia.md`, uloží relácie ako JSON a spraví
-   screenshoty pre Z1.
-3. Priložiť šablónu INOVIA a firemné snímky → vznikne PPTX (kap. 7).
-4. Doplniť online adresu Príručky a rozhodnúť termín prosby (body 12 a 13).
+1. **Dokončiť nasadenie na `vesma.inovia.sk`** — doména vo Verceli, Resend
+   a premenné, hárky vo VESMA moste, adresa Príručky. Vedie sa ako issue
+   [#245](https://github.com/michalzarnay/vesma/issues/245); bez toho
+   prihlásenie na prezentácii nefunguje.
+2. Vyplniť tri areály podľa `docs/prezentacia-pripadova-studia.md`, uložiť
+   relácie ako JSON a spraviť screenshoty pre Z1.
+3. Doplniť do PPTX fotky, screenshoty a mená (kap. 7).
+4. Rozhodnúť termín prosby „jeden areál do…" a kto ovláda notebook pri
+   prezentáciách členky tímu.
