@@ -53,10 +53,12 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
    }
    ```
 
-   V hárku podnetov doplniť hlavičky **H „E-mail"** a **I „E-mail overený"**,
-   v hárku nezodpovedaných otázok stĺpce **D „E-mail"** a **E „E-mail overený"**.
-   Most zapisuje hodnoty v poradí, v akom prídu, takže samotný zápis funguje
-   aj bez hlavičiek — tie sú pre čitateľa.
+   Most (stav 7. 9. 2026) zapisuje podnety **podľa názvov v hlavičke**, nie
+   podľa poradia: `zapísal(a)` = meno testera, `e-mail`, `e-mail overený`,
+   `názov`, `kde (stránka, karta)`, `opis`, `URL`. Hlavičky musia v hárku
+   existovať (na veľkosti písmen nezáleží), inak sa hodnota preskočí.
+   Hárok nezodpovedaných otázok má stĺpce Čas, Krok, Otázka, E-mail,
+   E-mail overený; hárok „Registrácie" E-mail, Dátum, Odkiaľ (URL).
 4. **Overiť**: otvoriť produkčnú adresu, zadať vlastný e-mail, kliknúť na odkaz,
    poslať skúšobný podnet a skontrolovať riadok v hárku „Registrácie" aj
    stĺpce H a I pri podnete.
