@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { overToken, vytvorToken, PLATNOST_MS, jePlatnyEmail } from '../_lib/token';
+import { readFileSync } from 'node:fs';
+import { overToken, vytvorToken, PLATNOST_MS, jePlatnyEmail } from '../prihlasenie';
 
 /**
  * Prihlásenie e-mailom: podpísané tokeny, odoslanie odkazu, výmena odkazu za
@@ -29,6 +30,31 @@ function nastavEnv(aktivne: boolean) {
   process.env.SHEET_WEBHOOK_SECRET = 'most';
   vi.resetModules();
 }
+
+describe('kópie tokenov vo funkciách', () => {
+  it('prihlasenie.ts, overenie.ts a feedback.ts nesú zhodný kód tokenov a mostu', () => {
+    // Vercel funkcie bežia ako ESM a relatívny import bez prípony pri behu
+    // zlyhá (HTTP 500 na produkcii 7. 9. 2026). Preto každá funkcia nesie
+    // vlastnú kópiu — a tento test stráži, aby sa kópie nerozišli.
+    const vysek = (subor: string, od: string, po: string) => {
+      const text = readFileSync(new URL(`../${subor}`, import.meta.url), 'utf8');
+      const i = text.indexOf(od);
+      const j = text.indexOf(po, i);
+      expect(i, `${subor}: chýba „${od}"`).toBeGreaterThan(-1);
+      expect(j, `${subor}: chýba „${po}"`).toBeGreaterThan(i);
+      return text.slice(i, j);
+    };
+    const T = ['export type TypTokenu', '// ─── koniec kópie tokenov'] as const;
+    const M = ['async function posliNaMost', '// ─── koniec kópie mostu'] as const;
+    expect(vysek('overenie.ts', ...T)).toBe(vysek('prihlasenie.ts', ...T));
+    expect(vysek('feedback.ts', ...T)).toBe(vysek('prihlasenie.ts', ...T));
+    expect(vysek('feedback.ts', ...M)).toBe(vysek('overenie.ts', ...M));
+    for (const f of ['prihlasenie.ts', 'overenie.ts', 'feedback.ts']) {
+      const text = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+      expect(text, `${f}: relatívny import by na Verceli spadol`).not.toMatch(/from '\.\.?\//);
+    }
+  });
+});
 
 describe('tokeny', () => {
   it('podpísaný token sa overí a nesie e-mail, typ aj platnosť', () => {

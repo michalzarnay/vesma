@@ -15,8 +15,11 @@ klik   → POST /api/overenie    → token relácie do localStorage (vesma_pouzi
 podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-mail (stĺpce H, I)
 ```
 
-- Tokeny sú podpísané HMAC-SHA256 (`api/_lib/token.ts`), server si nič
-  nepamätá — bez databázy.
+- Tokeny sú podpísané HMAC-SHA256, server si nič nepamätá — bez databázy.
+  Kód tokenov je skopírovaný v `api/prihlasenie.ts`, `api/overenie.ts`
+  a `api/feedback.ts`: Vercel funkcie bežia ako ESM a relatívny import bez
+  prípony pri behu zlyhá (HTTP 500 na produkcii 7. 9. 2026). Test
+  `api/__tests__/prihlasenie.test.ts` stráži, že kópie sú zhodné.
 - Odkaz platí 24 h, relácia 365 dní. Odhlásenie je tlačidlo s e-mailom v hlavičke.
 - **Keď prihlásenie nie je nakonfigurované** (`GET /api/prihlasenie` vráti
   `aktivne: false`), brána sa neukáže a appka beží ako doteraz. Podnet vtedy
@@ -36,7 +39,7 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
    | `RESEND_API_KEY` | kľúč z Resendu |
    | `EMAIL_ODOSIELATEL` | `VESMA <vesma@inovia.sk>` — adresa na overenej doméne |
    | `OVERENIE_SECRET` | dlhý náhodný reťazec, napr. `openssl rand -base64 48` |
-   | `APP_URL` | verejná adresa bez lomky na konci, napr. `https://inovia.sk/vesma` (na preview `https://<projekt>.vercel.app/vesma`) |
+   | `APP_URL` | verejná adresa bez lomky na konci: `https://vesma.inovia.sk/vesma` (na preview adresa preview nasadenia s `/vesma`) |
 
    Kým tieto štyri nie sú nastavené, brána je vypnutá.
 3. **Google Apps Script (VESMA most)**: pribudol typ záznamu `registracia`
