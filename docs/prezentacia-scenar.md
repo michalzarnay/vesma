@@ -415,33 +415,50 @@ snímky **dedili** rozloženia, fonty a farby šablóny (a nie boli len
 
 ### Postup
 
-1. **Ty (2 minúty):** priložíš do tejto relácie dva súbory:
-   - `INOVIA_Samosprávy_šablóna_PP_prezentácia.pptx` (šablóna),
-   - prezentáciu alebo súbor s **firemnými snímkami na úvod a záver**, ktoré
-     chceš použiť (ak sú v inom súbore než v šablóne). Stačí povedať, ktoré
-     čísla snímok to sú.
-2. **Ja:** z textov v `docs/prezentacia-snimky.md` zostavím `.pptx`:
-   - každá nová snímka použije rozloženie zo šablóny, takže dedí fonty,
-     farby a pozadia,
-   - firemné snímky sa vložia nezmenené na začiatok a koniec,
-   - poznámky pre rečníka pôjdu do poznámok snímky,
-   - miesta na fotky, QR kód a screenshoty budú prázdne rámčeky s popisom,
-     čo tam patrí.
-3. **Ty (ručne, ~15 minút):** doplníš fotky, QR kód a screenshoty z ukážky,
-   prípadne prehodíš poradie. Text meniť netreba.
+Skript `scripts/prezentacia-pptx.py` je hotový a otestovaný. Vkladá snímky
+**do súboru šablóny**, takže dedia jej rozloženia, fonty, farby aj pozadia,
+a firemné snímky, ktoré v súbore už sú, ostávajú nedotknuté.
+
+1. **Ty (2 minúty):** priložíš do tejto relácie jeden súbor `.pptx` — šablónu
+   INOVIA, ideálne rovno s firemnými snímkami na začiatku a na konci
+   (stačí ich tam nakopírovať a povedať, koľko ich je na úvode). Ak sú
+   firemné snímky v inom súbore, priložíš oba.
+2. **Ja:** spustím skript a pošlem hotový `.pptx`:
+
+   ```bash
+   pip install python-pptx
+   # najprv sa pozrieť, aké rozloženia a snímky šablóna má
+   python3 scripts/prezentacia-pptx.py --sablona SABLONA.pptx --iba-zoznam
+   # potom zložiť prezentáciu
+   python3 scripts/prezentacia-pptx.py --sablona SABLONA.pptx \
+       --vystup VESMA_prezentacia.pptx --vlozit-po 2 --zmazat 3,4,5
+   ```
+
+   `--zmazat` odstráni ukážkové snímky šablóny („NADPIS / Text Text"),
+   `--vlozit-po` povie, za ktorú snímku sa vložia naše. Skript vypíše, ktoré
+   rozloženie na aký typ snímky použil; keď sa netrafí, priradenie sa dá zadať
+   ručne cez `--rozlozenia '{"obsah_obrazok":8}'`.
+3. **Ty (ručne, ~15 minút):** doplníš fotky a QR kód do pripravených miest
+   a prípadne prehodíš poradie. Text meniť netreba — mení sa v
+   `docs/prezentacia-snimky.md` a prezentácia sa zloží nanovo.
+
+### Čo skript spraví sám
+
+- 16 snímok (11 prezentačných + 5 záložných) s finálnymi textami,
+- poznámky pre rečníka v poznámkach snímky, plnými vetami po slovensky,
+- na snímkach s obrázkom nechá prázdny obrázkový placeholder šablóny a popis
+  toho, čo tam patrí, dá do poznámok; ak rozloženie taký placeholder nemá,
+  vloží rámček s popisom priamo na snímku.
 
 ### Čo urýchli druhý krok
 
-- Ak povieš, ktoré rozloženia šablóny sa majú použiť na ktorý typ snímky
-  (titulná, obsahová s odrážkami, snímka s veľkým obrázkom, záverečná),
-  použijem ich; inak ich vyberiem sám podľa toho, čo v šablóne je, a napíšem,
-  čo som vybral.
-- QR kód viem vygenerovať a vložiť, len čo bude potvrdená verejná adresa
+- Ak povieš, ktoré rozloženia šablóny sa majú použiť na titulnú, obsahovú,
+  obrázkovú a záverečnú snímku, použijem ich; inak ich vyberiem podľa názvov
+  a napíšem, čo som vybral.
+- QR kód vygenerujem a vložím, len čo bude potvrdená verejná adresa
   (kap. 6 bod 2).
-- Screenshoty z ukážky vznikajú tak či tak pre záložné snímky Z1 — keď mi
-  ich dáš, vložím ich rovno na miesto.
-
----
+- Screenshoty z ukážky vznikajú tak či tak pre záložné snímky Z1 — keď mi ich
+  dáš, vložím ich rovno na miesto.
 
 ## 8. Ďalší krok
 
