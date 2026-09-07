@@ -1,4 +1,4 @@
-# Číslo verzie v hlavičke (VESMA Test N)
+# Číslo verzie v hlavičke (VESMA N / VESMA Test N)
 
 ## Pravidlo
 
@@ -40,6 +40,25 @@ Z toho vyplýva:
 - **Číslo sa nedá prepísať ručne.** `src/version.ts` je v `.gitignore`
   a generuje sa pred každým `dev`, `build`, `preview` aj `test` behom.
   Do `version.json` píš len cez `npm run verzia`.
+
+## Dve nasadenia: stabilné a testovacie
+
+Verejná adresa `inovia.sk/vesma` mieri na **stabilné** nasadenie z vetvy
+`stabilna`. Mení sa len vedomým vydaním — zlúčením `main` do `stabilna`
+(fast-forward). Je to ľudské rozhodnutie (bod 3 zo „Štyroch vecí" v `CLAUDE.md`).
+Každé zlúčenie do `main` ide ďalej na **testovaciu** preview adresu Vercelu,
+takže testeri z tímu dostávajú každú zmenu.
+
+Číslovanie ostáva jedno: obe nasadenia čítajú `version.json`. Rozdiel je len
+v hlavičke — testovací kanál ukazuje „VESMA Test N", stabilný „VESMA N".
+Rozhoduje premenná `VITE_VESMA_KANAL=test`, nastavená na Verceli **len
+v preview prostredí** (`src/utils/kanalNasadenia.ts`). Podnet nesie URL aj
+verziu, takže pri spracovaní je vidieť, z ktorého nasadenia prišiel.
+
+Nastavenie na Verceli (raz): Settings → Git → Production Branch = `stabilna`;
+Settings → Environment Variables → `VITE_VESMA_KANAL` = `test` pre Preview.
+Príručka: `VITE_PRIRUCKA_URL` = adresa online Príručky (Production aj Preview),
+bez nej sa odkaz „Príručka" v hlavičke neukáže.
 
 ## Keď kontrola verzie pri PR zlyhá
 

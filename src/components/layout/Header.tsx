@@ -1,7 +1,8 @@
-import { Leaf } from 'lucide-react';
+import { BookOpen, Leaf } from 'lucide-react';
 import { ReactNode } from 'react';
 import { WIZARD_STEPS } from '../../types/wizard';
 import { APP_VERSION } from '../../version';
+import { jeTestovaciKanal } from '../../utils/kanalNasadenia';
 
 interface HeaderProps {
   progress: number;
@@ -13,7 +14,11 @@ interface HeaderProps {
   stepTooltips?: Record<number, string>;
 }
 
+/** Adresa online Príručky (issue #237) — bez nej sa odkaz v hlavičke neukáže. */
+const PRIRUCKA_URL: string = import.meta.env.VITE_PRIRUCKA_URL ?? '';
+
 export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraActions, stepTooltips }: HeaderProps) {
+  const test = jeTestovaciKanal();
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-4xl mx-auto px-4 py-3 space-y-2">
@@ -24,11 +29,23 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               <Leaf className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-800 leading-tight">VESMA <span className="font-normal text-gray-400">Test {APP_VERSION}</span></h1>
+              <h1 className="text-sm font-bold text-gray-800 leading-tight">VESMA <span className="font-normal text-gray-400">{test ? 'Test ' : ''}{APP_VERSION}</span></h1>
               <p className="text-[10px] text-gray-500 hidden sm:block">Voda a energia – sprievodca mapovaním areálov</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {PRIRUCKA_URL && (
+              <a
+                href={PRIRUCKA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Príručka VESMA (otvorí sa v novej karte)"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Príručka</span>
+              </a>
+            )}
             {extraActions}
           </div>
         </div>
