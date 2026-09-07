@@ -5,9 +5,14 @@ import { FeedbackDialog } from './FeedbackDialog';
 interface FeedbackButtonProps {
   fieldLabel?: string;
   variant?: 'inline' | 'header';
+  /**
+   * Predvyplnený „Názov prvku" pri všeobecnom podnete (bez `fieldLabel`) —
+   * napr. aktuálny krok, aby stĺpec „kde" v hárku nebol nikdy prázdny.
+   */
+  predvyplnenyPrvok?: string;
 }
 
-export function FeedbackButton({ fieldLabel, variant = 'inline' }: FeedbackButtonProps) {
+export function FeedbackButton({ fieldLabel, variant = 'inline', predvyplnenyPrvok }: FeedbackButtonProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -33,7 +38,7 @@ export function FeedbackButton({ fieldLabel, variant = 'inline' }: FeedbackButto
         </button>
       )}
       {open && (
-        <FeedbackDialog fieldLabel={fieldLabel} onClose={() => setOpen(false)} />
+        <FeedbackDialog fieldLabel={fieldLabel} predvyplnenyPrvok={predvyplnenyPrvok} onClose={() => setOpen(false)} />
       )}
     </>
   );

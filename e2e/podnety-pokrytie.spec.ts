@@ -15,6 +15,16 @@ import { openClean, clickNext } from './helpers/stubs';
 
 const PODNET = 'button[aria-label="Pridať podnet"]';
 
+test('všeobecný podnet z hlavičky má „Názov prvku" predvyplnený aktuálnym krokom', async ({ page }) => {
+  // Stĺpec „kde" v hárku nemá byť pri všeobecnom podnete prázdny — mapér ho
+  // vie prepísať, ale predvolene nesie krok, z ktorého podnet odišiel.
+  await openClean(page);
+  await clickNext(page); // Krok 2
+  await page.getByRole('button', { name: 'Podnet', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Nový podnet' })).toBeVisible();
+  await expect(page.getByPlaceholder('napr. Plocha strechy, krok 3...')).toHaveValue('Krok 2 – Pozemky');
+});
+
 test('Krok 1: podnet je aj pri adrese a obci', async ({ page }) => {
   await openClean(page);
 

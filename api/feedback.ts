@@ -80,8 +80,9 @@ export function overToken(token: string, secret: string, teraz = Date.now()): Ob
 
 // ─── VESMA most (kópia v overenie.ts a feedback.ts) ─────────────────────────────
 // Odoslanie záznamu do Google Apps Script Web App, ktorý ho zapíše do hárku.
-// POZOR: na poradí kľúčov v `payload` záleží — most zapisuje hodnoty do hárku
-// v poradí, v akom prídu (kľúče `secret` a `action` preskočí).
+// Most (Apps Script) zapisuje podnety podľa názvov stĺpcov v hlavičke hárku
+// (stav 7. 9. 2026), otázky a registrácie podľa poradia kľúčov. Poradie kľúčov
+// preto drž nemenné — test api/__tests__/feedback.test.ts ho stráži.
 async function posliNaMost(
   payload: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
@@ -154,9 +155,8 @@ export default async function handler(
       emailOvereny: odosielatel.overeny ? 'áno' : 'nie',
     };
   } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
-    // POZOR: na poradí kľúčov záleží. VESMA most zapisuje hodnoty do hárku
-    // v poradí, v akom prídu v payloade (kľúče `secret` a `action` preskočí),
-    // takže poradie nižšie určuje stĺpce:
+    // Kľúče, ktoré most (Apps Script) mapuje na stĺpce podľa hlavičky hárku —
+    // názvy kľúčov sú kontrakt, poradie drž nemenné (pôvodne určovalo stĺpce):
     //   A číslo | B verzia | C zapísal(a) | D názov | E kde | F opis | G meno testera
     //   H e-mail | I e-mail overený
     payload = {
