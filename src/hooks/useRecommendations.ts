@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Areal } from '../types/areal';
-import { Odporucanie, Priorita } from '../types/catalog';
+import { Odporucanie, OpatrenieKategoria, Priorita } from '../types/catalog';
 import { katalogOpatreni } from '../data/catalog';
 import { getPlochaStrechyPreFV } from '../utils/calculations';
 import { pocetNieLedSvietidiel, podielLED } from '../utils/lighting';
 import { jeSezonnaNevykurovana } from '../utils/sezonnaStavba';
+import { mapujeEnergiu, mapujeVodu } from '../utils/rozsahMapovania';
 
 function findOpatrenie(id: string) {
   return katalogOpatreni.find((o) => o.id === id);
@@ -222,7 +223,16 @@ export function computeRecommendations(areal: Areal): Odporucanie[] {
   const priorityOrder: Record<Priorita, number> = { 'vysoká': 0, 'stredná': 1, 'nízka': 2 };
   recs.sort((a, b) => priorityOrder[a.priorita] - priorityOrder[b.priorita]);
 
-  return recs;
+  return recs.filter((r) => jeVRozsahu(r.opatrenie.kategoria, areal));
+}
+
+/**
+ * Patrí opatrenie danej kategórie do rozsahu mapovania areálu? Mimo rozsahu
+ * sa opatrenia neodporúčajú — pri mapovaní „len voda" by energetické
+ * odporúčania vznikali z nevyplnených polí.
+ */
+export function jeVRozsahu(kategoria: OpatrenieKategoria, areal: Areal): boolean {
+  return kategoria === 'MZI' ? mapujeVodu(areal) : mapujeEnergiu(areal);
 }
 
 export function useRecommendations(areal: Areal): Odporucanie[] {

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { apiUrl } from '../../utils/apiUrl';
+import { poliaOdosielatela, usePouzivatel } from '../../hooks/usePouzivatel';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface FeedbackDialogProps {
   fieldLabel?: string;
@@ -13,6 +16,12 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
   const [nazov, setNazov] = useState('');
   const [opis, setOpis] = useState('');
   const [menoTestera, setMenoTestera] = useLocalStorage('vesma_meno_testera', '');
+  // E-mail je povinný (validácia po prezentáciách). Prihlásený používateľ ho má
+  // z prihlásenia; bez prihlásenia (nenakonfigurované) ho zadá a pamätá sa.
+  const { pouzivatel } = usePouzivatel();
+  const [emailTestera, setEmailTestera] = useLocalStorage('vesma_email_testera', '');
+  const email = pouzivatel ? pouzivatel.email : emailTestera;
+  const emailPlatny = EMAIL_RE.test(email.trim());
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
 
   async function handleSubmit() {
@@ -27,6 +36,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
           opisPodnetu: opis.trim(),
           url: window.location.href,
           menoTestera: menoTestera.trim(),
+          ...poliaOdosielatela(pouzivatel, emailTestera),
         }),
       });
       if (!resp.ok) throw new Error();
@@ -98,16 +108,37 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">
-                Meno testera <span className="text-gray-400 font-normal">(nepovinné)</span>
-              </label>
-              <input
-                value={menoTestera}
-                onChange={(e) => setMenoTestera(e.target.value)}
-                placeholder="napr. Ján Novák"
-                className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Meno testera <span className="text-gray-400 font-normal">(nepovinné)</span>
+                </label>
+                <input
+                  value={menoTestera}
+                  onChange={(e) => setMenoTestera(e.target.value)}
+                  placeholder="napr. Ján Novák"
+                  className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">E-mail</label>
+                {pouzivatel ? (
+                  <input
+                    value={pouzivatel.email}
+                    readOnly
+                    title="E-mail z prihlásenia"
+                    className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+                  />
+                ) : (
+                  <input
+                    type="email"
+                    value={emailTestera}
+                    onChange={(e) => setEmailTestera(e.target.value)}
+                    placeholder="meno@obec.sk"
+                    className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none"
+                  />
+                )}
+              </div>
             </div>
 
             {status === 'error' && (
@@ -125,7 +156,7 @@ export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!nazov.trim() || status === 'sending'}
+                disabled={!nazov.trim() || !emailPlatny || status === 'sending'}
                 className="px-4 py-2 text-sm font-medium bg-[#52A8DE] text-white rounded-xl hover:bg-[#52A8DE]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {status === 'sending' ? 'Odosiela...' : 'Odoslať'}

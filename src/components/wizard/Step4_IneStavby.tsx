@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useRozsah } from '../../hooks/useRozsah';
+import { MimoRozsahuPoznamka } from './shared/MimoRozsahuPoznamka';
+import { mapujeVodu } from '../../utils/rozsahMapovania';
 import { Fence } from 'lucide-react';
 import { InaStavba } from '../../types/areal';
 import { EntityTabBar } from '../ui/EntityTabBar';
@@ -15,6 +18,7 @@ interface Step4Props {
 
 export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, removeInaStavba }: Step4Props) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const rozsah = useRozsah();
 
   const handleRemove = (index: number) => {
     removeInaStavba(index);
@@ -42,6 +46,8 @@ export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, remo
           </p>
         </div>
       </div>
+
+      {!mapujeVodu(rozsah) && <MimoRozsahuPoznamka oblast="voda" />}
 
       {/* Deliaca čiara voči kroku Budovy: základy v zemi. */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 flex items-start">

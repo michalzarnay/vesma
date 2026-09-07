@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useRozsah } from '../../hooks/useRozsah';
+import { MimoRozsahuPoznamka } from './shared/MimoRozsahuPoznamka';
+import { mapujeVodu } from '../../utils/rozsahMapovania';
 import { Leaf } from 'lucide-react';
 import { BGOpatrenie } from '../../types/areal';
 import { EntityTabBar } from '../ui/EntityTabBar';
@@ -14,6 +17,7 @@ interface Step5Props {
 
 export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatrenie, removeBGOpatrenie }: Step5Props) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const rozsah = useRozsah();
 
   const handleRemove = (index: number) => {
     removeBGOpatrenie(index);
@@ -40,6 +44,8 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
           </p>
         </div>
       </div>
+
+      {!mapujeVodu(rozsah) && <MimoRozsahuPoznamka oblast="voda" />}
 
       {bgOpatrenia.length === 0 ? (
         <div className="text-center py-8">

@@ -6,7 +6,7 @@ import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
 import {
   EnergiaScore, KlimaskenStupen, MZIKomponent,
-  dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiOZE, vazeneCelkoveSkore,
+  dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiMZI, saHodnotiOZE, vazeneCelkoveSkore,
 } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
@@ -20,6 +20,7 @@ import { CopyButton } from '../ui/CopyButton';
 import { VypocetDialog } from './VypocetDialog';
 import { bezDiakritiky, formatArea } from '../../utils/formatters';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
+import { mapujeEnergiu, mapujeVodu } from '../../utils/rozsahMapovania';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ResponsiveContainer,
@@ -50,8 +51,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const chybaMZI = chybajuceUdajeMZI(areal, score.mzi);
 
   const radarData = [
-    { subject: 'MZI', value: score.mzi.celkove, fullMark: 100 },
-    // Nehodnotená oblasť sa v grafe nezobrazuje ako nula (#203, #204, #205).
+    // Nehodnotená oblasť sa v grafe nezobrazuje ako nula (#203, #204, #205);
+    // oblasť mimo rozsahu mapovania takisto.
+    ...(saHodnotiMZI(score.mzi)
+      ? [{ subject: 'MZI', value: score.mzi.celkove, fullMark: 100 }]
+      : []),
     ...(saHodnotiOZE(score.oze)
       ? [{ subject: 'OZE', value: score.oze.celkove, fullMark: 100 }]
       : []),
@@ -67,6 +71,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const sumVah = wMzi + wOze + wEnergia;
   const hodnotiOZE = saHodnotiOZE(score.oze);
   const hodnotiEnergetiku = saHodnotiEnergetika(score.energia);
+  // Oblasť mimo rozsahu mapovania sa vo Výsledkoch vôbec neukazuje — ani ako
+  // „nehodnotí sa"; mapér ju vedome vynechal.
+  const ukazVodu = mapujeVodu(areal);
+  const ukazEnergiu = mapujeEnergiu(areal);
+  const oblastiVah = (['mzi', 'oze', 'energia'] as const).filter((o) => (o === 'mzi' ? ukazVodu : ukazEnergiu));
   const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
 
   const handleExportCSV = () => {
@@ -114,9 +123,10 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
     doc.setTextColor(0);
     y += 10;
     doc.setFontSize(11);
-    const ozeText = hodnotiOZE ? `${score.oze.celkove}/100` : 'nehodnotene';
-    const energiaText = hodnotiEnergetiku ? `${score.energia.celkove}/100` : 'nehodnotene';
-    doc.text(`MZI: ${score.mzi.celkove}/100   OZE: ${ozeText}   Energia: ${energiaText}`, 20, y);
+    const mziText = ukazVodu ? `${score.mzi.celkove}/100` : 'mimo rozsahu';
+    const ozeText = !ukazEnergiu ? 'mimo rozsahu' : hodnotiOZE ? `${score.oze.celkove}/100` : 'nehodnotene';
+    const energiaText = !ukazEnergiu ? 'mimo rozsahu' : hodnotiEnergetiku ? `${score.energia.celkove}/100` : 'nehodnotene';
+    doc.text(`MZI: ${mziText}   OZE: ${ozeText}   Energia: ${energiaText}`, 20, y);
     y += 15;
 
     // Médiá
@@ -208,28 +218,28 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <div className="flex flex-wrap justify-center gap-8">
         <div className="text-center">
           <ScoreGauge score={vazeneSkore} label="Celkové skóre (vážené)" size="lg" />
-          {sumVah !== 3 && (
+          {sumVah !== 3 && oblastiVah.length > 1 && (
             <p className="text-xs text-gray-400 mt-1">
-              Váhy: MZI×{wMzi} OZE×{wOze} Energia×{wEnergia}
+              Váhy: {oblastiVah.map((o) => `${o === 'mzi' ? 'MZI' : o === 'oze' ? 'OZE' : 'Energia'}×${areal.vahy[o]}`).join(' ')}
             </p>
           )}
         </div>
       </div>
       <div className="flex flex-wrap justify-center gap-6">
-        <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />
-        {hodnotiOZE
+        {ukazVodu && <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />}
+        {ukazEnergiu && (hodnotiOZE
           ? <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
           : <OblastNehodnotena
               nazov="Obnoviteľné zdroje energie"
               vysvetlenie="Areál nemá zadanú žiadnu budovu. OZE skóre stojí na strechách a zdrojoch tepla budov, takže ho nie je z čoho počítať — do celkového skóre nevstupuje."
-            />}
-        {hodnotiEnergetiku
+            />)}
+        {ukazEnergiu && (hodnotiEnergetiku
           ? <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
-          : <EnergetikaNehodnotena energia={score.energia} />}
+          : <EnergetikaNehodnotena energia={score.energia} />)}
       </div>
 
-      {/* Váhy nastavenie */}
-      {updateVahy && (
+      {/* Váhy nastavenie — len pre oblasti v rozsahu mapovania */}
+      {updateVahy && oblastiVah.length > 1 && (
         <div className="border border-gray-200 rounded-xl overflow-hidden">
           <button
             type="button"
@@ -247,7 +257,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 Predvolená váha je 1 pre každú oblasť. Zvýšte váhu, ak chcete pri porovnávaní viacerých areálov v XLSX klásť väčší dôraz na danú oblasť (napr. MZI = 2 zdvojnásobí jej vplyv na vážené skóre).
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {(['mzi', 'oze', 'energia'] as const).map((oblast) => (
+                {oblastiVah.map((oblast) => (
                   <div key={oblast}>
                     <label className="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">
                       {oblast === 'mzi' ? 'MZI' : oblast === 'oze' ? 'OZE' : 'Energia'}
@@ -272,7 +282,8 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         </div>
       )}
 
-      {/* Radar Chart */}
+      {/* Radar Chart — má zmysel až pri dvoch a viac oblastiach */}
+      {radarData.length > 1 && (
       <div className="bg-gray-50 rounded-xl p-4">
         <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Porovnanie oblastí</h3>
         <div className="w-full h-64">
@@ -290,10 +301,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           </ResponsiveContainer>
         </div>
       </div>
+      )}
 
       {/* Score Detail */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ScoreDetail
+        {ukazVodu && <ScoreDetail
           title="MZI"
           items={[
             {
@@ -334,7 +346,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           ]}
           poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
           onZobrazVypocet={setVypocet}
-        />
+        />}
         {hodnotiOZE && (
           <ScoreDetail
             title="OZE"
@@ -362,7 +374,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       </div>
 
       {/* Energetické ukazovatele (EnPI) — issue #171 */}
-      <EnergyIndicators enpi={enpi} />
+      {ukazEnergiu && <EnergyIndicators enpi={enpi} />}
 
       {/* Čo bolo zadané v dotazníku — issues #209 a #223 */}
       <ZadaneEntity areal={areal} />

@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Building2, MapPin, Camera, ClipboardList, Globe, Loader2, Gauge } from 'lucide-react';
-import { Areal, MediaItem, KategoriaObjektu, KATEGORIE_OBJEKTU, TYP_OBJEKTU_OPTIONS, FIRMA_TYPY_S_KAPACITOU } from '../../types/areal';
+import {
+  Areal, MediaItem, KategoriaObjektu, KATEGORIE_OBJEKTU, TYP_OBJEKTU_OPTIONS, FIRMA_TYPY_S_KAPACITOU,
+  ROZSAHY_MAPOVANIA, RozsahMapovania,
+} from '../../types/areal';
+import { SelectCard } from '../ui/SelectCard';
+import { mapujeEnergiu, mapujeVodu } from '../../utils/rozsahMapovania';
 import { TextInput } from '../ui/TextInput';
 import { NumberInput } from '../ui/NumberInput';
 import { ComboboxInput } from '../ui/ComboboxInput';
@@ -201,6 +206,15 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           tooltipText="Zvoľte ľubovoľný názov, ktorý vám pomôže areál identifikovať."
         />
 
+        {/* Rozsah mapovania — podľa neho sa skryjú nerelevantné časti dotazníka aj hodnotenia. */}
+        <SelectCard
+          label="Čo chcete mapovať"
+          options={ROZSAHY_MAPOVANIA}
+          value={areal.rozsahMapovania}
+          onChange={(v) => updateAreal({ rozsahMapovania: v as RozsahMapovania })}
+          tooltipText="Vyberte, či vás zaujíma hospodárenie s vodou (modro-zelená infraštruktúra), energetika budov, alebo oboje. Časti dotazníka a hodnotenia mimo vybraného rozsahu sa skryjú; výber môžete kedykoľvek zmeniť a zadané údaje sa nestratia."
+        />
+
         {/* Kategória a typ objektu */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
@@ -350,23 +364,28 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           {fetchError && <p className="text-xs text-red-600">{fetchError}</p>}
           {fetchOk && <p className="text-xs text-green-700">✓ Údaje načítané – skontrolujte a upravte podľa potreby.</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <NumberInput
-              label="Množstvo zrážok v oblasti"
-              value={areal.mnozstvoZrazok || 0}
-              onChange={(v) => updateAreal({ mnozstvoZrazok: v })}
-              unit="mm/rok"
-              tooltipText="Priemerný ročný úhrn zrážok v oblasti. Načítané z Open-Meteo (priemer 5 rokov). Slovensko priemer: 600–800 mm/rok."
-            />
-            <NumberInput
-              label="Potenciál slnečného svitu"
-              value={areal.potencialSlnecnehoSvitu || 0}
-              onChange={(v) => updateAreal({ potencialSlnecnehoSvitu: v })}
-              unit="kWh/m²/rok"
-              tooltipText="Ročný úhrn globálneho slnečného žiarenia na vodorovnú plochu. Načítané z PVGIS (JRC). Pre Slovensko typicky 1 000–1 300 kWh/m²/rok."
-            />
+            {mapujeVodu(areal) && (
+              <NumberInput
+                label="Množstvo zrážok v oblasti"
+                value={areal.mnozstvoZrazok || 0}
+                onChange={(v) => updateAreal({ mnozstvoZrazok: v })}
+                unit="mm/rok"
+                tooltipText="Priemerný ročný úhrn zrážok v oblasti. Načítané z Open-Meteo (priemer 5 rokov). Slovensko priemer: 600–800 mm/rok."
+              />
+            )}
+            {mapujeEnergiu(areal) && (
+              <NumberInput
+                label="Potenciál slnečného svitu"
+                value={areal.potencialSlnecnehoSvitu || 0}
+                onChange={(v) => updateAreal({ potencialSlnecnehoSvitu: v })}
+                unit="kWh/m²/rok"
+                tooltipText="Ročný úhrn globálneho slnečného žiarenia na vodorovnú plochu. Načítané z PVGIS (JRC). Pre Slovensko typicky 1 000–1 300 kWh/m²/rok."
+              />
+            )}
           </div>
 
           {/* Nemožnosť nádrže — vstup do hodnotenia akumulácie zrážkovej vody (issue #215). */}
+          {mapujeVodu(areal) && (
           <div className="space-y-2 border border-gray-100 rounded-xl p-3">
             <label className="flex items-start gap-2 cursor-pointer">
               <input
@@ -402,6 +421,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
 
@@ -499,10 +519,10 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         <div className="text-sm text-blue-800">
           <p className="font-medium">V ďalších krokoch budete postupne zadávať:</p>
           <ul className="mt-1 list-disc list-inside text-xs space-y-0.5">
-            <li>Pozemok – nezastavané parcely, odvod vody, zeleň</li>
-            <li>Budovy – strecha, voda, energia, vykurovanie</li>
-            <li>Iné stavby – altánky, prístrešky a búdy bez základov</li>
-            <li>Zamýšľané B&amp;G opatrenia</li>
+            <li>Pozemok – nezastavané parcely{mapujeVodu(areal) ? ', odvod vody, zeleň' : ''}{mapujeEnergiu(areal) ? ', plocha pre fotovoltiku' : ''}</li>
+            <li>Budovy – strecha{mapujeVodu(areal) ? ', voda' : ''}{mapujeEnergiu(areal) ? ', energia, vykurovanie' : ''}</li>
+            <li>Iné stavby – altánky, prístrešky a búdy bez základov{mapujeVodu(areal) ? '' : ' (týka sa vody)'}</li>
+            <li>Zamýšľané B&amp;G opatrenia{mapujeVodu(areal) ? '' : ' (týka sa vody)'}</li>
             <li>Výsledky a závery hodnotenia (krok 6)</li>
           </ul>
           <p className="mt-2 text-xs">
