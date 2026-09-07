@@ -23,6 +23,7 @@ import { NovePoliaPripomienka } from './NovePoliaPripomienka';
 import { upozornenieNaZmenuPravidiel } from '../../utils/pravidlaVersion';
 import { ZmenaPravidielDialog } from './ZmenaPravidielDialog';
 import { RozsahContext } from '../../hooks/useRozsah';
+import { PrihlasenyPouzivatel } from '../auth/PrihlasenyPouzivatel';
 
 export function WizardContainer() {
   const wizard = useWizard();
@@ -158,6 +159,7 @@ export function WizardContainer() {
               <span className="hidden sm:inline">Porovnanie areálov</span>
             </button>
             <FeedbackButton variant="header" />
+            <PrihlasenyPouzivatel />
           </>
         }
       />
