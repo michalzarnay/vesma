@@ -8,11 +8,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface FeedbackDialogProps {
   fieldLabel?: string;
+  /** Predvyplnený „Názov prvku", keď podnet nie je k istému poľu (pozri FeedbackButton). */
+  predvyplnenyPrvok?: string;
   onClose: () => void;
 }
 
-export function FeedbackDialog({ fieldLabel, onClose }: FeedbackDialogProps) {
-  const [prvok, setPrvok] = useState(fieldLabel ?? '');
+export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: FeedbackDialogProps) {
+  const [prvok, setPrvok] = useState(fieldLabel ?? predvyplnenyPrvok ?? '');
   const [nazov, setNazov] = useState('');
   const [opis, setOpis] = useState('');
   const [menoTestera, setMenoTestera] = useLocalStorage('vesma_meno_testera', '');

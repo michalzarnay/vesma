@@ -23,6 +23,13 @@ import { NovePoliaPripomienka } from './NovePoliaPripomienka';
 import { upozornenieNaZmenuPravidiel } from '../../utils/pravidlaVersion';
 import { ZmenaPravidielDialog } from './ZmenaPravidielDialog';
 import { RozsahContext } from '../../hooks/useRozsah';
+import { WIZARD_STEPS } from '../../types/wizard';
+
+/** „Krok 3 – Budovy" — predvyplnené „kde" pri všeobecnom podnete z hlavičky. */
+function nazovKroku(krok: number): string {
+  const s = WIZARD_STEPS.find((k) => k.id === krok);
+  return s ? `Krok ${s.id} – ${s.nazov}` : `Krok ${krok}`;
+}
 import { PrihlasenyPouzivatel } from '../auth/PrihlasenyPouzivatel';
 
 export function WizardContainer() {
@@ -158,7 +165,7 @@ export function WizardContainer() {
               <GitCompare className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Porovnanie areálov</span>
             </button>
-            <FeedbackButton variant="header" />
+            <FeedbackButton variant="header" predvyplnenyPrvok={nazovKroku(wizard.currentStep)} />
             <PrihlasenyPouzivatel />
           </>
         }
