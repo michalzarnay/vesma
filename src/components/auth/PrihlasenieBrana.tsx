@@ -161,8 +161,10 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
               Prihlasovací odkaz sme poslali na <strong>{stav.email}</strong>.
             </p>
             <p className="text-xs text-gray-500">
-              Otvorte ho v tomto prehliadači. Odkaz platí 24 hodín. Ak e-mail nevidíte, pozrite
-              priečinok so spamom.
+              Prihlási sa to okno prehliadača, v ktorom odkaz otvoríte. Ak sa vám e-mail otvára
+              inde (napríklad toto je súkromné okno), odkaz z e-mailu skopírujte a vložte do
+              adresného riadka <strong>tohto</strong> okna. Odkaz platí 24 hodín a dá sa použiť
+              aj opakovane. Ak e-mail nevidíte, pozrite priečinok so spamom.
             </p>
             <button
               type="button"

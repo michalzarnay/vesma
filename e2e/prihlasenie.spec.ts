@@ -53,6 +53,9 @@ test('bez prihlásenia je appka za bránou a odkaz sa pošle na zadaný e-mail',
   await page.getByPlaceholder('meno@obec.sk').fill('Starosta@Obec.sk');
   await page.getByRole('button', { name: 'Poslať prihlasovací odkaz' }).click();
   await expect(page.getByText('Prihlasovací odkaz sme poslali na')).toBeVisible();
+  // Odkaz z e-mailu otvorí systém v predvolenom okne — brána musí poradiť, ako
+  // ho dostať do okna, v ktorom človek naozaj mapuje (napr. súkromné okno).
+  await expect(page.getByText('vložte do adresného riadka')).toBeVisible();
   expect(poziadavky.at(-1)?.body).toEqual({ email: 'starosta@obec.sk' });
 });
 

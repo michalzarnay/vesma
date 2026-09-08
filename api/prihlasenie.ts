@@ -106,12 +106,18 @@ export function telo(odkaz: string): { subject: string; text: string; html: stri
   const text =
     `Dobrý deň,\n\n` +
     `kliknutím na odkaz sa prihlásite do aplikácie VESMA (odkaz platí 24 hodín):\n\n${odkaz}\n\n` +
+    `Prihlási sa to okno prehliadača, v ktorom sa odkaz otvorí. Ak potrebujete ` +
+    `prihlásiť iné okno (napríklad súkromné/inkognito), odkaz skopírujte a vložte ` +
+    `do adresného riadka toho okna — dá sa použiť aj opakovane, celých 24 hodín.\n\n` +
     `Ak ste o prihlásenie nežiadali, e-mail ignorujte.\n\n` +
     `VESMA – Voda a energia – sprievodca mapovaním areálov\nINOVIA`;
   const html =
     `<p>Dobrý deň,</p>` +
     `<p>kliknutím na odkaz sa prihlásite do aplikácie VESMA (odkaz platí 24 hodín):</p>` +
     `<p><a href="${odkaz}">${odkaz}</a></p>` +
+    `<p>Prihlási sa to okno prehliadača, v ktorom sa odkaz otvorí. Ak potrebujete ` +
+    `prihlásiť iné okno (napríklad súkromné/inkognito), odkaz skopírujte a vložte ` +
+    `do adresného riadka toho okna — dá sa použiť aj opakovane, celých 24 hodín.</p>` +
     `<p>Ak ste o prihlásenie nežiadali, e-mail ignorujte.</p>` +
     `<p>VESMA – Voda a energia – sprievodca mapovaním areálov<br>INOVIA</p>`;
   return { subject, text, html };

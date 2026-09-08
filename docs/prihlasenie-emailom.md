@@ -67,14 +67,23 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
 
 - Bez limitu počtu odoslaných odkazov na adresu — pri zneužití by sa minul
   denný limit Resendu (100 e-mailov zadarmo). Ak sa to stane, limit doplníme.
-- Odkaz treba otvoriť v tom istom prehliadači, v ktorom sa bude mapovať
+- Odkaz treba otvoriť v tom istom **okne** prehliadača, v ktorom sa bude mapovať
   (relácia je v localStorage). Odkaz otvorený v telefóne neodomkne počítač.
+  Kliknutie v poštovom klientovi otvorí odkaz v predvolenom prehliadači — teda
+  nikdy v súkromnom/inkognito okne. Kto chce prihlásiť iné okno, odkaz
+  skopíruje a vloží do jeho adresného riadka; token je bezstavový, takže sa dá
+  použiť opakovane celých 24 hodín (aj keď sa medzitým otvoril inde). E-mail
+  aj obrazovka „odkaz sme poslali" to hovoria priamo.
+- Súkromné okno má vlastný localStorage, ktorý sa po zatvorení zmaže — v ňom
+  prihlásenie neplatí rok, ale len do zatvorenia okna. To je zámer prehliadača,
+  nie chyba VESMY.
 - Keď `GET /api/prihlasenie` zlyhá (výpadok funkcie), appka sa otvorí bez brány.
   Zámerne: výpadok prihlásenia nemá zamknúť mapovanie.
 
 ## Pre Príručku
 
 Odsek na začiatok: „Pri prvom otvorení VESMA zadajte svoj e-mail. Príde vám
-odkaz, ktorým sa prihlásite — bez hesla. Otvorte ho v tom istom prehliadači,
-v ktorom budete mapovať. Prihlásenie platí rok." Pri podnetoch: „Podnet nesie
-váš e-mail, aby sme sa mohli spýtať na detail."
+odkaz, ktorým sa prihlásite — bez hesla. Otvorte ho v tom istom okne
+prehliadača, v ktorom budete mapovať; ak sa vám e-mail otvára inde, odkaz
+skopírujte a vložte do adresného riadka toho okna. Prihlásenie platí rok."
+Pri podnetoch: „Podnet nesie váš e-mail, aby sme sa mohli spýtať na detail."

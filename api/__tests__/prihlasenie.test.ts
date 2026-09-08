@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { overToken, vytvorToken, PLATNOST_MS, jePlatnyEmail } from '../prihlasenie';
+import { overToken, vytvorToken, PLATNOST_MS, jePlatnyEmail, telo as textEmailu } from '../prihlasenie';
 
 /**
  * Prihlásenie e-mailom: podpísané tokeny, odoslanie odkazu, výmena odkazu za
@@ -114,6 +114,19 @@ describe('/api/prihlasenie', () => {
     const token = decodeURIComponent(odkaz.split('token=')[1]);
     expect(overToken(token, SECRET)?.typ).toBe('odkaz');
     expect(overToken(token, SECRET)?.email).toBe('starosta@obec.sk');
+  });
+
+  it('e-mail radí, ako odkaz použiť v inom okne — inak sa otvorí vždy v predvolenom prehliadači', () => {
+    // Odkaz v e-maile otvorí operačný systém v predvolenom okne, nie v tom,
+    // kde chce človek mapovať (napr. súkromné/inkognito). Token je bezstavový,
+    // takže vložený do adresného riadka funguje aj opakovane — a e-mail to musí
+    // povedať, inak sa tam tester nedostane.
+    const { text, html } = textEmailu('https://example.org/vesma/?token=abc');
+    for (const obsah of [text, html]) {
+      expect(obsah).toContain('skopírujte');
+      expect(obsah).toContain('adresného riadka');
+      expect(obsah).toContain('opakovane');
+    }
   });
 
   it('POST odmietne neplatný e-mail a nenakonfigurované prostredie', async () => {
