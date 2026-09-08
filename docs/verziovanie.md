@@ -43,7 +43,7 @@ Z toho vyplýva:
 
 ## Dve nasadenia: stabilné a testovacie
 
-Verejná adresa `inovia.sk/vesma` mieri na **stabilné** nasadenie z vetvy
+Verejná adresa `vesma.inovia.sk` mieri na **stabilné** nasadenie z vetvy
 `stabilna`. Mení sa len vedomým vydaním — zlúčením `main` do `stabilna`
 (fast-forward). Je to ľudské rozhodnutie (bod 3 zo „Štyroch vecí" v `CLAUDE.md`).
 Každé zlúčenie do `main` ide ďalej na **testovaciu** preview adresu Vercelu,
