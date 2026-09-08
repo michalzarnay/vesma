@@ -29,9 +29,10 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
 ## Nastavenie (robí človek, raz)
 
 1. **Resend** (https://resend.com): založiť účet, pridať doménu `inovia.sk`
-   (alebo subdoménu, napr. `vesma.inovia.sk`) a do DNS pridať záznamy, ktoré
-   Resend ukáže (SPF, DKIM, prípadne DMARC). Bez overenej domény Resend posiela
-   len na e-mail majiteľa účtu. Vygenerovať API kľúč.
+   a do DNS pridať záznamy, ktoré Resend ukáže (SPF, DKIM, prípadne DMARC).
+   Bez overenej domény Resend posiela len na e-mail majiteľa účtu. Vygenerovať
+   API kľúč. Záznamy pošli webmastrovi spolu s CNAME pre `vesma.inovia.sk`
+   (`nasadenie-inovia-sk.md`) — sú v tej istej DNS zóne.
 2. **Vercel → Settings → Environment Variables** (Production aj Preview):
 
    | Premenná | Hodnota |
@@ -39,7 +40,7 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
    | `RESEND_API_KEY` | kľúč z Resendu |
    | `EMAIL_ODOSIELATEL` | `VESMA <vesma@inovia.sk>` — adresa na overenej doméne |
    | `OVERENIE_SECRET` | dlhý náhodný reťazec, napr. `openssl rand -base64 48` |
-   | `APP_URL` | verejná adresa bez lomky na konci: `https://vesma.inovia.sk/vesma` (na preview adresa preview nasadenia s `/vesma`) |
+   | `APP_URL` | verejná adresa bez lomky na konci: `https://vesma.inovia.sk/vesma` (na preview adresa preview nasadenia s `/vesma`). Musí sa zhodovať s adresou, ktorú dostane publikum — relácia je v `localStorage` domény. |
 
    Kým tieto štyri nie sú nastavené, brána je vypnutá.
 3. **Google Apps Script (VESMA most)**: pribudol typ záznamu `registracia`
