@@ -76,6 +76,8 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const ukazVodu = mapujeVodu(areal);
   const ukazEnergiu = mapujeEnergiu(areal);
   const oblastiVah = (['mzi', 'oze', 'energia'] as const).filter((o) => (o === 'mzi' ? ukazVodu : ukazEnergiu));
+  // Koľko kariet s rozpisom skóre sa naozaj vykreslí — riadi šírku mriežky (podnet 86).
+  const zobrazenychOblasti = (ukazVodu ? 1 : 0) + (hodnotiOZE ? 1 : 0) + (hodnotiEnergetiku ? 1 : 0);
   const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
 
   const handleExportCSV = () => {
@@ -303,8 +305,12 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       </div>
       )}
 
-      {/* Score Detail */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Score Detail — mriežka má toľko stĺpcov, koľko je hodnotených oblastí,
+          aby pri „iba voda" alebo „iba energia" nezostali dve tretiny šírky
+          prázdne a vysvetlenia sa nelámali do úzkeho stĺpca (podnet 86). */}
+      <div className={`grid grid-cols-1 gap-4 ${
+        zobrazenychOblasti === 3 ? 'md:grid-cols-3' : zobrazenychOblasti === 2 ? 'md:grid-cols-2' : ''
+      }`}>
         {ukazVodu && <ScoreDetail
           title="MZI"
           items={[
@@ -557,7 +563,7 @@ interface PolozkaPrehladu {
   popis: string;
 }
 
-/** Skupina entít jedného typu (Pozemky, Budovy, Iné stavby, B&G opatrenia). */
+/** Skupina entít jedného typu (Pozemky, Budovy, Iné stavby, opatrenia pre MZI). */
 interface SkupinaPrehladu {
   nadpis: string;
   krok: number;
@@ -622,7 +628,7 @@ function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
       })),
     },
     {
-      nadpis: 'Zamýšľané B&G opatrenia',
+      nadpis: 'Zamýšľané opatrenia pre MZI',
       krok: 5,
       // Zamýšľané opatrenie ešte nie je zrealizované, takže hodnotenie nemení (#223).
       mimoSkore: 'Sú to plány, nie stav areálu — do skóre preto nevstupujú.',
@@ -641,7 +647,7 @@ function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
 /**
  * Prehľad toho, čo bolo zadané v dotazníku (issues #209 a #223).
  *
- * „Iné stavby" a B&G opatrenia sa predtým nedostali ani sem, ani do exportu —
+ * „Iné stavby" a opatrenia pre MZI sa predtým nedostali ani sem, ani do exportu —
  * používateľ ich vyplnil a vo výstupe po nich nezostala stopa. Skóre menia
  * len tie skupiny, ktoré doň vstupujú; pri ostatných to prehľad povie rovno,
  * aby si nikto nemyslel, že altánok zlepšil hodnotenie.

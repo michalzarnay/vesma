@@ -18,7 +18,7 @@ areálom a je v exporte, takže sa dá vyhodnotiť).
 | Úvod | potenciál slnečného svitu | množstvo zrážok, nemožnosť nádrže |
 | Pozemky | plocha pre FV | odvod vody, povrchy, stromy, zrealizovaná infraštruktúra |
 | Budovy | plochy strechy a fasády pre solár, Úspory energie, Vykurovanie, Elektrická energia, energetický certifikát a audit, solárne kolektory | Ohrozenie záplavami, Voda a splašky, zelená strecha a zelená stena |
-| Iné stavby, B&G opatrenia | — | krok ostáva v lište, zobrazí len poznámku, že sa týka vody |
+| Iné stavby, Opatrenia pre MZI | — | krok ostáva v lište, zobrazí len poznámku, že sa týka vody |
 | Výsledky | ukazovatele OZE a Energetická efektívnosť, ich rozpis, energetické ukazovatele (EnPI), energetické odporúčania, váhy | ukazovateľ MZI a jeho rozpis, vodné odporúčania, váhy |
 | Porovnanie areálov | stĺpec Energia | stĺpce Sucho, Horúčavy, Voda |
 

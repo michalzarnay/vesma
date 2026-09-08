@@ -3,6 +3,7 @@ import { MessageCircle, Send, X, ChevronDown, Bot } from 'lucide-react';
 import { Areal } from '../../types/areal';
 import { apiUrl } from '../../utils/apiUrl';
 import { poliaOdosielatela, usePouzivatel } from '../../hooks/usePouzivatel';
+import { WIZARD_STEPS } from '../../types/wizard';
 
 interface Sprava {
   id: string;
@@ -361,7 +362,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
             <div className="flex-1">
               <p className="font-semibold text-sm">Asistent VESMA</p>
               <p className="text-xs text-white/70">
-                Krok {currentStep}: {['', 'Identifikácia', 'Pozemky', 'Budovy', 'Iné stavby', 'B&G opatrenia', 'Výsledky'][currentStep]}
+                Krok {currentStep}: {WIZARD_STEPS.find((k) => k.id === currentStep)?.nazov ?? ''}
               </p>
             </div>
             <button

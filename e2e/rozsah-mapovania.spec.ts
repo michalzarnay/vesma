@@ -46,7 +46,7 @@ test('„len voda" skryje energetické sekcie, ukazovatele OZE/energie aj energe
   await expect(page.getByText('Nastavenie váh pre porovnanie areálov')).toHaveCount(0);
 });
 
-test('„len energia" skryje vodné sekcie a kroky Iné stavby a B&G len upozornia', async ({ page }) => {
+test('„len energia" skryje vodné sekcie a kroky Iné stavby a Opatrenia pre MZI len upozornia', async ({ page }) => {
   await openClean(page);
   await ROZSAH(page, 'Energia').click();
   await expect(page.getByText('Množstvo zrážok v oblasti')).toHaveCount(0);
@@ -62,7 +62,7 @@ test('„len energia" skryje vodné sekcie a kroky Iné stavby a B&G len upozorn
 
   await clickNext(page); // Iné stavby
   await expect(page.getByTestId('mimo-rozsahu')).toBeVisible();
-  await clickNext(page); // B&G
+  await clickNext(page); // Opatrenia pre MZI
   await expect(page.getByTestId('mimo-rozsahu')).toBeVisible();
 
   await clickNext(page); // → Výsledky

@@ -56,4 +56,28 @@ describe('glossary', () => {
     expect(glossary.energetickaTriedaDef.definition).toContain('A0');
     expect(glossary.energetickaTriedaDef.definition).toContain('G');
   });
+
+  it('trieda sa berie z globálneho ukazovateľa, teda z primárnej energie (podnet 81)', () => {
+    const { definition, whereToFind } = glossary.energetickaTriedaDef;
+    expect(definition).toContain('globálneho ukazovateľa');
+    expect(definition).toContain('primárnej energie');
+    // Aby sa nezamieňala s celkovou dodanou energiou ani s čiastkovými triedami.
+    expect(definition).toContain('nie podľa celkovej dodanej energie');
+    expect(whereToFind).toContain('globálneho ukazovateľa');
+  });
+
+  it('LED vysvetlivka vymenúva, čo sa medzi LED neráta — najmä kompaktné „úsporné" žiarovky (podnet 82)', () => {
+    const { term, definition } = glossary.ledSvietidlaDef;
+    expect(term).toBe('LED svietidlá');
+    for (const nieJeLED of ['halogénové', 'iarivkové trubice', 'kompaktné žiarivky', 'výbojky']) {
+      expect(definition).toContain(nieJeLED);
+    }
+    expect(definition).toContain('úsporné');
+  });
+
+  it('B&G opatrenia sa v texte volajú opatrenia pre MZI, skratka zostáva ako synonymum (podnet 87)', () => {
+    expect(glossary.BGOpatreniaDef.term).toBe('Opatrenia pre MZI');
+    expect(glossary.BGOpatreniaDef.definition).toContain('modro-zelenej infraštruktúry');
+    expect(glossary.BGOpatreniaDef.definition).toContain('B&G');
+  });
 });

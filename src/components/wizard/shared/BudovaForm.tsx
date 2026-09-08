@@ -532,7 +532,8 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             onChange={(v) => onChange({ osvetleniePocetSvietidielLED: v })}
             unit="ks"
             max={budova.osvetleniePocetSvietidiel || undefined}
-            tooltipText="Koľko z celkového počtu svietidiel je už LED."
+            tooltipKey="ledSvietidlaDef"
+            tooltipText={'Koľko z celkového počtu svietidiel je už LED. Klasické, halogénové, žiarivkové ani kompaktné „úsporné" žiarovky sem nepatria.'}
           />
         </div>
         <NumberInput
@@ -543,7 +544,8 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           max={100}
           step={10}
           disabled={maPocetSvietidiel(budova)}
-          tooltipText="Záložný údaj pre prípad, že počet svietidiel nepoznáte. Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30%."
+          tooltipKey="ledSvietidlaDef"
+          tooltipText={'Záložný údaj pre prípad, že počet svietidiel nepoznáte. Zaokrúhlite na desiatky %. Napr. ak máte 15 svietidiel a 5 je LED, zadajte 30 %. Za LED sa nepovažujú klasické, halogénové, žiarivkové ani kompaktné „úsporné" žiarovky.'}
         />
         {maPocetSvietidiel(budova) && (
           <p className="text-xs text-gray-500 -mt-2">

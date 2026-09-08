@@ -70,9 +70,9 @@ export const glossary: Record<string, GlossaryEntry> = {
   },
   energetickaTriedaDef: {
     term: 'Trieda energetickej hospodárnosti',
-    definition: 'Zaradenie budovy podľa energetického certifikátu na škále A0 (najúspornejšia, napr. pasívny dom) až G (najnáročnejšia).',
-    example: 'Pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok (trieda A0), nízkoenergetický dom okolo 30 kWh/m²/rok (trieda A1/B).',
-    whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy.',
+    definition: 'Zaradenie budovy podľa energetického certifikátu na škále A0 (najúspornejšia, napr. pasívny dom) až G (najnáročnejšia). Zadajte triedu podľa globálneho ukazovateľa, teda podľa primárnej energie — nie podľa celkovej dodanej energie ani podľa čiastkových tried pre jednotlivé miesta spotreby (vykurovanie, teplá voda, osvetlenie), ktoré certifikát uvádza zvlášť.',
+    example: 'Certifikát má triedu pri každom mieste spotreby aj jednu súhrnnú v riadku globálneho ukazovateľa — do formulára patrí tá súhrnná. Orientačne: pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok, nízkoenergetický okolo 30 kWh/m²/rok, no to je čiastkový ukazovateľ pre vykurovanie, nie samotná trieda.',
+    whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy, v riadku globálneho ukazovateľa (primárna energia).',
   },
   certifikatPotrebaDef: {
     term: 'Potreba energie podľa certifikátu',
@@ -210,9 +210,15 @@ export const glossary: Record<string, GlossaryEntry> = {
     definition: 'Súbor výkresov, technických správ a výpočtov, podľa ktorých sa budova stavia alebo rekonštruuje.',
     whereToFind: 'U správcu budovy, v archíve organizácie alebo na príslušnom stavebnom úrade. Staršie budovy nemusia mať dokumentáciu v digitálnej podobe.',
   },
+  ledSvietidlaDef: {
+    term: 'LED svietidlá',
+    definition: 'Svietidlá a žiarovky so svetelnými diódami (LED). Za LED sa NEpovažujú klasické (vláknové) žiarovky, halogénové žiarovky, žiarivkové trubice (T8, T5), kompaktné žiarivky — teda staršie „úsporné žiarovky" so skrútenou trubicou — ani výbojky (sodíkové, halogenidové) používané v halách a na dvoroch.',
+    example: 'Ak má budova 20 svietidiel a 8 z nich sú LED panely, zvyšok žiarivkové trubice, zadajte 8. Kompaktné „úsporné žiarovky" sa medzi LED nerátajú.',
+    whereToFind: 'Na obale alebo pätici býva uvedené „LED". LED svietidlo sa rozsvieti naplno okamžite a nezahrieva sa ako halogénka; žiarivka sa rozsvecuje postupne a má na koncoch trubice tmavšie miesta.',
+  },
   BGOpatreniaDef: {
-    term: 'B&G opatrenia',
-    definition: 'Blue & Green (modro-zelené) opatrenia – investície do vodného hospodárstva a zelene na pozemku/areáli.',
+    term: 'Opatrenia pre MZI',
+    definition: 'Opatrenia modro-zelenej infraštruktúry (MZI) – investície do vodného hospodárstva a zelene na pozemku/areáli. Staršie materiály ich označujú aj ako B&G (Blue & Green) opatrenia.',
     example: 'Vsakovacie rigoly, dažďové záhrady, zelené strechy, retenčné nádrže, výsadba stromov.',
   },
 };

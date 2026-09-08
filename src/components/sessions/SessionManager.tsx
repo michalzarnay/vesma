@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useCallback, useMemo, useState, useRef } from 'react';
 import { Save, FolderOpen, Trash2, Download, Upload, X, Clock, ChevronDown, Share2 } from 'lucide-react';
 import { Areal } from '../../types/areal';
 import { findMatchingSessions, Session, useSessionManager } from '../../hooks/useSessionManager';
@@ -11,21 +11,38 @@ interface SessionManagerProps {
   isDirty: boolean;
   /** Zavolá sa po úspešnom uložení relácie — stav sa označí za uložený. */
   onSaved: () => void;
+  /**
+   * Ovládanie zvonka (podnet 85). Keď je zadané, komponent nevykreslí vlastné
+   * tlačidlo — dialóg otvára položka v menu hlavičky. Komponent tak môže žiť
+   * mimo menu a jeho modálne okno neprestane existovať, keď sa menu zavrie.
+   */
+  ovladanieZvonka?: { otvoreny: boolean; nastavOtvoreny: (v: boolean) => void };
 }
 
-export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: SessionManagerProps) {
+export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladanieZvonka }: SessionManagerProps) {
   const { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession } = useSessionManager();
-  const [otvoreny, setOtvoreny] = useState(false);
+  const [vlastnyOtvoreny, setVlastnyOtvoreny] = useState(false);
+  const otvoreny = ovladanieZvonka ? ovladanieZvonka.otvoreny : vlastnyOtvoreny;
+  const setOtvoreny = ovladanieZvonka ? ovladanieZvonka.nastavOtvoreny : setVlastnyOtvoreny;
   const [rezim, setRezim] = useState<'ulozit' | 'nacitat'>('ulozit');
   const [nazov, setNazov] = useState(areal.nazov || '');
   const [potvrdenie, setPotvrdenie] = useState<string | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
-  const [cielUlozenia, setCielUlozenia] = useState<string>('nova');
+  // `null` = mapér si cieľ ešte nezvolil, platí predvoľba (prepis zhodnej relácie, #161).
+  const [zvolenyCiel, setZvolenyCiel] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   // Relácie, ktoré vyzerajú ako ten istý areál (rovnaké ID, názov alebo adresa) — issue #161.
   const zhody = useMemo(() => findMatchingSessions(sessions, areal), [sessions, areal]);
   const zhodneId = useMemo(() => new Set(zhody.map((s) => s.id)), [zhody]);
+
+  // Predvolený cieľ uloženia sa odvodí pri vykreslení, nie efektom pri otvorení —
+  // platí tak rovnako pri otvorení z vlastného tlačidla aj z menu hlavičky (podnet 85).
+  const cielUlozenia = zvolenyCiel ?? zhody[0]?.id ?? 'nova';
+  const zavri = useCallback(() => {
+    setZvolenyCiel(null);
+    setOtvoreny(false);
+  }, [setOtvoreny]);
 
   const ulozit = () => {
     if (!nazov.trim()) {
@@ -48,7 +65,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
     // Varujeme len ak by sa stratili reálne neuložené zmeny.
     if (isDirty && !confirm(`Načítať reláciu „${session.nazov}"? Neuložené zmeny budú stratené.`)) return;
     onLoad(session.areal);
-    setOtvoreny(false);
+    zavri();
   };
 
   const zmazat = (session: Session) => {
@@ -61,7 +78,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
       const nacitany = await importSession(file);
       if (isDirty && !confirm(`Importovať areál „${nacitany.nazov || 'bez názvu'}"? Neuložené zmeny budú stratené.`)) return;
       onLoad(nacitany);
-      setOtvoreny(false);
+      zavri();
     } catch {
       setChyba('Nepodarilo sa importovať súbor. Skontrolujte formát.');
     }
@@ -77,31 +94,33 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
 
   return (
     <>
-      {/* Trigger tlačidlo */}
-      <button
-        type="button"
-        onClick={() => { setCielUlozenia(zhody[0]?.id ?? 'nova'); setOtvoreny(true); }}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
-      >
-        <FolderOpen className="w-4 h-4" />
-        <span className="hidden sm:inline">Relácie</span>
-        {sessions.length > 0 && (
-          <span className="text-xs bg-gray-200 text-gray-600 rounded-full px-1.5 py-0.5">
-            {sessions.length}
-          </span>
-        )}
-      </button>
+      {/* Trigger tlačidlo — len keď dialóg neovláda rodič */}
+      {!ovladanieZvonka && (
+        <button
+          type="button"
+          onClick={() => setOtvoreny(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+        >
+          <FolderOpen className="w-4 h-4" />
+          <span className="hidden sm:inline">Relácie</span>
+          {sessions.length > 0 && (
+            <span className="text-xs bg-gray-200 text-gray-600 rounded-full px-1.5 py-0.5">
+              {sessions.length}
+            </span>
+          )}
+        </button>
+      )}
 
       {/* Modal */}
       {otvoreny && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOtvoreny(false)} />
+          <div className="absolute inset-0 bg-black/40" onClick={() => zavri()} />
 
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Hlavička */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-800">Správa relácií</h2>
-              <button type="button" onClick={() => setOtvoreny(false)} className="text-gray-400 hover:text-gray-600">
+              <button type="button" onClick={() => zavri()} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -156,7 +175,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
                           type="radio"
                           name="cielUlozenia"
                           checked={cielUlozenia === 'nova'}
-                          onChange={() => setCielUlozenia('nova')}
+                          onChange={() => setZvolenyCiel('nova')}
                         />
                         Uložiť ako novú reláciu
                       </label>
@@ -166,7 +185,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
                             type="radio"
                             name="cielUlozenia"
                             checked={cielUlozenia === s.id}
-                            onChange={() => setCielUlozenia(s.id)}
+                            onChange={() => setZvolenyCiel(s.id)}
                           />
                           Prepísať „{s.nazov}" ({formatDatum(s.datumUlozenia)})
                         </label>
@@ -208,7 +227,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved }: Sessi
                   <div className="border-t border-gray-100 pt-3">
                     <button
                       type="button"
-                      onClick={() => { if (!isDirty || confirm('Začať nový areál? Neuložené zmeny budú stratené.')) { onNew(); setOtvoreny(false); } }}
+                      onClick={() => { if (!isDirty || confirm('Začať nový areál? Neuložené zmeny budú stratené.')) { onNew(); zavri(); } }}
                       className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                     >
                       + Nový prázdny areál
