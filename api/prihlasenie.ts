@@ -15,7 +15,7 @@
  *   RESEND_API_KEY    kľúč služby Resend
  *   EMAIL_ODOSIELATEL  napr. "VESMA <vesma@inovia.sk>" — doména musí byť v Resende overená (SPF, DKIM)
  *   OVERENIE_SECRET    tajomstvo na podpis tokenov (dlhý náhodný reťazec)
- *   APP_URL            verejná adresa aplikácie bez lomky na konci, napr. https://inovia.sk/vesma
+ *   APP_URL            verejná adresa aplikácie bez lomky na konci, napr. https://vesma.inovia.sk/vesma
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
