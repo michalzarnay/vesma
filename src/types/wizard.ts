@@ -10,6 +10,6 @@ export const WIZARD_STEPS: WizardStep[] = [
   { id: 2, nazov: 'Pozemky', popis: 'Plochy, voda, zeleň, stromy', icon: 'trees' },
   { id: 3, nazov: 'Budovy', popis: 'Strecha, voda, energia, vykurovanie', icon: 'home' },
   { id: 4, nazov: 'Iné stavby', popis: 'Altánky, prístrešky, búdy bez základov', icon: 'tent' },
-  { id: 5, nazov: 'B&G opatrenia', popis: 'Zamýšľané opatrenia', icon: 'leaf' },
+  { id: 5, nazov: 'Opatrenia pre MZI', popis: 'Zamýšľané opatrenia', icon: 'leaf' },
   { id: 6, nazov: 'Výsledky', popis: 'Skóre a odporúčania', icon: 'bar-chart-3' },
 ];

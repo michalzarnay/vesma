@@ -38,7 +38,7 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
           <Leaf className="w-5 h-5 text-[#52A8DE]" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-800">Zamýšľané B&G opatrenia</h2>
+          <h2 className="text-lg font-bold text-gray-800">Zamýšľané opatrenia pre MZI</h2>
           <p className="text-xs text-gray-500">
             Opatrenia, ktoré plánujete realizovať a nemajú priamu súvislosť s konkrétnymi budovami – týkajú sa areálu ako celku.
           </p>
@@ -49,13 +49,13 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
 
       {bgOpatrenia.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm text-gray-500 mb-4">Zatiaľ neboli pridané žiadne B&G opatrenia.</p>
+          <p className="text-sm text-gray-500 mb-4">Zatiaľ neboli pridané žiadne opatrenia pre MZI.</p>
           <button
             type="button"
             onClick={handleAdd}
             className="px-4 py-2 text-sm font-medium text-[#52A8DE] border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 transition-colors"
           >
-            Pridať B&G opatrenie
+            Pridať opatrenie pre MZI
           </button>
         </div>
       ) : (
@@ -88,7 +88,7 @@ function BGOpatrenieForm({ opatrenie, onChange }: { opatrenie: BGOpatrenie; onCh
   return (
     <div className="space-y-4">
       <TextInput
-        label="Názov B&G opatrenia"
+        label="Názov opatrenia pre MZI"
         value={opatrenie.nazov}
         onChange={(v) => onChange({ nazov: v })}
         placeholder="napr. solárne panely, dažďová záhrada, zelené strechy"
@@ -105,7 +105,7 @@ function BGOpatrenieForm({ opatrenie, onChange }: { opatrenie: BGOpatrenie; onCh
         value={opatrenie.inaBudovaMimoUSK}
         onChange={(v) => onChange({ inaBudovaMimoUSK: v })}
         multiline
-        tooltipText="Uveďte, či sa v blízkosti nachádza susedný pozemok alebo budova vo vlastníctve iného subjektu (napr. obce, firmy, súkromnej osoby), ktorý by bol potrebný na realizáciu zamýšľaného B&G opatrenia."
+        tooltipText="Uveďte, či sa v blízkosti nachádza susedný pozemok alebo budova vo vlastníctve iného subjektu (napr. obce, firmy, súkromnej osoby), ktorý by bol potrebný na realizáciu zamýšľaného opatrenia pre MZI."
       />
       <TextInput
         label="Ochranné pásma a technická infraštruktúra v okolí"
