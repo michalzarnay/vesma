@@ -1,7 +1,7 @@
 /**
  * Kanál nasadenia (issue #236).
  *
- * Verejná adresa inovia.sk/vesma mieri na stabilné nasadenie (vetva
+ * Verejná adresa vesma.inovia.sk mieri na stabilné nasadenie (vetva
  * `stabilna`), ktoré sa mení len vedomým vydaním; každé zlúčenie do `main`
  * ide na testovaciu preview adresu. Rozdiel v aplikácii je len v hlavičke:
  * testovací kanál ukazuje „VESMA Test N", stabilný „VESMA N".
