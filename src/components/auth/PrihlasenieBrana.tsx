@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Leaf, Loader2, Mail } from 'lucide-react';
+import { Download, Leaf, Loader2, Mail } from 'lucide-react';
 import { apiUrl } from '../../utils/apiUrl';
+import { stiahniSessionAkoJson, zalohaZPrehliadaca } from '../../utils/ulozeneRelacie';
 import {
   Pouzivatel, PouzivatelContext, nacitajPouzivatela, ulozPouzivatela, zabudniPouzivatela,
 } from '../../hooks/usePouzivatel';
@@ -15,6 +16,12 @@ import {
  * Keď prihlásenie nie je na serveri nakonfigurované (GET /api/prihlasenie
  * vráti `aktivne: false`, alebo endpoint neexistuje — lokálny dev server),
  * brána sa neukáže a appka beží ako doteraz.
+ *
+ * Prihlasovací odkaz stavia server z `APP_URL`, teda vždy mieri na hlavnú
+ * adresu VESMA. Kto mapoval na inej adrese (napr. na staršej testovacej),
+ * sa tam preto neprihlási — a jeho relácie sú v `localStorage` tej adresy,
+ * za bránou. Brána mu ich preto ponúkne stiahnuť, aby ich vedel na hlavnej
+ * adrese načítať cez „Importovať zo súboru…" (issue #251).
  */
 
 type Stav =
@@ -210,11 +217,46 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
           </form>
         )}
 
+        <ZalohaZTejtoAdresy />
+
         <p className="text-[11px] text-gray-400">
           V spolupráci s INOVIA. Údaje o areáloch ostávajú vo vašom prehliadači; e-mail sa
           ukladá do zoznamu používateľov VESMA.
         </p>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Ponuka na stiahnutie toho, čo je uložené v prehliadači na tejto adrese.
+ * Ukáže sa len vtedy, keď tu naozaj niečo je — inak by mátala nového
+ * používateľa, ktorý sa prihlasuje prvý raz.
+ */
+function ZalohaZTejtoAdresy() {
+  const zaloha = useMemo(() => zalohaZPrehliadaca(), []);
+  if (zaloha.length === 0) return null;
+
+  return (
+    <div className="border-t border-gray-100 pt-4 space-y-2" data-testid="brana-zaloha">
+      <p className="text-xs text-gray-600">
+        Na tejto adrese (<strong>{window.location.host}</strong>) máte v prehliadači uložené
+        {' '}<strong>{zaloha.length}</strong>{' '}
+        {zaloha.length === 1 ? 'mapovanie' : zaloha.length < 5 ? 'mapovania' : 'mapovaní'}.
+        Prihlasovací odkaz vedie vždy na hlavnú adresu VESMA — ak ste mapovali tu, stiahnite si
+        ich a na hlavnej adrese ich načítajte cez „Importovať zo súboru…".
+      </p>
+      <button
+        type="button"
+        onClick={() => zaloha.forEach(stiahniSessionAkoJson)}
+        className="flex items-center gap-2 text-xs font-medium text-[#52A8DE] hover:underline"
+      >
+        <Download className="w-4 h-4" />
+        Stiahnuť ako {zaloha.length === 1 ? 'súbor' : 'súbory'} JSON
+      </button>
+      <ul className="text-[11px] text-gray-400 list-disc pl-4">
+        {zaloha.map((s) => <li key={s.id}>{s.nazov}</li>)}
+      </ul>
     </div>
   );
 }

@@ -64,6 +64,30 @@ podnet → POST /api/feedback { …, relacia } → server z tokenu prečíta e-m
    poslať skúšobný podnet a skontrolovať riadok v hárku „Registrácie" aj
    stĺpce H a I pri podnete.
 
+## Prihlásenie viaže používateľa na jednu adresu (issue #251)
+
+Odkaz stavia `api/prihlasenie.ts` vždy z `APP_URL`:
+
+```js
+const odkaz = `${k.appUrl}/?token=${encodeURIComponent(token)}`;
+```
+
+Kto teda otvorí VESMU na inej adrese (staršia testovacia `sma-nastroj.vercel.app`,
+preview nasadenie), na nej sa **neprihlási** — odkaz ho prenesie na `APP_URL`.
+A pretože relácie sú v `localStorage`, ktorý patrí adrese, jeho namapované areály
+ostanú na pôvodnej adrese za bránou. Na novej vidí prázdny zoznam a vyzerá to,
+akoby o dáta prišiel.
+
+Brána preto na adrese, kde v prehliadači niečo uložené je, ponúkne
+**stiahnuť uložené mapovania** (uložené relácie aj rozpracovaný areál) ako JSON.
+Na hlavnej adrese sa načítajú cez Relácie → „Importovať zo súboru…". Dáta pritom
+nikam neodchádzajú — sťahujú sa z prehliadača do počítača používateľa.
+
+Zostáva otvorené (vedomé rozhodnutie človeka, nie automatická oprava):
+odkaz by sa mohol vracať na adresu, z ktorej oň používateľ požiadal. Vyžaduje si
+to zoznam povolených adries na serveri — bez neho by sa odkaz z e-mailu dal
+nasmerovať kamkoľvek. Pozri `docs/nasadenie-inovia-sk.md`.
+
 ## Obmedzenia, o ktorých vieme
 
 - Bez limitu počtu odoslaných odkazov na adresu — pri zneužití by sa minul

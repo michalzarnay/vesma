@@ -8,6 +8,7 @@ import {
 import { FUEL_CONVERSIONS } from '../data/constants';
 import { getTotalHeatingCost } from '../utils/calculations';
 import { dbSaveMedia, dbLoadMedia } from '../utils/mediaDb';
+import { KLUC_AREALU } from '../utils/ulozeneRelacie';
 
 type Action =
   | { type: 'SET_AREAL'; payload: Areal }
@@ -314,7 +315,7 @@ function arealReducer(state: Areal, action: Action): Areal {
   }
 }
 
-const STORAGE_KEY = 'sma-nastroj-areal';
+const STORAGE_KEY = KLUC_AREALU;
 
 // Serializovaný „odtlačok" areálu na porovnanie neuložených zmien.
 // dataUrl médií ignorujeme (rovnako ako pri ukladaní do localStorage), aby
