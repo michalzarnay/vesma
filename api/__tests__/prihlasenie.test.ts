@@ -116,6 +116,15 @@ describe('/api/prihlasenie', () => {
     expect(overToken(token, SECRET)?.email).toBe('starosta@obec.sk');
   });
 
+  it('e-mail má v pätičke INOVIA aj odkaz na www.inovia.sk', async () => {
+    const { telo } = await import('../prihlasenie');
+    const { text, html } = telo('https://example.org/vesma/?token=abc');
+    expect(text).toContain('INOVIA – inovačné centrum Žilinského kraja');
+    expect(text).toContain('www.inovia.sk');
+    expect(html).toContain('INOVIA – inovačné centrum Žilinského kraja');
+    expect(html).toContain('<a href="https://www.inovia.sk">www.inovia.sk</a>');
+  });
+
   it('POST odmietne neplatný e-mail a nenakonfigurované prostredie', async () => {
     nastavEnv(true);
     let handler = (await import('../prihlasenie')).default;
