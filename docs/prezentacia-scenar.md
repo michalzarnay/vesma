@@ -474,7 +474,9 @@ z Príručky) — a dve drobné opravy: presnejšie znenie odrážky o prihláse
 súbore, má vlastný vizuálny štýl UNIZA.
 
 Prezentácia slúži ďalej ako **archív a podklad pre účastníkov** (PDF), nie
-ako živý scenár.
+ako živý scenár. Aktuálny súbor je v SharePointe tímu:
+`VESMA_prezentacia_ZSK_Sept2026_zlucena.pptx` (Samosprávy → Shared Documents).
+PDF pre účastníkov vznikne až po schválení kolegyňou.
 
 ## 8. Ďalší krok
 
