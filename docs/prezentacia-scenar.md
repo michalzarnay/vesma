@@ -447,9 +447,34 @@ QR kód na `vesma.inovia.sk` je vygenerovaný a vložený na snímkach 13 a 14.
 
 ### Keď sa mení text
 
-Text sa needituje v PPTX, ale v `docs/prezentacia-snimky.md`, a prezentácia sa
-zloží nanovo tým istým príkazom. Ručné doplnky (fotky) sa potom vkladajú
-znova — preto sa oplatí najprv doladiť texty a až potom vkladať obrázky.
+**Od septembra 2026 je zdrojom pravdy samotný PPTX, nie tento repozitár.**
+Generátor poslúžil na prvú verziu; počas piatich stretnutí v subregiónoch
+prezentácia dostala screenshoty, fotky a ručné úpravy, ktoré by opätovné
+vygenerovanie zmazalo. Texty v `docs/prezentacia-snimky.md` preto zodpovedajú
+prvej verzii a ďalej sa needitujú — sú tu ako záznam východiska.
+
+Nové snímky sa do hotovej prezentácie **vkladajú klonovaním jej vlastnej
+vzorovej snímky** (funkcie `klonuj_snimku`, `najdi_pole`, `nastav_odsek`
+v `scripts/prezentacia-pptx.py` sa dajú importovať aj samostatne). Snímka tak
+dostane pozadie, logá aj fonty a nič ručné sa nestratí.
+
+### História verzií
+
+| Kedy | Čo |
+|---|---|
+| september 2026 | prvá verzia vygenerovaná zo šablóny INOVIA, 19 snímok |
+| priebeh 5 stretnutí | doplnené screenshoty aplikácie, fotky, úvodné snímky INOVIA a prezentujúci; 29 snímok |
+| po stretnutiach | zlúčenie s verziou kolegyne (D. Kovalová), 32 snímok |
+
+Zo zlúčenia pribudli tri snímky — **Poslanie projektu**, **Odkiaľ VESMA
+prišla** a **Rýchly štart** (infografika „Päť krokov práce s VESMA“
+z Príručky) — a dve drobné opravy: presnejšie znenie odrážky o prihlásení
+(odkaz treba otvoriť v tom prehliadači, v ktorom sa bude mapovať) a
+`vesma@inovia.sk` na záverečnej snímke. Vizitka kolegyne ostáva len v jej
+súbore, má vlastný vizuálny štýl UNIZA.
+
+Prezentácia slúži ďalej ako **archív a podklad pre účastníkov** (PDF), nie
+ako živý scenár.
 
 ## 8. Ďalší krok
 
