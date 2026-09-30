@@ -1,0 +1,125 @@
+' VESMA — kroky a časová os validácie (stav k 30. 9. 2026)
+' Zdroj obsahu: docs/validacia-dalsie-kroky.md — pri zmene krokov uprav oba súbory.
+' Vykreslenie:  java -jar plantuml.jar docs/validacia-casova-os.puml
+
+@startuml validacia-kroky
+title VESMA — kroky validácie podľa fáz
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam ArrowColor #1F6FA8
+skinparam activity {
+  BackgroundColor #EAF3FA
+  BorderColor #1F6FA8
+  FontColor #222222
+  DiamondBackgroundColor #FFF3E0
+  DiamondBorderColor #B56A00
+  DiamondFontColor #222222
+  StartColor #1B7F4B
+  EndColor #B32D2D
+}
+skinparam partition {
+  BorderColor #1F6FA8
+  FontColor #14486F
+  FontStyle bold
+}
+
+start
+
+partition "Fáza 1 · 30. 9. – 24. 10. 2026 · do volieb" {
+  :Z1 — napísať, čo je validovaný zákazník\na pri akom výsledku sa projekt zastavuje\n(do 2. 10.);
+  :M1 — zmraziť platený štart,\nnestavať účty ani fakturáciu\n(do 3. 10.);
+  :R1 — osloviť 18 adries mimo INOVIA\n(do 3. 10.);
+  fork
+    :K1 — dohodnúť s tímom zadávateľky\npresmerovanie dopytu obcí na VESMA\n(do 7. 10.);
+    :K2 — zistiť doterajší počet\ntakých dopytov = východisková hodnota\n(do 7. 10.);
+    :M2 — informovať zadávateľku o stave\na dohodnúť meradlo presmerovaného dopytu\n(do 10. 10.);
+  fork again
+    :K3 — zmapovať jeden skutočný areál\na rozposlať ako ukážku s časom trvania\n(do 10. 10.);
+    :K4 — ponuka "prvý areál prejdeme s vami\nonline za 30 minút" do každej komunikácie\n(od 10. 10.);
+  fork again
+    :R2 — 8 hovorov po 15 minút\n(do 17. 10.);
+    :R3 — 3 asistované sedenia\nMartin, Žabokreky, Turčianske Teplice\n(do 24. 10.);
+    :K5 — odmerať čas jedného areálu\na chýbajúce údaje\n(priebežne);
+  fork again
+    :D1 — osloviť 5 audítorov,\nprojektantov alebo MAS\n(do 17. 10.);
+    :D2 — rozhodnúť: pokračovať alebo zastaviť\n(do 24. 10.);
+  end fork
+  :R5 — zapisovať do jedného hárku,\njeden riadok na osobu;
+  :M3 — premietnuť M1 a M2\ndo docs/monetizacia-navrh.md;
+}
+
+if (Brána 1 · 24. 10. 2026\nPrijali 3 obce ponuku spoločného prvého areálu?\nPovedali 4 z 8 opýtaných, že to použijú?) then (áno)
+else (nie)
+  :Bariéra nie je v odbornosti, ale v motivácii —\nzmeniť oslovenie, nie nástroj.\nPri druhej otázke sa vracia zadanie produktu.;
+  stop
+endif
+
+partition "Fáza 2 · 25. 10. – 15. 12. 2026 · po voľbách" {
+  :Osloviť nové vedenia obcí jedinou vecou —\nprehľad budov a pozemkov, ktoré preberajú.\nBez ceny a bez registrácie.;
+  :K4 pokračuje — ponuka spoločného\nprvého areálu v každej komunikácii;
+  :R4 — dva týždne po každom sedení sa opýtať,\nči s výsledkom niečo urobili (do 7. 11.);
+}
+
+if (Brána 2 · 15. 12. 2026\nDokončili aspoň 3 obce hodnotenie bez našej účasti?) then (áno)
+else (nie)
+  :Zastaviť oslovovanie.\nRiešiť, kde ľudia odpadávajú.;
+  stop
+endif
+
+partition "Fáza 3 · 1. 1. – 31. 3. 2027 · prvý plný cyklus" {
+  :Bežná prevádzka bez kampane;
+  :Sledovať presmerovaný dopyt\na dokončené hodnotenia;
+}
+
+if (Brána 3 · 31. 3. 2027\nDokončilo 10 obcí hodnotenie\na vrátili sa aspoň 3 druhýkrát?) then (áno)
+  :Pokračovať — obnoviť vývoj\na vrátiť sa k modelu monetizácie;
+  stop
+else (nie)
+  :Zmeniť cieľovú skupinu na dodávateľov,\nalebo projekt zastaviť;
+  stop
+endif
+
+@enduml
+
+
+@startgantt casova-os
+title VESMA — časová os validácie
+
+projectscale weekly
+Project starts 2026-09-30
+
+-- Fáza 1 · do volieb --
+[Z1 definícia zákazníka a kritéria zastavenia] starts 2026-09-30 and ends 2026-10-02
+[M1 zmrazenie plateného štartu] starts 2026-09-30 and ends 2026-10-03
+[R1 oslovenie 18 adries] starts 2026-10-01 and ends 2026-10-03
+[K1 presmerovanie dopytu od tímu zadávateľky] starts 2026-10-05 and ends 2026-10-07
+[K2 východisková hodnota dopytu] starts 2026-10-05 and ends 2026-10-07
+[K3 ukážkový zmapovaný areál] starts 2026-10-06 and ends 2026-10-10
+[M2 informovanie zadávateľky] starts 2026-10-08 and ends 2026-10-10
+[K4 ponuka spoločného prvého areálu] starts 2026-10-10 and ends 2026-12-15
+[R2 osem hovorov] starts 2026-10-06 and ends 2026-10-17
+[D1 päť dodávateľov] starts 2026-10-06 and ends 2026-10-17
+[R3 tri asistované sedenia] starts 2026-10-12 and ends 2026-10-24
+[K5 meranie času a chýbajúcich údajov] starts 2026-10-12 and ends 2026-10-24
+[D2 rozhodnutie o dodávateľoch] starts 2026-10-20 and ends 2026-10-24
+[M3 aktualizácia modelu monetizácie] starts 2026-10-05 and ends 2026-10-09
+[Brána 1] happens 2026-10-24
+
+-- Fáza 2 · po voľbách --
+[Oslovenie nových vedení obcí] starts 2026-10-26 and ends 2026-12-15
+[R4 spätná otázka po dvoch týždňoch] starts 2026-10-26 and ends 2026-11-07
+[Brána 2] happens 2026-12-15
+
+-- Fáza 3 · prvý plný cyklus --
+[Bežná prevádzka bez kampane] starts 2027-01-01 and ends 2027-03-31
+[Brána 3] happens 2027-03-31
+
+[Z1 definícia zákazníka a kritéria zastavenia] is colored in #FFE0B2/#B56A00
+[M1 zmrazenie plateného štartu] is colored in #FFE0B2/#B56A00
+[Brána 1] is colored in #B32D2D
+[Brána 2] is colored in #B32D2D
+[Brána 3] is colored in #B32D2D
+
+@endgantt

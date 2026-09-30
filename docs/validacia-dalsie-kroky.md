@@ -1,16 +1,19 @@
-# VESMA — ďalšie kroky a časová os validácie
+# VESMA — kroky a časová os validácie
 
-Stav k 30. 9. 2026. Po piatich prezentáciách pre subregióny.
+Verzia 2, stav k 30. 9. 2026. Po piatich prezentáciách pre subregióny.
+
+Zmena oproti verzii 1: vypadlo meranie v aplikácii a organizácie v zriaďovateľskej
+pôsobnosti kraja, pribudla časť K a presmerovanie dopytu od tímu zadávateľky.
+Žiadny krok v tomto dokumente nie je vývoj.
 
 ---
 
 ## 1. Východiskový stav
 
-### Čo hovorí zoznam prihlásení
+### Zoznam prihlásení
 
-Zoznam nie sú registrácie. `api/overenie.ts` zapisuje **jeden riadok pri každom
-kliknutí na prihlasovací odkaz**, takže opakované prihlásenie tej istej osoby je
-nový riadok.
+Nie sú to registrácie. `api/overenie.ts` zapisuje jeden riadok pri každom kliknutí
+na prihlasovací odkaz, takže opakované prihlásenie tej istej osoby je nový riadok.
 
 | | |
 | --- | --- |
@@ -23,141 +26,150 @@ nový riadok.
 
 Rozdelenie 20 adries: INOVIA 2 · ŽSK 2 · samospráva 3 · verejný sektor a blízke
 organizácie 4 (SHMÚ, UNIZA, MAS Dolný Liptov, Orava) · firmy 3 · neurčiteľné
-freemailové adresy 6.
+freemailové adresy 6. Z 36 prihlásení pripadá 24 na 8. a 9. 9., teda na dni
+prezentácií.
 
-Časovo: 24 z 36 prihlásení pripadá na 8. a 9. 9. (dni prezentácií). Zvyšok sú
-jednotlivé prihlásenia rozptýlené do 22. 9.
+### Zadanie a zadávateľka
 
-### Čo nevieme
+- Zadanie vzniklo v dobrej viere, že nástroj je pre obce užitočný. Reality obcí
+  sa to overiť ešte musí.
+- Zadávateľka je s výstupom spokojná a ďalšie nároky nemá.
+- Úprava produktu aj cieľovej skupiny je v našej kompetencii.
+- Meradlo úspechu zo strany zadávateľky: keď si starosta alebo úradník chce túto
+  operáciu urobiť, neosloví ju a jej tím, ale použije VESMA.
 
-O používaní nemáme **žiadny údaj**. Zapisujú sa len prihlásenia, podnety
-z formulára a nezodpovedané otázky chatbota. Nevieme, či niekto zmapoval areál,
-či sa dostal na Výsledky, ani kde prestal. Bez toho sa validovať nedá.
+### Obce
 
-### Kontext termínu
-
-24 dní do komunálnych volieb (24. 10. 2026). Po nich nástup nových vedení obcí,
-odovzdávanie agendy a rozpočty na rok 2027 — časť obcí pôjde do rozpočtového
-provizória. Samospráva je reálne dosiahnuteľná od januára 2027.
+- Odborné kapacity na takéto hodnotenie sa u obcí nepredpokladajú. Nástroj ich má
+  nahradiť.
+- Prekážky na strane obcí: chýbajúca kapacita, chýbajúca motivácia, neefektívne
+  fungovanie a bariéra „nie som odborník".
+- Organizácie v zriaďovateľskej pôsobnosti kraja sú **mimo hry** — hodnotenie za
+  ne robil kraj, pretože odborné kapacity nemali.
 
 ---
 
-## 2. Kroky
+## 2. Hypotéza, ktorú overujeme
+
+| # | Tvrdenie | Stav |
+| --- | --- | --- |
+| H1 | Obec potrebuje vedieť, čo so svojimi budovami a pozemkami | čiastočne potvrdené — organizácie kraja to potrebovali a kraj to za ne robil |
+| H2 | Laik v obci to s VESMA zvládne urobiť sám | neoverené |
+| H3 | Laik sa do toho pustí — prekoná bariéru, že nie je odborník | neoverené, najrizikovejšie |
+| H4 | Obec výsledok použije a zmení podľa neho rozhodnutie | neoverené |
+
+Celá kampaň smeruje na H3. H2 a H4 sa merajú pri sedeniach a pri spätnej otázke
+po dvoch týždňoch.
+
+---
+
+## 3. Kroky
 
 Formát: **číslo · krok · kto · dokedy**.
 
-### V — Meranie
+### Z — Zadanie validácie
 
 | # | Krok | Kto | Dokedy |
 | --- | --- | --- | --- |
-| V1 | Odlíšiť v hárku prvé prihlásenie od opakovaného | M. Ž. | 10. 10. |
-| V2 | Zapisovať anonymné udalosti cez existujúci most: otvorenie appky, dokončenie každého kroku, zobrazenie hodnotenia, export | M. Ž. | 10. 10. |
-| V3 | Vyhodnocovať stĺpec „odkiaľ (URL)", ktorý sa už zapisuje | M. Ž. | 10. 10. |
-| V4 | Týždenný prehľad: koľko ľudí došlo po Výsledky, v ktorom kroku odpadli | M. Ž. | od 13. 10. |
+| Z1 | Napísať, čo je validovaný zákazník a pri akom výsledku sa projekt zastavuje. Návrh definície: obec dokončí hodnotenie skutočného areálu bez našej účasti a vráti sa druhýkrát | M. Ž. | 2. 10. |
 
-### R — Rozhovory s tými, čo sa prihlásili
+### K — Prekonanie bariéry laika
 
 | # | Krok | Kto | Dokedy |
 | --- | --- | --- | --- |
-| R1 | Osloviť individuálne všetkých 18 adries mimo INOVIA, dohodnúť 15-minútový hovor | M. Ž. | 10. 10. |
-| R2 | Odviesť 8 hovorov. Tri otázky: čo ste hľadali · kde ste sa zastavili · čo by muselo platiť, aby ste to použili na skutočný objekt | M. Ž. | 24. 10. |
-| R3 | Zapisovať do jedného hárku, jeden riadok na osobu | M. Ž. | priebežne |
-| R4 | S Martinom, Žabokrekmi a Turčianskymi Teplicami dohodnúť spoločné zmapovanie jedného areálu za našej účasti | M. Ž. | 24. 10. |
+| K1 | Dohodnúť s tímom zadávateľky, že dopyt obce na takéto hodnotenie presmerujú na VESMA a pripoja ponuku spoločného prvého areálu | M. Ž. | 7. 10. |
+| K2 | Zistiť od tímu zadávateľky, koľko takých dopytov im chodilo doteraz — východisková hodnota pre meradlo úspechu | M. Ž. | 7. 10. |
+| K3 | Zmapovať jeden skutočný areál sami a rozposlať ako ukážku výstupu spolu s časom, ktorý to trvalo | M. Ž. | 10. 10. |
+| K4 | Ponuku „prvý areál prejdeme s vami online za 30 minút" zaradiť do každej komunikácie s obcou | M. Ž. | od 10. 10. |
+| K5 | Pri sedeniach odmerať čas jedného areálu a zapísať, ktoré údaje obec nemá po ruke | M. Ž. | priebežne |
 
-### S — Segmenty na preverenie
-
-| # | Krok | Kto | Dokedy |
-| --- | --- | --- | --- |
-| S1 | Organizácie v zriaďovateľskej pôsobnosti ŽSK (stredné školy, sociálne zariadenia) — osloviť cez príslušné odbory, cieľ 5 zmapovaných budov | doplniť | 30. 11. |
-| S2 | Miestne akčné skupiny — osloviť 5 MAS v kraji (MAS Dolný Liptov už prihlásená) | doplniť | 30. 11. |
-| S3 | Energetickí audítori a projektanti — osloviť 5, zistiť, či by nástroj použili pre svojich klientov | doplniť | 30. 11. |
-| S4 | Firmy, ktoré sa prihlásili samy (Projekt Metro, ui42, ICARI) — dohovoriť si s nimi hovor | M. Ž. | 31. 10. |
-| S5 | Po každom segmente zapísať rozhodnutie: pokračovať alebo zastaviť | M. Ž. | 30. 11. |
-
-### M — Model a termíny
+### R — Rozhovory a sedenia
 
 | # | Krok | Kto | Dokedy |
 | --- | --- | --- | --- |
-| M1 | Rozhodnúť posun plateného štartu. Návrh: prechodné obdobie do 31. 12. 2027, platená verzia od 1. 1. 2028 | M. Ž. + zadávateľka | 15. 11. |
-| M2 | Do rozhodnutia M1 nestavať evidenciu predplatného ani fakturáciu | M. Ž. | — |
-| M3 | Premietnuť M1 do `docs/monetizacia-navrh.md` | M. Ž. | do 5 dní po M1 |
-| M4 | Informovať zadávateľku o stave: 3 obce z 315, 8 dní ticho | M. Ž. | 10. 10. |
+| R1 | Osloviť individuálne všetkých 18 adries mimo INOVIA a dohodnúť 15-minútový hovor | M. Ž. | 3. 10. |
+| R2 | Odviesť 8 hovorov. Otázky: čo ste hľadali · kde ste sa zastavili · čo by muselo platiť, aby ste to použili na skutočnú budovu · čo vás na tom odrádza | M. Ž. | 17. 10. |
+| R3 | Odviesť 3 asistované sedenia (Martin, Žabokreky, Turčianske Teplice) — oni klikajú, my mlčíme a píšeme | M. Ž. | 24. 10. |
+| R4 | Dva týždne po každom sedení sa opýtať, či s výsledkom niečo urobili | M. Ž. | do 7. 11. |
+| R5 | Zapisovať do jedného hárku, jeden riadok na osobu | M. Ž. | priebežne |
 
-### P — Produkt
+### D — Dodávatelia a sprostredkovatelia
 
 | # | Krok | Kto | Dokedy |
 | --- | --- | --- | --- |
-| P1 | Presunúť prihlásenie e-mailom až za prvé zobrazenie hodnotenia | M. Ž. | 17. 10. |
-| P2 | Skryť nefunkčné tlačidlá — AI asistent, analýza fotografií, export do Xmatik a URBIS | M. Ž. | 17. 10. |
-| P3 | Dokončiť energetický modul | M. Ž. | 31. 12. |
-| P4 | Meranie nákladu na spracovanie skenu odložiť, kým sa balík PLUS nezačne stavať | — | odložené |
+| D1 | Osloviť 5 energetických audítorov, projektantov alebo MAS. Otázka: použili by ste to pre svojich klientov a čo by vám to muselo šetriť | doplniť | 17. 10. |
+| D2 | Zapísať rozhodnutie: pokračovať alebo zastaviť | M. Ž. | 24. 10. |
+
+### M — Model
+
+| # | Krok | Kto | Dokedy |
+| --- | --- | --- | --- |
+| M1 | Zmraziť platený štart. Nestavať účty, evidenciu predplatného ani fakturáciu | M. Ž. | 3. 10. |
+| M2 | Informovať zadávateľku o stave (3 obce z 315, ticho 8 dní) a dohodnúť s ňou meradlo presmerovaného dopytu | M. Ž. | 10. 10. |
+| M3 | Premietnuť M1 a M2 do `docs/monetizacia-navrh.md` | M. Ž. | do 5 dní po M1 |
 
 ---
 
-## 3. Časová os
+## 4. Časová os
 
-### Fáza 1 · 30. 9. – 24. 10. 2026 — pred voľbami
+### Fáza 1 · 30. 9. – 24. 10. 2026 — do volieb
 
-Samosprávy plošne neoslovovať. Bežia V1–V4, R1–R4, S4.
+Samosprávy sa plošne neoslovujú. Bežia Z1, K1 – K5, R1 – R3, D1 – D2, M1 – M3.
 
-Výstup fázy: funkčné meranie používania a 8 zapísaných rozhovorov.
+Výstup fázy: 8 zapísaných rozhovorov, 3 asistované sedenia, dohodnuté
+presmerovanie dopytu od tímu zadávateľky.
 
-### Fáza 2 · 25. 10. – 30. 11. 2026 — po voľbách
+### Fáza 2 · 25. 10. – 15. 12. 2026 — po voľbách
 
-Nové vedenia obcí, odovzdávanie agendy. Bežia S1–S3, M1, M3.
+Nové vedenia obcí, odovzdávanie agendy. Pokračujú K4 a R4.
 
-Oslovenie nových starostov s jednou vecou: prehľad budov a pozemkov, ktoré
-preberajú. Bez ceny, bez registrácie.
+Oslovenie nových starostov jedinou vecou: prehľad budov a pozemkov, ktoré
+preberajú. Ponuka spoločného prvého areálu, bez ceny a bez registrácie.
 
-Výstup fázy: rozhodnutie o posune plateného štartu, prvé zmapované budovy
-mimo obcí.
+Výstup fázy: počet obcí, ktoré dokončili hodnotenie bez našej účasti.
 
-### Fáza 3 · 1. 12. 2026 – 28. 2. 2027 — rozpočty
+### Fáza 3 · 1. 1. – 31. 3. 2027 — prvý plný cyklus
 
-Obce schvaľujú rozpočty na 2027, časť v provizóriu. Cieľ fázy je používanie,
-nie predaj.
+Rozpočty na 2027, časť obcí v provizóriu. Bežná prevádzka bez kampane, sleduje sa
+presmerovaný dopyt a dokončené hodnotenia.
 
-Výstup fázy: počet dokončených hodnotení od používateľov mimo INOVIA.
-
-### Fáza 4 · marec – december 2027 — škálovanie a príprava platenej verzie
-
-Podľa výsledku fázy 3: rozšírenie do ďalších segmentov alebo prepracovanie
-produktu. Cenník sa fixuje na jeseň 2027, aby sa dostal do rozpočtov obcí
-na rok 2028.
-
-### 1. 1. 2028 — platená verzia
+Výstup fázy: rozhodnutie, či sa pokračuje, mení zadanie alebo zastavuje.
 
 ---
 
-## 4. Rozhodovacie body
+## 5. Rozhodovacie body
 
-Prahy sú návrh a treba ich potvrdiť.
+Prahy sú návrh a treba ich potvrdiť v kroku Z1.
 
 | Kedy | Otázka | Prah | Ak sa nesplní |
 | --- | --- | --- | --- |
-| 24. 10. 2026 | Koľko z 18 oslovených povedalo, že nástroj použije na skutočný objekt? | 5 | Problém je v hodnote, nie v komunikácii — vrátiť sa k zadaniu produktu |
-| 30. 11. 2026 | Koľko dokončených hodnotení od ľudí mimo INOVIA? | 10 | Zastaviť oslovovanie, riešiť, kde ľudia odpadávajú |
-| 28. 2. 2027 | Koľko obcí a organizácií má dokončené hodnotenie? | 30 | Odložiť platenú verziu a prehodnotiť segment |
-| 30. 9. 2027 | Je cenník potvrdený a komunikovaný pre rozpočty na 2028? | áno/nie | Platená verzia sa posúva na 2029 |
+| 24. 10. 2026 | Koľko obcí prijalo ponuku spoločného prvého areálu? | 3 | Bariéra nie je v odbornosti, ale v motivácii — zmeniť oslovenie, nie nástroj |
+| 24. 10. 2026 | Koľko z 8 opýtaných povedalo, že nástroj použije na skutočný objekt? | 4 | Vrátiť sa k zadaniu produktu |
+| 15. 12. 2026 | Koľko obcí dokončilo hodnotenie bez našej účasti? | 3 | Zastaviť oslovovanie, riešiť, kde ľudia odpadávajú |
+| 31. 3. 2027 | Koľko obcí dokončilo hodnotenie a koľko sa vrátilo druhýkrát? | 10 / 3 | Zmeniť cieľovú skupinu na dodávateľov alebo projekt zastaviť |
 
 ---
 
-## 5. Čo sa nerobí
+## 6. Čo sa nerobí
 
+- Žiadny vývoj, kým neprejde brána k 24. 10. 2026.
+- Žiadne meranie používania v aplikácii — pri 18 ľuďoch ho nahrádza telefonát.
+- Žiadne oslovovanie organizácií v zriaďovateľskej pôsobnosti kraja.
 - Žiadne plošné oslovovanie obcí do 24. 10. 2026.
 - Žiadne ďalšie prezentácie pre subregióny, kým nie sú hotové rozhovory R2.
-- Nestavia sa databáza účtov, evidencia predplatného ani fakturácia, kým nie je
-  rozhodnuté M1.
+- Nestavia sa databáza účtov, evidencia predplatného ani fakturácia.
 - Nespúšťa sa balík PLUS ani spracovanie skenov.
 
 ---
 
-## 6. Otvorené
+## 7. Otvorené
 
-- Kto vedie segmenty S1 – S3.
+- Kto vedie krok D1.
 - Či sa oslovenie nových starostov robí cez ZMOS a Úniu miest, alebo priamo.
-- Či sa mení cieľová skupina z obcí na ich dodávateľov (audítori, projektanti).
+- Či sa cieľová skupina mení z obcí na ich dodávateľov — rozhoduje sa v D2.
+- Ktorý areál sa použije ako ukážka v kroku K3.
 
 ---
 
-Súvisiace: `docs/monetizacia-navrh.md` — model monetizácie; body M1 a M3 ho menia.
+Súvisiace: `docs/validacia-casova-os.puml` — diagram krokov a časovej osi ·
+`docs/monetizacia-navrh.md` — model monetizácie, mení ho krok M3.
