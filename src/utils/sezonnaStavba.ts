@@ -1,8 +1,9 @@
-// Sezónne nevykurované stavby — záhradná chatka, domček na náradie, nevykurovaná garáž.
+// Sezónne nevykurované stavby — murovaná záhradná chatka, murovaný domček na
+// náradie, nevykurovaná garáž.
 //
-// Sú to BUDOVY: majú strechu a vnútorný priestor, takže sa zadávajú v kroku 3
-// a nie medzi iné stavby (tam patria objekty bez strechy alebo bez uzavretého
-// vnútrajška — oplotenie, chodník, parkovisko, altánok bez stien).
+// Sú to BUDOVY: stoja na základoch, takže sa zadávajú v kroku 3
+// a nie medzi iné stavby (tam patria drobné stavby bez základov v zemi —
+// altánok, pergola, prístrešok, plechová búda).
 //
 // Taká stavba je letné sídlo: užíva sa v teplej časti roka, nevykuruje sa
 // a spravidla sa v nej ani nespáva. Zateplenie obálky, výmena okien, rekuperácia

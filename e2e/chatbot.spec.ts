@@ -28,14 +28,14 @@ test.describe('Chatbot – asistent mapera', () => {
     await expect(page.getByText(/metodický nástroj vyvinutý/)).toBeVisible();
   });
 
-  test('na otázku o záhradnej chatke odpovie, že patrí medzi budovy', async ({ page }) => {
+  test('na otázku o záhradnej chatke odpovie, že rozhodujú základy', async ({ page }) => {
     await page.getByRole('button', { name: /Asistent/ }).click();
 
     const input = page.getByPlaceholder('Napíšte otázku…');
     await input.fill('Kam patrí záhradná chatka?');
     await input.press('Enter');
 
-    await expect(page.getByText(/patria medzi/).first()).toBeVisible();
+    await expect(page.getByText(/základy v zemi/).first()).toBeVisible();
     await expect(page.getByText(/sezónna nevykurovaná stavba/).first()).toBeVisible();
   });
 

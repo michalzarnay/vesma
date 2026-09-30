@@ -10,6 +10,7 @@
 // sú vo formulári farebne odlíšené.
 
 import { AKTUALNA_VERZIA_SCHEMY, Areal, Budova } from '../types/areal';
+import { mapujeEnergiu, mapujeVodu } from './rozsahMapovania';
 
 /** Pole budovy, ktoré pribudlo v danej verzii schémy. */
 export interface NovePole {
@@ -19,6 +20,8 @@ export interface NovePole {
   label: string;
   /** Je pole ešte nevyplnené? (napr. trojstavová odpoveď zostala na „neviem") */
   chyba: (b: Budova) => boolean;
+  /** Ktorej oblasti sa pole týka — mimo rozsahu mapovania sa nepripomína. */
+  oblast: 'voda' | 'energia';
 }
 
 type TrojstavovePole = 'hydraulickeVyregulovanieUK' | 'hydraulickeVyregulovanieTV' | 'izolaciaRozvodov';
@@ -35,16 +38,19 @@ export const NOVE_POLIA_VO_VERZII: Record<number, NovePole[]> = {
       pole: 'hydraulickeVyregulovanieUK',
       label: 'Hydraulicky vyregulovaný vykurovací systém',
       chyba: (b) => neviem(b, 'hydraulickeVyregulovanieUK'),
+      oblast: 'energia',
     },
     {
       pole: 'hydraulickeVyregulovanieTV',
       label: 'Hydraulicky vyregulované rozvody teplej vody',
       chyba: (b) => neviem(b, 'hydraulickeVyregulovanieTV'),
+      oblast: 'energia',
     },
     {
       pole: 'izolaciaRozvodov',
       label: 'Zaizolované rozvody tepla a teplej vody',
       chyba: (b) => neviem(b, 'izolaciaRozvodov'),
+      oblast: 'energia',
     },
   ],
 };
@@ -78,7 +84,10 @@ export interface ChybajucePoliaBudovy {
  */
 export function chybajuceNovePolia(areal: Areal): ChybajucePoliaBudovy[] {
   if (!jeStarsiaVerzia(areal)) return [];
-  const nove = poliaPribudnuteOd(verziaArealu(areal));
+  // Pole mimo rozsahu mapovania je vo formulári skryté — nemá zmysel ho pripomínať.
+  const nove = poliaPribudnuteOd(verziaArealu(areal)).filter((p) =>
+    p.oblast === 'energia' ? mapujeEnergiu(areal) : mapujeVodu(areal),
+  );
   if (nove.length === 0) return [];
 
   return areal.budovy

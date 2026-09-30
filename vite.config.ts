@@ -223,6 +223,7 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
             question?: string
             step?: number
             timestamp?: string
+            email?: string
           }
           try {
             telo = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
@@ -241,6 +242,8 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
               question: telo.question.trim(),
               step: telo.step ?? 0,
               timestamp: telo.timestamp ?? new Date().toISOString(),
+              email: (telo.email ?? '').trim().toLowerCase(),
+              emailOvereny: 'nie', // dev proxy tokeny neoveruje
             }
           } else if (typeof telo.nazovPodnetu === 'string' && telo.nazovPodnetu.trim().length > 0) {
             // Poradie kľúčov musí sedieť s api/feedback.ts – most zapisuje
@@ -255,6 +258,8 @@ function feedbackProxyPlugin(env: Record<string, string>): Plugin {
               prvok: telo.fieldLabel ?? '', // E – kde (stránka, karta)
               opis: telo.opisPodnetu?.trim() ?? '', // F – opis
               menoTestera: telo.menoTestera?.trim() ?? '', // G – meno testera
+              email: (telo.email ?? '').trim().toLowerCase(), // H – e-mail testera
+              emailOvereny: 'nie', // I – dev proxy tokeny neoveruje
             }
           } else {
             return send(400, { error: 'Chýba názov podnetu alebo otázka.' })

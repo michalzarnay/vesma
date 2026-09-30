@@ -105,21 +105,21 @@ export const TYPY_ENTIT: TypEntity[] = [
     kluc: 'ineStavby',
     nazov: 'iná stavba',
     krok: 4,
-    znacka: 'E2E oplotenie areálu',
+    znacka: 'E2E altánok pri vstupe',
     async zadaj(page) {
       await page.getByRole('button', { name: 'Pridať inú stavbu' }).click();
-      await pole(page, 'Názov stavby').fill('E2E oplotenie areálu');
+      await pole(page, 'Názov stavby').fill('E2E altánok pri vstupe');
       await pole(page, 'Zastavaná plocha').fill('40');
     },
   },
   {
     kluc: 'bgOpatrenia',
-    nazov: 'B&G opatrenie',
+    nazov: 'Opatrenie pre MZI',
     krok: 5,
     znacka: 'E2E dažďová záhrada',
     async zadaj(page) {
-      await page.getByRole('button', { name: 'Pridať B&G opatrenie' }).click();
-      await pole(page, 'Názov B&G opatrenia').fill('E2E dažďová záhrada');
+      await page.getByRole('button', { name: 'Pridať opatrenie pre MZI' }).click();
+      await pole(page, 'Názov opatrenia pre MZI').fill('E2E dažďová záhrada');
       // Zámerne iné číslo parcely ako pri pozemku — každá značka musí vo výstupe
       // patriť práve jednej entite, inak by test prešiel na cudzí zápis.
       await pole(page, 'Na parcele').fill('2307');

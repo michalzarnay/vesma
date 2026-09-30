@@ -9,6 +9,7 @@ import { Page, expect } from '@playwright/test';
  *  - archive-api.open-meteo.com   – zrážkové dáta (Krok 1)
  *  - photon.komoot.io             – našepkávač adresy
  *  - /api/pvgis, /api/svp-flood   – serverless proxy (solár, povodne)
+ *  - /api/prihlasenie             – či je prihlásenie e-mailom zapnuté
  *
  * Defaultne vracajú "prázdny" výsledok – appka to spracuje ako stav bez dát,
  * čo je presne to, čo chceme mať pod kontrolou. Konkrétne testy si môžu
@@ -41,6 +42,12 @@ export async function stubExternalApis(page: Page): Promise<void> {
 
   await page.route('**/api/svp-flood**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }),
+  );
+
+  // Prihlásenie e-mailom je predvolene vypnuté — brána sa neukáže. Testy
+  // brány si stub prepíšu (pozri prihlasenie.spec.ts).
+  await page.route('**/api/prihlasenie**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{"aktivne":false}' }),
   );
 }
 

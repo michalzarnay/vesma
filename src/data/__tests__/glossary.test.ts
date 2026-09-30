@@ -24,16 +24,26 @@ describe('glossary', () => {
     expect(glossary.kurenieElektrinouDef.definition).toContain('NEPOVAŽUJE');
   });
 
-  it('deliaca čiara budova/iná stavba je strecha a vnútorný priestor — chatka patrí medzi budovy', () => {
+  it('deliaca čiara budova/iná stavba sú základy v zemi — chatka patrí medzi budovy', () => {
     const { definition, example } = glossary.kamPatriStavbaDef;
-    expect(definition).toContain('strech');
-    expect(definition).toContain('vnútorn');
+    expect(definition).toContain('základ');
     // Chatka je uvedená na strane budov, altánok na strane iných stavieb.
     const budovy = example!.split('Medzi Iné stavby')[0];
     const ineStavby = example!.split('Medzi Iné stavby')[1];
     expect(budovy).toContain('chatka');
     expect(ineStavby).toContain('ltánok');
     expect(budovy).not.toContain('ltánok');
+  });
+
+  it('chodník, parkovisko ani oplotenie nie sú iné stavby', () => {
+    const { definition, example } = glossary.kamPatriStavbaDef;
+    // Patria medzi povrchy pozemku, nie medzi stavby — inak by sa tá istá
+    // plocha zadala dvakrát a hodnotila ako nepriepustná bez ohľadu na povrch.
+    expect(definition).toContain('Pozemky');
+    const ineStavby = example!.split('Medzi Iné stavby')[1].split('Do Pozemkov')[0];
+    expect(ineStavby).not.toContain('hodník');
+    expect(ineStavby).not.toContain('arkovisko');
+    expect(ineStavby).not.toContain('plotenie');
   });
 
   it('sezónna nevykurovaná stavba neuvádza altánok — ten patrí medzi iné stavby', () => {
@@ -45,5 +55,29 @@ describe('glossary', () => {
     expect(glossary.energetickaTriedaDef.term).toBe('Trieda energetickej hospodárnosti');
     expect(glossary.energetickaTriedaDef.definition).toContain('A0');
     expect(glossary.energetickaTriedaDef.definition).toContain('G');
+  });
+
+  it('trieda sa berie z globálneho ukazovateľa, teda z primárnej energie (podnet 81)', () => {
+    const { definition, whereToFind } = glossary.energetickaTriedaDef;
+    expect(definition).toContain('globálneho ukazovateľa');
+    expect(definition).toContain('primárnej energie');
+    // Aby sa nezamieňala s celkovou dodanou energiou ani s čiastkovými triedami.
+    expect(definition).toContain('nie podľa celkovej dodanej energie');
+    expect(whereToFind).toContain('globálneho ukazovateľa');
+  });
+
+  it('LED vysvetlivka vymenúva, čo sa medzi LED neráta — najmä kompaktné „úsporné" žiarovky (podnet 82)', () => {
+    const { term, definition } = glossary.ledSvietidlaDef;
+    expect(term).toBe('LED svietidlá');
+    for (const nieJeLED of ['halogénové', 'iarivkové trubice', 'kompaktné žiarivky', 'výbojky']) {
+      expect(definition).toContain(nieJeLED);
+    }
+    expect(definition).toContain('úsporné');
+  });
+
+  it('B&G opatrenia sa v texte volajú opatrenia pre MZI, skratka zostáva ako synonymum (podnet 87)', () => {
+    expect(glossary.BGOpatreniaDef.term).toBe('Opatrenia pre MZI');
+    expect(glossary.BGOpatreniaDef.definition).toContain('modro-zelenej infraštruktúry');
+    expect(glossary.BGOpatreniaDef.definition).toContain('B&G');
   });
 });

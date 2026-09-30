@@ -28,6 +28,7 @@
 //    tvárnice, „iný povrch"), sú zaradené medzi kódy B a C hodnotou 0,3.
 
 import { Areal, Budova, Pozemok } from '../types/areal';
+import { mapujeVodu } from './rozsahMapovania';
 import { KlimaskenStupen, MZIKomponent, MZIScore } from '../types/scoring';
 
 /** Funkčné koeficienty MZI pre povrchy v okolí budovy — metodický list B-GOV2. */
@@ -225,8 +226,10 @@ export function plochyOkolia(areal: Areal): Plocha[] {
     plochy.push({ nazov: 'Prekoreniteľný priestor pre stromy', kod: 'P', vymera: p.prekorenetelnyPriestorPreStromy, koef: KOEF_OKOLIE.prekorenitelnyPriestor });
   }
 
-  // Iné stavby z Kroku 4 — oplotenie, chodník, parkovisko (#233). Zastavaná
-  // plocha je nepriepustný povrch (kód A) rovnako ako asfalt na pozemku.
+  // Iné stavby z Kroku 4 — drobné stavby bez základov, teda altánok, prístrešok
+  // či plechová búda (#233). Zastavaná plocha je nepriepustný povrch (kód A)
+  // rovnako ako asfalt na pozemku. Chodníky a parkoviská sem nepatria — tie sa
+  // zadávajú ako povrchy pozemku v Kroku 2.
   //
   // Dvojité započítanie tej istej plochy rieši Krok 2: výmery povrchov sa tam
   // zadávajú BEZ stavieb z Kroku 4. Preto sa tu plochy pripočítajú, nie
@@ -607,6 +610,9 @@ export function calculateMZI(areal: Areal): MZIScore {
 
   return {
     celkove: maxSpolu > 0 ? Math.round((bodySpolu / maxSpolu) * 100) : 0,
+    // Len energia → MZI je mimo rozsahu; komponenty sa spočítajú, ale skóre
+    // ich nepoužije (pozri saHodnotiMZI v types/scoring.ts).
+    mimoRozsahu: !mapujeVodu(areal),
     ...komponenty,
     koefOkolie,
     koefBudovy,

@@ -5,21 +5,27 @@ import { Areal } from '../../types/areal';
 import { computeAreaComparisonScore, rankAreaComparisons } from '../../utils/comparisonScoring';
 import { exportComparisonToXlsx } from '../../utils/comparisonXlsxExport';
 import { AreaComparisonRow } from '../../types/comparison';
+import { mapujeEnergiu, mapujeVodu } from '../../utils/rozsahMapovania';
 
 interface AreaComparisonViewProps {
   aktualnyAreal: Areal;
   onClose: () => void;
 }
 
-const OBLASTI: Array<{ key: 'sucho' | 'horucavy' | 'voda' | 'energia'; poradieKey: 'poradieSucho' | 'poradieHorucavy' | 'poradieVoda' | 'poradieEnergia'; label: string; icon: typeof Droplets }> = [
-  { key: 'sucho', poradieKey: 'poradieSucho', label: 'Sucho', icon: Thermometer },
-  { key: 'horucavy', poradieKey: 'poradieHorucavy', label: 'Horúčavy', icon: Zap },
-  { key: 'voda', poradieKey: 'poradieVoda', label: 'Voda (záplavy)', icon: CloudRain },
-  { key: 'energia', poradieKey: 'poradieEnergia', label: 'Energia', icon: Droplets },
+const VSETKY_OBLASTI: Array<{ key: 'sucho' | 'horucavy' | 'voda' | 'energia'; poradieKey: 'poradieSucho' | 'poradieHorucavy' | 'poradieVoda' | 'poradieEnergia'; label: string; icon: typeof Droplets; oblast: 'voda' | 'energia' }> = [
+  { key: 'sucho', poradieKey: 'poradieSucho', label: 'Sucho', icon: Thermometer, oblast: 'voda' },
+  { key: 'horucavy', poradieKey: 'poradieHorucavy', label: 'Horúčavy', icon: Zap, oblast: 'voda' },
+  { key: 'voda', poradieKey: 'poradieVoda', label: 'Voda (záplavy)', icon: CloudRain, oblast: 'voda' },
+  { key: 'energia', poradieKey: 'poradieEnergia', label: 'Energia', icon: Droplets, oblast: 'energia' },
 ];
 
 export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonViewProps) {
   const { sessions } = useSessionManager();
+  // Oblasti mimo rozsahu mapovania aktuálneho areálu sa v tabuľke neukazujú.
+  // Export do XLSX ostáva úplný — porovnávané areály môžu mať rozsah rôzny.
+  const OBLASTI = VSETKY_OBLASTI.filter((o) =>
+    o.oblast === 'voda' ? mapujeVodu(aktualnyAreal) : mapujeEnergiu(aktualnyAreal),
+  );
 
   // Ponúkame na výber všetky uložené relácie + aktuálne rozpracovaný areál (ak má názov).
   const dostupneArealy = useMemo(() => {

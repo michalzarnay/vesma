@@ -35,10 +35,20 @@ export const ZMENY_PRAVIDIEL: Record<number, ZmenaPravidiel[]> = {
     {
       oblast: 'Skóre areálu',
       popis:
-        'Zastavaná plocha stavieb z kroku Iné stavby (oplotenie, chodník, parkovisko) sa už ' +
-        'započítava do skóre modro-zelenej infraštruktúry ako nepriepustná plocha. Ak ste tie ' +
-        'plochy zadali aj do výmer v kroku Pozemky, odrátajte ich tam — inak sa zarátajú dvakrát ' +
-        'a skóre bude nižšie, než má byť.',
+        'Zastavaná plocha stavieb z kroku Iné stavby sa už započítava do skóre modro-zelenej ' +
+        'infraštruktúry ako nepriepustná plocha. Ak ste tie plochy zadali aj do výmer v kroku ' +
+        'Pozemky, odrátajte ich tam — inak sa zarátajú dvakrát a skóre bude nižšie, než má byť.',
+    },
+  ],
+  3: [
+    {
+      oblast: 'Skóre areálu',
+      popis:
+        'Upresnilo sa, čo je iná stavba: drobná stavba bez základov v zemi — altánok, pergola, ' +
+        'prístrešok, plechová búda. Chodníky, terasy a parkoviská medzi ne už nepatria; zadávajú ' +
+        'sa ako povrch pozemku v kroku Pozemky a jednoduché oplotenie sa nezadáva nikam. ' +
+        'Skontrolujte krok Iné stavby: čo tam podľa tohto nepatrí, presuňte do kroku Pozemky, ' +
+        'inak sa plocha hodnotí ako nepriepustná bez ohľadu na to, aký má povrch.',
     },
   ],
 };

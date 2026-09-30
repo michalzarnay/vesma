@@ -33,13 +33,28 @@ export const AKTUALNA_VERZIA_SCHEMY = 2;
  *     nevieme povedať, ktoré pravidlá vtedy platili — upozornenie je len všeobecné
  * 1 = stav pri zavedení sledovania
  */
-export const AKTUALNA_VERZIA_PRAVIDIEL = 2;
+export const AKTUALNA_VERZIA_PRAVIDIEL = 3;
 
 export interface ScoringWeights {
   mzi: number;
   oze: number;
   energia: number;
 }
+
+/**
+ * Rozsah mapovania — čo si mapér vybral, že chce mapovať.
+ *
+ * Podľa rozsahu sa skrývajú nerelevantné časti dotazníka aj hodnotenia
+ * (pozri `src/utils/rozsahMapovania.ts`). Relácie spred zavedenia rozsahu sú
+ * „oboje", takže ich dotazník ani skóre sa nemenia.
+ */
+export type RozsahMapovania = 'voda' | 'energia' | 'oboje';
+
+export const ROZSAHY_MAPOVANIA: Array<{ value: RozsahMapovania; label: string; description: string }> = [
+  { value: 'voda', label: 'Voda', description: 'Modro-zelená infraštruktúra, odvod a zadržiavanie vody' },
+  { value: 'energia', label: 'Energia', description: 'Obnoviteľné zdroje, zateplenie, vykurovanie' },
+  { value: 'oboje', label: 'Voda aj energia', description: 'Celý dotazník a celé hodnotenie' },
+];
 
 export type KategoriaObjektu = 'verejny_sektor' | 'firma' | 'sukromne';
 
@@ -116,6 +131,9 @@ export interface Areal {
 
   kategoriaObjektu?: KategoriaObjektu;
   typObjektu?: string;
+
+  /** Čo sa v areáli mapuje — voda, energia alebo oboje. */
+  rozsahMapovania: RozsahMapovania;
 
   // Záznam z obhliadky
   organizaciaVZriadovatelskejPobnonosti: string;
@@ -241,7 +259,8 @@ export interface Budova {
   kategoriaBudovy?: 'S' | 'M' | 'L'; // auto
 
   /**
-   * Sezónna nevykurovaná stavba — záhradná chatka, domček na náradie, nevykurovaná garáž.
+   * Sezónna nevykurovaná stavba — murovaná záhradná chatka, murovaný domček na náradie,
+   * nevykurovaná garáž. Stavba bez základov (altánok, plechová búda) sem nepatrí — je to iná stavba.
    * Užíva sa len v teplej časti roka, nevykuruje sa a nespáva sa v nej, takže
    * zateplenie ani obnova vykurovania v nej nemajú zmysel. Taká stavba sa
    * vynecháva z hodnotenia obálky a vykurovania, z návrhov opatrení v tomto
@@ -701,6 +720,7 @@ export function createEmptyAreal(): Areal {
     pocetZamestnancov: 0,
     nadrzNieJeMozna: 0,
     nadrzNemoznaDovod: '',
+    rozsahMapovania: 'oboje',
     zaverBG: '',
     zaverOZE: '',
     pozemky: [createEmptyPozemok()],

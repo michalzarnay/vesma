@@ -346,7 +346,7 @@ export const katalogOpatreni: Opatrenie[] = [
     id: 'smart-termostaty',
     nazov: 'Inteligentné riadenie vykurovania (smart termostaty)',
     kategoria: 'ENERGETIKA',
-    popis: 'Elektronické termostaty s programovateľným harmonogramom a možnosťou diaľkového ovládania cez aplikáciu.',
+    popis: 'Elektronické termostaty s programovateľným harmonogramom a možnosťou diaľkového ovládania cez aplikáciu. Netýka sa len radiátorov — pri podlahovom kúrení ide o priestorové (zónové) termostaty ovládajúce jednotlivé okruhy.',
     benefity: ['Úspora 10-20% na vykurovaní', 'Automatická regulácia teploty', 'Diaľkové ovládanie', 'Jednoduché použitie'],
     narocnostRealizacie: 'nízka',
     orientacnaCena: '200 – 1 000 EUR',

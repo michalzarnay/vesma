@@ -70,9 +70,9 @@ export const glossary: Record<string, GlossaryEntry> = {
   },
   energetickaTriedaDef: {
     term: 'Trieda energetickej hospodárnosti',
-    definition: 'Zaradenie budovy podľa energetického certifikátu na škále A0 (najúspornejšia, napr. pasívny dom) až G (najnáročnejšia).',
-    example: 'Pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok (trieda A0), nízkoenergetický dom okolo 30 kWh/m²/rok (trieda A1/B).',
-    whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy.',
+    definition: 'Zaradenie budovy podľa energetického certifikátu na škále A0 (najúspornejšia, napr. pasívny dom) až G (najnáročnejšia). Zadajte triedu podľa globálneho ukazovateľa, teda podľa primárnej energie — nie podľa celkovej dodanej energie ani podľa čiastkových tried pre jednotlivé miesta spotreby (vykurovanie, teplá voda, osvetlenie), ktoré certifikát uvádza zvlášť.',
+    example: 'Certifikát má triedu pri každom mieste spotreby aj jednu súhrnnú v riadku globálneho ukazovateľa — do formulára patrí tá súhrnná. Orientačne: pasívny dom má mernú potrebu tepla na vykurovanie približne 15–20 kWh/m²/rok, nízkoenergetický okolo 30 kWh/m²/rok, no to je čiastkový ukazovateľ pre vykurovanie, nie samotná trieda.',
+    whereToFind: 'Nájdete ju na titulnej strane energetického certifikátu budovy, v riadku globálneho ukazovateľa (primárna energia).',
   },
   certifikatPotrebaDef: {
     term: 'Potreba energie podľa certifikátu',
@@ -100,15 +100,15 @@ export const glossary: Record<string, GlossaryEntry> = {
   },
   sezonnaNevykurovanaDef: {
     term: 'Sezónna nevykurovaná stavba',
-    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — záhradná chatka, domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
+    definition: 'Stavba užívaná len v teplej časti roka, ktorá sa nevykuruje a spravidla sa v nej ani nespáva — murovaná záhradná chatka, murovaný domček na náradie, nevykurovaná garáž. Zateplovať ju alebo v nej meniť zdroj tepla nemá zmysel, lebo nie je čo šetriť. VESMA jej preto nepočíta potenciál zateplenia, okien, rekuperácie ani vykurovania a nenavrhuje v tomto smere opatrenia. Zostáva ale medzi Budovami — hodnotí sa jej strecha pre fotovoltiku, zelená strecha, odvod zrážkovej vody aj osvetlenie.',
     example: 'Záhradná chatka, kde sa cez leto obeduje a v zime sa zamkne, je sezónna nevykurovaná stavba. Chalupa, ktorú v zime vykurujete krbom alebo elektrickými telesami, nie je — tam má zateplenie zmysel.',
     whereToFind: 'Rozhodnite podľa toho, či sa v stavbe v zime kúri. Ak áno čo i len občas, odpovedzte „nie".',
   },
   kamPatriStavbaDef: {
     term: 'Budova alebo iná stavba?',
-    definition: 'Rozhoduje strecha a vnútorný priestor. Objekt so strechou a využiteľným vnútrajškom zadajte medzi Budovy — aj keď je malý a nevykurovaný (vtedy ho označte ako sezónnu nevykurovanú stavbu). Objekt bez strechy alebo bez uzavretého vnútorného priestoru patrí medzi Iné stavby.',
-    example: 'Medzi Budovy: záhradná chatka, domček na náradie, garáž, prístrešok so stenami. Medzi Iné stavby: oplotenie, chodník, terasa, parkovisko, altánok a pergola bez stien, trafostanica, studňa.',
-    whereToFind: 'Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia. Medzi Inými stavbami sa tieto veci nezisťujú.',
+    definition: 'Rozhodujú základy v zemi. Stavba na základoch je Budova — aj keď je malá a nevykurovaná (vtedy ju označte ako sezónnu nevykurovanú stavbu). Stavba bez základov, ktorá len stojí na teréne, patrí medzi Iné stavby: má zvislú konštrukciu a spravidla aj strechu, ale je taká jednoduchá, že sa na nej modrozelené ani energetické opatrenia nedajú robiť. Chodníky, parkoviská a spevnené plochy nie sú stavby — tie patria medzi povrchy pozemku v kroku Pozemky.',
+    example: 'Medzi Budovy: murovaná záhradná chatka, murovaný domček na náradie, garáž. Medzi Iné stavby: altánok, pergola, prístrešok, plechová búda na náradie. Do Pozemkov ako povrch: chodník, terasa, parkovisko. Jednoduché oplotenie sa nezadáva nikam — na hodnotenie nemá vplyv.',
+    whereToFind: 'Keď neviete rozhodnúť, pozrite sa na spodok stavby: betónový základový pás alebo doska pod celou stavbou znamená Budovu. Stavba na pätkách, na dlažbe alebo priamo na zemi je Iná stavba. Chatka zaradená medzi Budovy si zachová hodnotenie strechy pre fotovoltiku, zelenej strechy, odvodu zrážkovej vody aj osvetlenia.',
   },
   retenciaVodyDef: {
     term: 'Retencia vody',
@@ -210,9 +210,15 @@ export const glossary: Record<string, GlossaryEntry> = {
     definition: 'Súbor výkresov, technických správ a výpočtov, podľa ktorých sa budova stavia alebo rekonštruuje.',
     whereToFind: 'U správcu budovy, v archíve organizácie alebo na príslušnom stavebnom úrade. Staršie budovy nemusia mať dokumentáciu v digitálnej podobe.',
   },
+  ledSvietidlaDef: {
+    term: 'LED svietidlá',
+    definition: 'Svietidlá a žiarovky so svetelnými diódami (LED). Za LED sa NEpovažujú klasické (vláknové) žiarovky, halogénové žiarovky, žiarivkové trubice (T8, T5), kompaktné žiarivky — teda staršie „úsporné žiarovky" so skrútenou trubicou — ani výbojky (sodíkové, halogenidové) používané v halách a na dvoroch.',
+    example: 'Ak má budova 20 svietidiel a 8 z nich sú LED panely, zvyšok žiarivkové trubice, zadajte 8. Kompaktné „úsporné žiarovky" sa medzi LED nerátajú.',
+    whereToFind: 'Na obale alebo pätici býva uvedené „LED". LED svietidlo sa rozsvieti naplno okamžite a nezahrieva sa ako halogénka; žiarivka sa rozsvecuje postupne a má na koncoch trubice tmavšie miesta.',
+  },
   BGOpatreniaDef: {
-    term: 'B&G opatrenia',
-    definition: 'Blue & Green (modro-zelené) opatrenia – investície do vodného hospodárstva a zelene na pozemku/areáli.',
+    term: 'Opatrenia pre MZI',
+    definition: 'Opatrenia modro-zelenej infraštruktúry (MZI) – investície do vodného hospodárstva a zelene na pozemku/areáli. Staršie materiály ich označujú aj ako B&G (Blue & Green) opatrenia.',
     example: 'Vsakovacie rigoly, dažďové záhrady, zelené strechy, retenčné nádrže, výsadba stromov.',
   },
 };

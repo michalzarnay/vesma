@@ -26,14 +26,14 @@ test('zadaná iná stavba je v rozpise MZI ako nepriepustná plocha', async ({ p
   await openClean(page);
   await clickNext(page); // Krok 2 – Pozemky
 
-  // 100 m² polopriepustnej plochy; 300 m² parkoviska ju v koeficiente preváži.
+  // 100 m² polopriepustnej plochy; 300 m² altánku ju v koeficiente preváži.
   await pole(page, 'Spevnený (polopriepustný) povrch celkom').fill('100');
 
   await clickNext(page); // Krok 3 – Budovy
   await clickNext(page); // Krok 4 – Iné stavby
 
   await page.getByRole('button', { name: 'Pridať inú stavbu' }).click();
-  await pole(page, 'Názov stavby').fill('Parkovisko pri vstupe');
+  await pole(page, 'Názov stavby').fill('Altánok na dvore');
   await pole(page, 'Zastavaná plocha').fill(PLOCHA_STAVBY);
 
   await clickNext(page); // Krok 5
@@ -48,7 +48,7 @@ test('zadaná iná stavba je v rozpise MZI ako nepriepustná plocha', async ({ p
   // A to isté nesie export, nielen obrazovka.
   const text = textZosita(await stiahniXlsx(page));
   expect(text).toContain('Iné stavby (zastavaná plocha)');
-  expect(text).toContain('Parkovisko pri vstupe');
+  expect(text).toContain('Altánok na dvore');
 
   expect(chyby, `Nezachytené chyby: ${chyby.join('\n')}`).toHaveLength(0);
 });
@@ -61,7 +61,7 @@ test('Krok 2 upozorní, že plochy iných stavieb sa do výmer nezapočítavajú
   await clickNext(page);
 
   // Pravidlo je na Kroku 2 napísané aj bez jedinej zadanej stavby.
-  await expect(page.getByText(/plochy stavieb zadaných v kroku/)).toBeVisible();
+  await expect(page.getByText(/zastavanú plochu stavieb z kroku/)).toBeVisible();
 
   // Po zadaní stavby pribudne konkrétne číslo, aby mapér vedel, čo neopakovať.
   for (let i = 0; i < 2; i++) await clickNext(page);

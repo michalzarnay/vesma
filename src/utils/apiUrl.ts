@@ -1,10 +1,10 @@
 /**
  * Adresy serverless funkcií (`/api/…`) vrátane základnej cesty nasadenia.
  *
- * VESMA sa nasadzuje pod cestou `/vesma/` (na Verceli aj za proxy na
- * https://inovia.sk/vesma/), takže volania API musia ísť na `/vesma/api/…` —
- * inak by za proxy skončili mimo nej, na `https://inovia.sk/api/…`.
- * Základnú cestu dopĺňa Vite cez `import.meta.env.BASE_URL`.
+ * VESMA sa nasadzuje pod cestou `/vesma/` (na Verceli aj na verejnej adrese
+ * https://vesma.inovia.sk/vesma/), takže volania API musia ísť na
+ * `/vesma/api/…`, nie na `/api/…`. Základnú cestu dopĺňa Vite cez
+ * `import.meta.env.BASE_URL`; odstránenie cesty rieši issue #241.
  */
 export function apiUrl(cesta: string, base: string = import.meta.env.BASE_URL): string {
   const zaklad = base.endsWith('/') ? base : `${base}/`;
