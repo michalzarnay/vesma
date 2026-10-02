@@ -20,6 +20,15 @@ Ako čítať značky:
 > bezplatná natrvalo — čo už neplatí. Neposielať ďalej; je tam len ako záznam
 > východiskovej pozície.
 
+> **Termíny v tomto dokumente sú prekonané (stav k 2. 10. 2026).** Po piatich
+> prezentáciách sa prihlásili tri obce z 315, preto je **platený štart zmrazený**.
+> Všetky dátumy v A.3 a v časti D — prechodné obdobie do 31. 12. 2026, platená
+> verzia od 1. 1. 2027, infraštruktúra do konca roka — čakajú na rozhodnutie
+> o novom termíne (krok M1 v `docs/validacia-dalsie-kroky.md`). Do dovtedy sa
+> **nestavia databáza účtov, evidencia predplatného ani fakturácia**. Samotný
+> model — cenník, balík PLUS, limity, režim len na čítanie — platí ďalej.
+> Stav validácie: `docs/kontext-monetizacia-a-validacia.md`.
+
 ---
 
 ## Zhrnutie na jednu minútu
