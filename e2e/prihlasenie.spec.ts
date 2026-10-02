@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { test, expect, Page } from '@playwright/test';
 import { stubExternalApis } from './helpers/stubs';
 
@@ -102,4 +103,43 @@ test('bez prihlásenia je e-mail v podnete povinný', async ({ page }) => {
   await expect(odoslat).toBeDisabled();
   await page.getByPlaceholder('meno@obec.sk').fill('tester@obec.sk');
   await expect(odoslat).toBeEnabled();
+});
+
+test('brána ponúkne stiahnuť relácie uložené na tejto adrese (issue #251)', async ({ page }) => {
+  await zapniPrihlasenie(page);
+  await page.goto('/vesma/');
+
+  // Tester mapoval na tejto adrese ešte pred zavedením brány.
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem('sma-nastroj-sessions', JSON.stringify([
+      { id: 'id-1', nazov: 'Dom vo Svederníku', areal: { nazov: 'Dom vo Svederníku' }, datumUlozenia: '2026-06-10T10:00:00.000Z' },
+    ]));
+  });
+  await page.reload();
+
+  // Prihlásiť sa tu nedá (odkaz vedie na APP_URL), ale dáta musia ísť von.
+  await expect(page.getByTestId('brana')).toBeVisible();
+  const zaloha = page.getByTestId('brana-zaloha');
+  await expect(zaloha).toContainText('1 mapovanie');
+  await expect(zaloha).toContainText('Dom vo Svederníku');
+
+  // Podstatný je obsah — musí sa dať na hlavnej adrese importovať späť.
+  // Názov súboru stráži e2e/vysledky-export.spec.ts pre všetky exporty.
+  const stiahnutie = page.waitForEvent('download');
+  await zaloha.getByRole('button', { name: /Stiahnuť ako súbor JSON/ }).click();
+  const subor = await (await stiahnutie).path();
+  const obsah = JSON.parse(await readFile(subor, 'utf8'));
+  expect(obsah.nazov).toBe('Dom vo Svederníku');
+  expect(obsah.areal.nazov).toBe('Dom vo Svederníku');
+});
+
+test('brána nespomína zálohu, keď sa na tejto adrese ešte nemapovalo', async ({ page }) => {
+  await zapniPrihlasenie(page);
+  await page.goto('/vesma/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+
+  await expect(page.getByTestId('brana')).toBeVisible();
+  await expect(page.getByTestId('brana-zaloha')).toHaveCount(0);
 });
