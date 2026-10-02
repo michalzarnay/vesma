@@ -547,6 +547,9 @@ spoľahlivo ako chýbajúca databáza:
 
 ## Súvisiace súbory
 
+- `docs/kontext-monetizacia-a-validacia.md` — odovzdávací kontext: produkt,
+  zadávateľka, model, stav validácie a otvorené rozhodnutia na jednom mieste.
+
 - `docs/VESMA_monetizacia_podklad_pre_rozhovor_2026-09-04.docx` — podklad
   pripravený **pred** rozhovorom so zadávateľkou. Popisuje prekonanú
   východiskovú pozíciu (jadro zadarmo natrvalo). Neposielať ďalej.

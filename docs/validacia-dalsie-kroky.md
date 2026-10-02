@@ -171,5 +171,6 @@ Prahy sú návrh a treba ich potvrdiť v kroku Z1.
 
 ---
 
-Súvisiace: `docs/validacia-casova-os.puml` — diagram krokov a časovej osi ·
+Súvisiace: `docs/kontext-monetizacia-a-validacia.md` — odovzdávací kontext pre
+novú konverzáciu · `docs/validacia-casova-os.puml` — diagram krokov a časovej osi ·
 `docs/monetizacia-navrh.md` — model monetizácie, mení ho krok M3.
