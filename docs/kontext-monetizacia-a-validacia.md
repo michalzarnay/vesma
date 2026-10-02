@@ -130,9 +130,11 @@ nestavia sa databáza účtov, evidencia predplatného ani fakturácia.
 
 ### Čo sa stalo
 
-Päť prezentácií pre subregióny, prvá 8. 9. 2026.
+Päť workshopov pre subregióny: Žilina a Martin 8. 9., Trstená 9. 9., Čadca
+14. 9., Liptovský Mikuláš 16. 9. 2026. Účasť bola podľa tímu nízka; skutočný
+počet účastníkov nepoznáme.
 
-### Zoznam prihlásení (k 30. 9. 2026)
+### Zoznam prihlásení do aplikácie (k 30. 9. 2026)
 
 Nie sú to registrácie. `api/overenie.ts` zapisuje jeden riadok pri **každom
 kliknutí na prihlasovací odkaz**, takže opakované prihlásenie tej istej osoby
@@ -151,6 +153,32 @@ Rozdelenie 20 adries: INOVIA 2 · ŽSK 2 · samospráva 3 · verejný sektor a b
 organizácie 4 (SHMÚ, UNIZA, MAS Dolný Liptov, Orava) · firmy 3 · neurčiteľné
 freemailové adresy 6. Z 36 prihlásení pripadá 24 na 8. a 9. 9., teda na dni
 prezentácií.
+
+### Prihlásení na workshopy (k 2. 10. 2026)
+
+Zoznam **prihlásených**, nie účastníkov (SharePoint › Samosprávy – Mapovanie
+areálov › „prezentácia prvej verzie"). Postup spracovania a podrobnosti:
+`docs/validacia-dalsie-kroky.md` §1. Osobné údaje sa do repozitára neprepisujú.
+
+148 prihlásení (137 unikátnych e-mailov). Zo samospráv je 30 z nich (20 %),
+101 (68 %) z iných organizácií — okresné úrady, SHMÚ, SAŽP, inšpekcia, správy
+národných parkov, vodárne, mimovládky, firmy — 8 zo združení a MAS, 6 z ŽSK,
+3 z INOVIE. Prihlásených obcí je **23**.
+
+| Kat. | Obcí | Prihlásených na workshop | V aplikácii |
+| --- | ---: | --- | ---: |
+| A | 155 | 6 (3,9 %) | 0 |
+| B | 138 | 7 (5,1 %) | 1 |
+| C | 17 | 6 (35 %) | 1 |
+| D | 5 | 4 (80 %) | 1 |
+| spolu | 315 | 23 (7,3 %) | 3 |
+
+- **Pri A a B je problém dosah** — na workshop sa zapísalo 13 z 293 obcí (4,4 %).
+- **Pri C a D je problém prechod do aplikácie** — zapísalo sa 10 z 22 sídiel,
+  v aplikácii sú 2.
+- **Z workshopov do aplikácie prešlo 3 z 23 obcí (13 %).** Tri prípady, 95 %
+  interval približne 5 – 32 %; neextrapolovať.
+- **Strop z tohto zoznamu je 23 obcí.** 20 z nich v aplikácii ešte nie je.
 
 ### Čo o používaní nevieme
 
@@ -198,11 +226,15 @@ reálne dosiahnuteľná od januára 2027.
 Celá kampaň smeruje na H3. Pôvodne bol plán postavený na otázke, či problém
 existuje; skúsenosť kraja s vlastnými organizáciami ju posunula na H3.
 
+Prvé dáta k H3 (2. 10. 2026): z 10 sídiel kategórií C a D, ktoré sa zapísali na
+workshop, sú v aplikácii 2; z 13 malých obcí (A, B) 1. Je to prechod zo záujmu
+do prvého kroku, nie dôkaz o použití — to sa zatiaľ nemeria.
+
 ---
 
 ## 6. Platný plán
 
-Plné znenie: `docs/validacia-dalsie-kroky.md` (verzia 2).
+Plné znenie: `docs/validacia-dalsie-kroky.md` (verzia 3, stav k 2. 10. 2026).
 Diagram: `docs/validacia-casova-os.puml` + vykreslené PNG.
 
 ### Tvrdé pravidlo
@@ -221,10 +253,13 @@ Diagram: `docs/validacia-casova-os.puml` + vykreslené PNG.
   meranie skutočného času a chýbajúcich údajov.
 - **R** — obvolať 18 adries mimo INOVIA, 8 hovorov po 15 minút, 3 asistované
   sedenia (Martin, Žabokreky, Turčianske Teplice), spätná otázka po dvoch
-  týždňoch, či s výsledkom niečo urobili.
+  týždňoch, či s výsledkom niečo urobili. **R6 [návrh]:** obvolať 20 obcí,
+  ktoré sa prihlásili na workshop a v aplikácii ešte nie sú — iný a väčší
+  zoznam než R1; najprv overiť, či súhlas z formulára pokrýva telefonát.
 - **D** — osloviť 5 energetických audítorov, projektantov alebo MAS.
   Hypotéza dodávateľa: audítor, ktorý robí desať obcí ročne, volebný cyklus
-  nemá. Tri z nevyžiadaných prihlásení boli firmy.
+  nemá. Tri z nevyžiadaných prihlásení boli firmy; kandidátov dáva aj zoznam
+  workshopov (8 prihlásených zo združení a MAS).
 - **M** — zmraziť platený štart, informovať zadávateľku, premietnuť do
   `docs/monetizacia-navrh.md`.
 
@@ -244,6 +279,20 @@ Diagram: `docs/validacia-casova-os.puml` + vykreslené PNG.
 | 24. 10. 2026 | Koľko z 8 opýtaných to použije na skutočný objekt? | 4 | Vrátiť sa k zadaniu produktu |
 | 15. 12. 2026 | Koľko obcí dokončilo hodnotenie bez našej účasti? | 3 | Zastaviť oslovovanie, riešiť, kde ľudia odpadávajú |
 | 31. 3. 2027 | Koľko obcí dokončilo hodnotenie / vrátilo sa druhýkrát? | 10 / 3 | Zmeniť cieľovú skupinu na dodávateľov alebo zastaviť |
+
+Prah 10 dokončených by z teplého zoznamu 23 obcí znamenal 43 % — dnes z neho
+prechod do aplikácie je 13 %. Stojí teda na lepšej konverzii (K3, K4, R6) alebo
+na novom kanáli (K1).
+
+### Ročné KPI [návrh na poradu]
+
+Podklad v issue #243, plné znenie v `docs/validacia-dalsie-kroky.md` §6. Tri
+úrovne vedľa seba: **Záujem** (obec zapísaná alebo oslovená, východisko 23),
+**Dosah** (unikátna obec v aplikácii, východisko 3), **Použitie / Návrat**
+(dokončila / vrátila sa, merané telefonátom). Návrh z porady A 16 · B 14 · C 6 ·
+D 3 = 39 obcí drží ako ambiciózny cieľ; záväzne sa dá plánovať len pri C a D,
+kde sú to pomenované zoznamy. A a B stoja na kanáli K1. Meria sa od 1. 1. 2027
+a prehodnotí sa 31. 3. 2027.
 
 ### Čo sa nerobí
 
@@ -267,6 +316,9 @@ evidencia predplatného ani fakturácia · nespúšťa sa balík PLUS.
 | Infraštruktúra | Potvrdiť cloud namiesto vlastného servera (návrh: cloud, región EU, obyčajný PostgreSQL bez uzamknutia na dodávateľa) | monetizacia-navrh.md |
 | Prevádzka | Kto fakturuje a vymáha · kto rieši podporu používateľov | monetizacia-navrh.md |
 | Validácia | Potvrdiť prahy v rozhodovacích bodoch | validacia-dalsie-kroky.md |
+| Validácia | Potvrdiť ročné KPI (návrh A 16 · B 14 · C 6 · D 3, merané od 1. 1. 2027) | validacia-dalsie-kroky.md §6 |
+| Validácia | Zistiť skutočnú účasť na workshopoch | validacia-dalsie-kroky.md §8 |
+| Validácia | Overiť, či súhlas vo formulári na workshopy pokrýva telefonát (R6) | validacia-dalsie-kroky.md §8 |
 | Validácia | Kto vedie oslovenie dodávateľov (krok D1) | validacia-dalsie-kroky.md |
 | Validácia | Či sa cieľová skupina mení z obcí na ich dodávateľov | validacia-dalsie-kroky.md |
 | Riziko | Či bude tím zadávateľky ochotný presmerovať dopyt na VESMA. Ak to budú vnímať tak, že im to berie prácu, padá najhodnotnejší kanál | validacia-dalsie-kroky.md |
@@ -279,7 +331,7 @@ evidencia predplatného ani fakturácia · nespúšťa sa balík PLUS.
 | --- | --- |
 | `docs/kontext-monetizacia-a-validacia.md` | tento dokument |
 | `docs/monetizacia-navrh.md` | model monetizácie — dohodnuté, pripomienky, otvorené rozhodnutia, infraštruktúra |
-| `docs/validacia-dalsie-kroky.md` | platný plán validácie, verzia 2 |
+| `docs/validacia-dalsie-kroky.md` | platný plán validácie, verzia 3 |
 | `docs/validacia-casova-os.puml` | UML activity s krokmi podľa fáz + gantt s časovou osou |
 | `docs/validacia-kroky.png`, `docs/validacia-casova-os.png` | vykreslené diagramy |
 | `docs/VESMA_monetizacia_model.docx` | model monetizácie pre kolegov |
@@ -292,7 +344,9 @@ evidencia predplatného ani fakturácia · nespúšťa sa balík PLUS.
 | `docs/nasadenie-inovia-sk.md` | nasadenie na `vesma.inovia.sk` |
 
 DOCX sa generujú z markdownu skriptom, ktorý nie je v repozitári. Zdrojom pravdy
-je vždy markdown.
+je vždy markdown. **Diagramy (`.puml`, `.png`) a oba DOCX zodpovedajú verzii 2
+plánu** — neobsahujú krok R6, poznámku k prahu z 31. 3. ani ročné KPI.
+Aktualizujú sa pri najbližšej úprave diagramov.
 
 ---
 
@@ -319,6 +373,9 @@ Plné znenie v `CLAUDE.md`. Podstatné:
 
 - **Zoznam prihlásení nie sú registrácie.** Každé kliknutie na odkaz je nový
   riadok. Pri akejkoľvek úvahe o počtoch treba deduplikovať.
+- **Zoznam prihlásených na workshopy nie je zoznam účastníkov.** Skutočná účasť
+  bola nižšia a nepoznáme ju. Obce v ňom sú priradené podľa názvu organizácie;
+  Konská je v kraji dvakrát a nie je jasné, ktorá sa prihlásila.
 - **Čísla rozhodnutí v `monetizacia-navrh.md` sú stabilné** aj po vyriešení —
   vyriešené sa z tabuľky vyberú do samostatnej sekcie, neprečíslujú sa.
 - **Náklad na OCR nikdy neodhadovať.** Cena balíka PLUS na ňom stojí a nikto ho
@@ -326,6 +383,8 @@ Plné znenie v `CLAUDE.md`. Podstatné:
 - **Starý docx z 4. 9.** tvrdí opak dnešného modelu. Dátum je v názve zámerne.
 - **Kraj neplatí a nemá platiť.** Akýkoľvek model, ktorý to mení, je proti
   dohode z úvodu projektu.
-- **Prvý rok spoplatnenia nie je o výnose.** Pri 315 obciach a realistickej
-  adopcii vychádza rádovo 10 – 12 tisíc € ročne. Hodnota je v preukázanej
-  ochote platiť, ktorá sa dá ukázať ďalšej VÚC alebo donorovi.
+- **Prvý rok spoplatnenia nie je o výnose.** Odhad 10 – 12 tisíc € ročne
+  (`monetizacia-navrh.md`, B.11) predpokladá adopciu 15 – 25 % obcí v prvom
+  roku. Dnešné dáta ju nepodporujú: v aplikácii sú 3 obce z 315 (1 %), na
+  workshopy sa zapísalo 23 (7,3 %) — pozri poznámku pri B.11. Hodnota je
+  v preukázanej ochote platiť, ktorá sa dá ukázať ďalšej VÚC alebo donorovi.
