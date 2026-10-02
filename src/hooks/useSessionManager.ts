@@ -3,6 +3,11 @@ import { AKTUALNA_VERZIA_PRAVIDIEL, AKTUALNA_VERZIA_SCHEMY, Areal } from '../typ
 import { buildShareMailto, sessionJsonFilename } from '../utils/shareSession';
 import { migrateAreal } from './useArealState';
 import { chybajuceNovePolia, verziaArealu } from '../utils/schemaVersion';
+import {
+  KLUC_RELACII, Session, nacitajUlozeneRelacie, stiahniSessionAkoJson,
+} from '../utils/ulozeneRelacie';
+
+export type { Session };
 
 /**
  * Verzia schémy, s ktorou sa relácia uloží (issue #177). Na aktuálnu sa posunie až
@@ -12,15 +17,6 @@ import { chybajuceNovePolia, verziaArealu } from '../utils/schemaVersion';
 function verziaPreUlozenie(areal: Areal): number {
   return chybajuceNovePolia(areal).length === 0 ? AKTUALNA_VERZIA_SCHEMY : verziaArealu(areal);
 }
-
-export interface Session {
-  id: string;
-  nazov: string;
-  areal: Areal;
-  datumUlozenia: string;
-}
-
-const SESSIONS_KEY = 'sma-nastroj-sessions';
 
 /**
  * Nájde uložené relácie, ktoré zodpovedajú rovnakému areálu ako ten, čo sa
@@ -40,15 +36,6 @@ export function findMatchingSessions(sessions: Session[], areal: Areal): Session
     .sort((a, b) => new Date(b.datumUlozenia).getTime() - new Date(a.datumUlozenia).getTime());
 }
 
-function loadSessions(): Session[] {
-  try {
-    const raw = localStorage.getItem(SESSIONS_KEY);
-    return raw ? (JSON.parse(raw) as Session[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function saveSessions(sessions: Session[]): void {
   try {
     // Ukladáme bez media base64 dat aby sme šetrili miesto — len metadata
@@ -62,14 +49,14 @@ function saveSessions(sessions: Session[]): void {
         })),
       },
     }));
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(light));
+    localStorage.setItem(KLUC_RELACII, JSON.stringify(light));
   } catch (e) {
     console.warn('Nepodarilo sa uložiť relácie:', e);
   }
 }
 
 export function useSessionManager() {
-  const [sessions, setSessions] = useState<Session[]>(() => loadSessions());
+  const [sessions, setSessions] = useState<Session[]>(() => nacitajUlozeneRelacie());
 
   const saveSession = useCallback((nazov: string, areal: Areal): Session => {
     const session: Session = {
@@ -123,14 +110,7 @@ export function useSessionManager() {
   }, []);
 
   const exportSession = useCallback((session: Session) => {
-    const json = JSON.stringify(session, null, 2);
-    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = sessionJsonFilename(session.nazov, session.id);
-    a.click();
-    URL.revokeObjectURL(url);
+    stiahniSessionAkoJson(session);
   }, []);
 
   // Zdieľanie relácie (variant A): stiahne JSON v nezmenenom formáte a otvorí
