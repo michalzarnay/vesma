@@ -4,23 +4,21 @@ import { Areal, ScoringWeights } from '../../types/areal';
 import { useScoring } from '../../hooks/useScoring';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { ScoreGauge } from '../ui/ScoreGauge';
-import {
-  EnergiaScore, KlimaskenStupen, MZIKomponent,
-  dovodNehodnoteniaEnergetiky, getScoreLevel, saHodnotiEnergetika, saHodnotiMZI, saHodnotiOZE, vazeneCelkoveSkore,
-} from '../../types/scoring';
+import { EnergiaScore, getScoreLevel } from '../../types/scoring';
 import { Odporucanie } from '../../types/catalog';
 import { exportToXlsx } from '../../utils/xlsxExport';
 import { csvExportu } from '../../utils/csvExport';
-import { csvFilename } from '../../utils/exportFilenames';
+import { csvFilename, pdfFilename } from '../../utils/exportFilenames';
+import { exportVysledkovDoPdf } from '../../utils/pdfExport';
 import { computeArealEnPI, ArealEnPI } from '../../utils/energyIndicators';
+import { VysvetlenieKomponentu } from '../../utils/skoreVysvetlenie';
 import {
-  VysvetlenieKomponentu, chybajuceUdajeMZI, vysvetleniaEnergetiky, vysvetleniaMZI, vysvetleniaOZE,
-} from '../../utils/skoreVysvetlenie';
+  NAZOV_OBLASTI_DLHY, NAZOV_OBLASTI_KRATKY, SKRATKY, ScoreDetailItem, VYSVETLENIE_OZE_BEZ_BUDOV,
+  fmtNum, kartyDetailuSkore, skupinyPrehladu, textVah, vysvetlenieEnergetikaNehodnotena, zakladVysledkov,
+} from '../../utils/vysledkyPrehlad';
 import { CopyButton } from '../ui/CopyButton';
 import { VypocetDialog } from './VypocetDialog';
-import { bezDiakritiky, formatArea } from '../../utils/formatters';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
-import { mapujeEnergiu, mapujeVodu } from '../../utils/rozsahMapovania';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ResponsiveContainer,
@@ -31,6 +29,7 @@ interface Step6Props {
   updateVahy?: (vahy: Partial<ScoringWeights>) => void;
 }
 
+
 export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const score = useScoring(areal);
   const recommendations = useRecommendations(areal);
@@ -38,47 +37,14 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   const [vahyOpen, setVahyOpen] = useState(false);
   const [vypocet, setVypocet] = useState<VysvetlenieKomponentu | null>(null);
 
-  // Vysvetlenia komponentov skóre — veta na kartu a tabuľka do modálneho okna (#213).
-  const vysvetlenia = new Map(
-    [
-      ...vysvetleniaMZI(areal, score.mzi),
-      ...vysvetleniaOZE(score.oze),
-      ...vysvetleniaEnergetiky(score.energia),
-    ].map((v) => [v.kluc, v]),
-  );
-
-  // Prečo komponent MZI nedostal body — „bez údajov" samo nepovie, čo doplniť (#213).
-  const chybaMZI = chybajuceUdajeMZI(areal, score.mzi);
-
-  const radarData = [
-    // Nehodnotená oblasť sa v grafe nezobrazuje ako nula (#203, #204, #205);
-    // oblasť mimo rozsahu mapovania takisto.
-    ...(saHodnotiMZI(score.mzi)
-      ? [{ subject: 'MZI', value: score.mzi.celkove, fullMark: 100 }]
-      : []),
-    ...(saHodnotiOZE(score.oze)
-      ? [{ subject: 'OZE', value: score.oze.celkove, fullMark: 100 }]
-      : []),
-    ...(saHodnotiEnergetika(score.energia)
-      ? [{ subject: 'Energia', value: score.energia.celkove, fullMark: 100 }]
-      : []),
-  ];
-
-  // Vážené celkové skóre. Oblasť, ktorú nie je z čoho počítať, sa nehodnotí
-  // a do váženého priemeru nevstupuje — OZE a energetika bez budov (#204, #205),
-  // energetika aj vtedy, keď sú všetky budovy sezónne nevykurované (#203).
-  const { mzi: wMzi, oze: wOze, energia: wEnergia } = areal.vahy;
-  const sumVah = wMzi + wOze + wEnergia;
-  const hodnotiOZE = saHodnotiOZE(score.oze);
-  const hodnotiEnergetiku = saHodnotiEnergetika(score.energia);
-  // Oblasť mimo rozsahu mapovania sa vo Výsledkoch vôbec neukazuje — ani ako
-  // „nehodnotí sa"; mapér ju vedome vynechal.
-  const ukazVodu = mapujeVodu(areal);
-  const ukazEnergiu = mapujeEnergiu(areal);
-  const oblastiVah = (['mzi', 'oze', 'energia'] as const).filter((o) => (o === 'mzi' ? ukazVodu : ukazEnergiu));
-  // Koľko kariet s rozpisom skóre sa naozaj vykreslí — riadi šírku mriežky (podnet 86).
-  const zobrazenychOblasti = (ukazVodu ? 1 : 0) + (hodnotiOZE ? 1 : 0) + (hodnotiEnergetiku ? 1 : 0);
-  const vazeneSkore = sumVah > 0 ? vazeneCelkoveSkore(score, areal.vahy) : score.celkove;
+  // Čo sa vo Výsledkoch ukazuje a hodnotí, skladá `zakladVysledkov()` — rovnako
+  // ako pre PDF, aby sa karta a export nemohli rozísť.
+  const zaklad = zakladVysledkov(areal, score);
+  const {
+    ukazVodu, ukazEnergiu, hodnotiOZE, hodnotiEnergetiku, oblastiVah, vazeneSkore, radar: radarData,
+  } = zaklad;
+  const karty = kartyDetailuSkore(areal, score);
+  const textVahy = textVah(areal.vahy, zaklad);
 
   const handleExportCSV = () => {
     // CSV nesie to isté, čo zošit — obsah skladá `csvExportu()` z rovnakých
@@ -98,83 +64,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   };
 
   const handleExportPDF = async () => {
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
-
-    let y = 20;
-    doc.setFontSize(18);
-    doc.text('Hodnotenie adaptacnych opatreni', 20, y);
-    y += 10;
-    doc.setFontSize(12);
-    doc.text(`Areal: ${areal.nazov}`, 20, y);
-    y += 7;
-    doc.text(`Adresa: ${areal.adresa}, ${areal.obec}`, 20, y);
-    y += 7;
-    doc.text(`Datum: ${new Date().toLocaleDateString('sk')}`, 20, y);
-    y += 15;
-
-    doc.setFontSize(14);
-    doc.text('Celkove skore', 20, y);
-    y += 8;
-    doc.setFontSize(24);
-    doc.text(`${vazeneSkore} / 100`, 20, y);
-    y += 7;
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`(vazene: MZI×${wMzi} OZE×${wOze} Energia×${wEnergia})`, 20, y);
-    doc.setTextColor(0);
-    y += 10;
-    doc.setFontSize(11);
-    const mziText = ukazVodu ? `${score.mzi.celkove}/100` : 'mimo rozsahu';
-    const ozeText = !ukazEnergiu ? 'mimo rozsahu' : hodnotiOZE ? `${score.oze.celkove}/100` : 'nehodnotene';
-    const energiaText = !ukazEnergiu ? 'mimo rozsahu' : hodnotiEnergetiku ? `${score.energia.celkove}/100` : 'nehodnotene';
-    doc.text(`MZI: ${mziText}   OZE: ${ozeText}   Energia: ${energiaText}`, 20, y);
-    y += 15;
-
-    // Médiá
-    if (areal.media.length > 0) {
-      doc.setFontSize(13);
-      doc.text('Foto a video material', 20, y);
-      y += 7;
-      doc.setFontSize(9);
-      for (const m of areal.media) {
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(`• ${m.nazov}${m.popis ? ` – ${m.popis}` : ''}`, 22, y);
-        y += 5;
-        if (m.typ === 'foto' && m.dataUrl) {
-          try {
-            doc.addImage(m.dataUrl, 'JPEG', 22, y, 50, 35);
-            y += 40;
-          } catch { /* skip invalid images */ }
-        }
-      }
-      y += 5;
+    try {
+      await exportVysledkovDoPdf(areal, score, recommendations, pdfFilename(areal.nazov));
+    } catch (e) {
+      alert(`PDF sa nepodarilo vytvoriť: ${e instanceof Error ? e.message : 'neznáma chyba'}`);
     }
-
-    doc.setFontSize(14);
-    doc.text('Odporucania', 20, y);
-    y += 8;
-    doc.setFontSize(10);
-    for (const rec of recommendations.slice(0, 10)) {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(`[${rec.priorita}] ${rec.opatrenie.nazov}`, 20, y);
-      y += 5;
-      doc.setTextColor(100);
-      doc.text(`  ${rec.dovod}`, 22, y);
-      doc.setTextColor(0);
-      y += 7;
-    }
-
-    y += 10;
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.setFontSize(8);
-    doc.setTextColor(128);
-    doc.text('Toto hodnotenie je orientacne. Pre presny navrh kontaktujte odbornika.', 20, y);
-    y += 5;
-    // Štandardný font jsPDF nemá slovenskú diakritiku — text ide bez nej (rovnako ako ostatné texty v PDF).
-    doc.text(doc.splitTextToSize(bezDiakritiky(UPOZORNENIE_ROZSAH_HODNOTENIA), 170), 20, y);
-
-    doc.save(`${areal.nazov || 'areal'}-hodnotenie.pdf`);
   };
 
   const handleExportXmatik = () => {
@@ -206,13 +100,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           Vysvetlenie skratiek
         </summary>
         <div className="px-4 pb-3 pt-2 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 text-xs text-gray-600">
-          <div><abbr title="Modro-zelená infraštruktúra" className="no-underline font-semibold">MZI</abbr> – Modro-zelená infraštruktúra</div>
-          <div><abbr title="Obnoviteľné zdroje energie" className="no-underline font-semibold">OZE</abbr> – Obnoviteľné zdroje energie</div>
-          <div><abbr title="Tepelné čerpadlo" className="no-underline font-semibold">TČ</abbr> – Tepelné čerpadlo</div>
-          <div><abbr title="Netto úžitková plocha" className="no-underline font-semibold">NUS</abbr> – Netto úžitková plocha</div>
-          <div><abbr title="Fotovoltika" className="no-underline font-semibold">FV</abbr> – Fotovoltika (solárne panely)</div>
-          <div><abbr title="Centrálne zásobovanie teplom" className="no-underline font-semibold">CZT</abbr> – Centrálne zásobovanie teplom</div>
-          <div><abbr title="Light Emitting Diode – dióda emitujúca svetlo" className="no-underline font-semibold">LED</abbr> – Úsporné osvetlenie</div>
+          {SKRATKY.map((s) => (
+            <div key={s.skratka}><abbr title={s.title} className="no-underline font-semibold">{s.skratka}</abbr> – {s.popis}</div>
+          ))}
         </div>
       </details>
 
@@ -220,23 +110,16 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
       <div className="flex flex-wrap justify-center gap-8">
         <div className="text-center">
           <ScoreGauge score={vazeneSkore} label="Celkové skóre (vážené)" size="lg" />
-          {sumVah !== 3 && oblastiVah.length > 1 && (
-            <p className="text-xs text-gray-400 mt-1">
-              Váhy: {oblastiVah.map((o) => `${o === 'mzi' ? 'MZI' : o === 'oze' ? 'OZE' : 'Energia'}×${areal.vahy[o]}`).join(' ')}
-            </p>
-          )}
+          {textVahy && <p className="text-xs text-gray-400 mt-1">{textVahy}</p>}
         </div>
       </div>
       <div className="flex flex-wrap justify-center gap-6">
-        {ukazVodu && <ScoreGauge score={score.mzi.celkove} label="Modro-zelená infraštruktúra" size="md" />}
+        {ukazVodu && <ScoreGauge score={score.mzi.celkove} label={NAZOV_OBLASTI_DLHY.mzi} size="md" />}
         {ukazEnergiu && (hodnotiOZE
-          ? <ScoreGauge score={score.oze.celkove} label="Obnoviteľné zdroje energie" size="md" />
-          : <OblastNehodnotena
-              nazov="Obnoviteľné zdroje energie"
-              vysvetlenie="Areál nemá zadanú žiadnu budovu. OZE skóre stojí na strechách a zdrojoch tepla budov, takže ho nie je z čoho počítať — do celkového skóre nevstupuje."
-            />)}
+          ? <ScoreGauge score={score.oze.celkove} label={NAZOV_OBLASTI_DLHY.oze} size="md" />
+          : <OblastNehodnotena nazov={NAZOV_OBLASTI_DLHY.oze} vysvetlenie={VYSVETLENIE_OZE_BEZ_BUDOV} />)}
         {ukazEnergiu && (hodnotiEnergetiku
-          ? <ScoreGauge score={score.energia.celkove} label="Energetická efektívnosť" size="md" />
+          ? <ScoreGauge score={score.energia.celkove} label={NAZOV_OBLASTI_DLHY.energia} size="md" />
           : <EnergetikaNehodnotena energia={score.energia} />)}
       </div>
 
@@ -262,7 +145,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
                 {oblastiVah.map((oblast) => (
                   <div key={oblast}>
                     <label className="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">
-                      {oblast === 'mzi' ? 'MZI' : oblast === 'oze' ? 'OZE' : 'Energia'}
+                      {NAZOV_OBLASTI_KRATKY[oblast]}
                     </label>
                     <input
                       type="number"
@@ -309,74 +192,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           aby pri „iba voda" alebo „iba energia" nezostali dve tretiny šírky
           prázdne a vysvetlenia sa nelámali do úzkeho stĺpca (podnet 86). */}
       <div className={`grid grid-cols-1 gap-4 ${
-        zobrazenychOblasti === 3 ? 'md:grid-cols-3' : zobrazenychOblasti === 2 ? 'md:grid-cols-2' : ''
+        karty.length === 3 ? 'md:grid-cols-3' : karty.length === 2 ? 'md:grid-cols-2' : ''
       }`}>
-        {ukazVodu && <ScoreDetail
-          title="MZI"
-          items={[
-            {
-              label: 'Priepustnosť a zeleň areálu',
-              ...komponentBody(score.mzi.okolie, 45),
-              hodnota: koeficientText(score.mzi.koefOkolie, score.mzi.stupenOkolie),
-              vysvetlenie: vysvetlenia.get('okolie'),
-              coChyba: chybaMZI.get('okolie'),
-            },
-            {
-              label: 'Zeleň a retencia na budovách',
-              ...komponentBody(score.mzi.budovy, 25),
-              hodnota: koeficientText(score.mzi.koefBudovy, score.mzi.stupenBudovy),
-              vysvetlenie: vysvetlenia.get('budovy'),
-              coChyba: chybaMZI.get('budovy'),
-            },
-            {
-              label: 'Akumulácia zrážkovej vody',
-              ...komponentBody(score.mzi.akumulacia, 15),
-              hodnota: score.mzi.akumulaciaPercent === null || score.mzi.stupenAkumulacia === null
-                ? null
-                : `${Math.round(score.mzi.akumulaciaPercent)} % · ${score.mzi.stupenAkumulacia}`,
-              vysvetlenie: vysvetlenia.get('akumulacia'),
-              coChyba: chybaMZI.get('akumulacia'),
-              dovodNehodnotenia: areal.nadrzNieJeMozna === 1
-                ? `Nádrž nie je možné inštalovať${areal.nadrzNemoznaDovod.trim() ? ` — ${areal.nadrzNemoznaDovod.trim()}` : ''}.`
-                : null,
-            },
-            {
-              label: 'Odtok zo spevnených plôch',
-              ...komponentBody(score.mzi.odtok, 15),
-              hodnota: score.mzi.podielZadrzanehoOdtoku === null
-                ? null
-                : `${Math.round(score.mzi.podielZadrzanehoOdtoku * 100)} %`,
-              vysvetlenie: vysvetlenia.get('odtok'),
-              coChyba: chybaMZI.get('odtok'),
-            },
-          ]}
-          poznamka="Koeficienty MZI a päťstupňová škála A–E podľa metodiky KLIMASKEN (metodické listy B-GOV2, B-GOV3, B-AD10). Komponenty bez údajov sa do skóre nezapočítavajú."
-          onZobrazVypocet={setVypocet}
-        />}
-        {hodnotiOZE && (
-          <ScoreDetail
-            title="OZE"
-            items={[
-              { label: 'Vhodnosť strechy', score: score.oze.vhodnostStrechyPreSolar, max: 30, vysvetlenie: vysvetlenia.get('vhodnostStrechyPreSolar') },
-              { label: 'Existujúce OZE', score: score.oze.existujuceOZE, max: 20, vysvetlenie: vysvetlenia.get('existujuceOZE') },
-              { label: 'Potenciál tepelného čerpadla (TČ)', score: score.oze.potencialTepelnehoCerpadla, max: 25, vysvetlenie: vysvetlenia.get('potencialTepelnehoCerpadla') },
-              { label: 'Potenciál ďalších OZE', score: score.oze.potencialDalsichOZE, max: 25, vysvetlenie: vysvetlenia.get('potencialDalsichOZE') },
-            ]}
-            onZobrazVypocet={setVypocet}
-          />
-        )}
-        {hodnotiEnergetiku && (
-          <ScoreDetail
-            title="Energetika"
-            items={[
-              { label: 'Zateplenie', score: score.energia.zateplenie, max: 30, vysvetlenie: vysvetlenia.get('zateplenie') },
-              { label: 'Kvalita okien', score: score.energia.kvalitaOkien, max: 20, vysvetlenie: vysvetlenia.get('kvalitaOkien') },
-              { label: 'Vykurovací systém', score: score.energia.vykurovaciSystem, max: 25, vysvetlenie: vysvetlenia.get('vykurovaciSystem') },
-              { label: 'Vetranie/LED', score: score.energia.vetranie, max: 25, vysvetlenie: vysvetlenia.get('vetranie') },
-            ]}
-            onZobrazVypocet={setVypocet}
-          />
-        )}
+        {karty.map((k) => (
+          <ScoreDetail key={k.title} title={k.title} items={k.items} poznamka={k.poznamka} onZobrazVypocet={setVypocet} />
+        ))}
       </div>
 
       {/* Energetické ukazovatele (EnPI) — issue #171 */}
@@ -483,9 +303,6 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
   );
 }
 
-const fmtNum = (n: number | undefined, digits = 0) =>
-  n === undefined ? '–' : n.toLocaleString('sk', { maximumFractionDigits: digits });
-
 /**
  * Ukazovatele energetickej hospodárnosti z NAMERANEJ spotreby (faktúry).
  * Vykurovanie a elektrina sa vedú oddelene (pole „spotreba elektriny" môže zahŕňať
@@ -556,94 +373,6 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
   );
 }
 
-/** Jedna zadaná entita v prehľade — čím sa volá a čím je bližšie určená. */
-interface PolozkaPrehladu {
-  id: string;
-  nazov: string;
-  popis: string;
-}
-
-/** Skupina entít jedného typu (Pozemky, Budovy, Iné stavby, opatrenia pre MZI). */
-interface SkupinaPrehladu {
-  nadpis: string;
-  krok: number;
-  polozky: PolozkaPrehladu[];
-  /** Prečo skupina nevstupuje do skóre; `undefined` = do skóre vstupuje. */
-  mimoSkore?: string;
-}
-
-/** Spojí neprázdne časti popisu do jedného riadku. */
-function popis(...casti: (string | false | undefined)[]): string {
-  return casti.filter((c): c is string => Boolean(c)).join(' · ');
-}
-
-/**
- * Čo používateľ zadal v dotazníku, po typoch entít.
- *
- * Zoznam je jedno miesto, kam sa pridá nový typ entity — pribudnutím položky
- * sa objaví v prehľade bez ďalšieho zásahu (`CLAUDE.md`, „oprav triedu, nie
- * výskyt"). Rovnaké entity nesie aj export, pozri `harkyExportu()`.
- */
-function skupinyPrehladu(areal: Areal): SkupinaPrehladu[] {
-  return [
-    {
-      nadpis: 'Pozemky',
-      krok: 2,
-      polozky: areal.pozemky.map((p, i) => ({
-        id: p.id,
-        nazov: p.parcela || p.aktualneVyuzitie || `Parcela ${i + 1}`,
-        popis: popis(
-          p.parcela && p.aktualneVyuzitie,
-          p.celkovaVymera > 0 && `celková výmera ${formatArea(p.celkovaVymera)}`,
-          p.plochaBezBudov > 0 && `bez budov ${formatArea(p.plochaBezBudov)}`,
-        ),
-      })),
-    },
-    {
-      nadpis: 'Budovy',
-      krok: 3,
-      polozky: areal.budovy.map((b, i) => ({
-        id: b.id,
-        nazov: b.nazov || `Budova ${i + 1}`,
-        popis: popis(
-          b.parcela && `parcela ${b.parcela}`,
-          b.uzitkovaPlochaNUS > 0 && `NUS ${formatArea(b.uzitkovaPlochaNUS)}`,
-          b.sezonnaNevykurovana === 1 && 'sezónna nevykurovaná',
-        ),
-      })),
-    },
-    {
-      nadpis: 'Iné stavby',
-      krok: 4,
-      // Zastavaná plocha vstupuje do MZI ako nepriepustná plocha (#233).
-      mimoSkore: 'Zastavaná plocha vstupuje do skóre ako nepriepustná plocha.',
-      polozky: areal.ineStavby.map((s, i) => ({
-        id: s.id,
-        nazov: s.nazov || `Stavba ${i + 1}`,
-        popis: popis(
-          s.typStavby,
-          s.parcela && `parcela ${s.parcela}`,
-          s.zastavanaPlocha > 0 && `zastavaná plocha ${formatArea(s.zastavanaPlocha)}`,
-        ),
-      })),
-    },
-    {
-      nadpis: 'Zamýšľané opatrenia pre MZI',
-      krok: 5,
-      // Zamýšľané opatrenie ešte nie je zrealizované, takže hodnotenie nemení (#223).
-      mimoSkore: 'Sú to plány, nie stav areálu — do skóre preto nevstupujú.',
-      polozky: areal.bgOpatrenia.map((o, i) => ({
-        id: o.id,
-        nazov: o.nazov || `Opatrenie ${i + 1}`,
-        popis: popis(
-          o.naParcele && `na parcele ${o.naParcele}`,
-          o.prekazky && `prekážky: ${o.prekazky}`,
-        ),
-      })),
-    },
-  ];
-}
-
 /**
  * Prehľad toho, čo bolo zadané v dotazníku (issues #209 a #223).
  *
@@ -700,50 +429,7 @@ function OblastNehodnotena({ nazov, vysvetlenie }: { nazov: string; vysvetlenie:
 }
 
 function EnergetikaNehodnotena({ energia }: { energia: EnergiaScore }) {
-  const pocet = energia.vynechanychSezonnych;
-  const vysvetlenie = dovodNehodnoteniaEnergetiky(energia) === 'bezBudov' ? (
-    'Areál nemá zadanú žiadnu budovu. Energetickú efektívnosť nie je z čoho počítať, preto do celkového skóre nevstupuje.'
-  ) : (
-    <>
-      {pocet === 1
-        ? 'Jediná stavba areálu je sezónna nevykurovaná (letné sídlo).'
-        : `Všetkých ${pocet} stavieb areálu je sezónnych nevykurovaných (letné sídlo).`}
-      {' '}Zateplenie ani obnova vykurovania v nich nemajú zmysel, preto sa areálu
-      nepočíta ani potenciál zlepšenia v tejto oblasti.
-    </>
-  );
-  return <OblastNehodnotena nazov="Energetická efektívnosť" vysvetlenie={vysvetlenie} />;
-}
-
-interface ScoreDetailItem {
-  label: string;
-  /** `null` = komponent sa nedal vypočítať, do skóre sa nezapočítal */
-  score: number | null;
-  max: number;
-  /** Doplnková hodnota indikátora (koeficient, percento, stupeň A–E) */
-  hodnota?: string | null;
-  /** Vysvetlenie, za čo body sú — veta na kartu a tabuľka do modálu (#213) */
-  vysvetlenie?: VysvetlenieKomponentu;
-  /**
-   * Prečo sa komponent nehodnotí, keď to nie je chýbajúcimi údajmi —
-   * napr. nádrž nie je možné inštalovať (#215).
-   */
-  dovodNehodnotenia?: string | null;
-  /** Prečo komponent nemá výsledok — ktorý údaj v dotazníku chýba (#213). */
-  coChyba?: string;
-}
-
-/** Rozloží komponent MZI skóre na tvar, ktorý zobrazuje `ScoreDetail`. */
-function komponentBody(
-  komponent: MZIKomponent | null,
-  max: number,
-): { score: number | null; max: number } {
-  return komponent === null ? { score: null, max } : { score: komponent.body, max: komponent.max };
-}
-
-function koeficientText(koef: number | null, stupen: KlimaskenStupen | null): string | null {
-  if (koef === null || stupen === null) return null;
-  return `${koef.toFixed(2)} · ${stupen}`;
+  return <OblastNehodnotena nazov={NAZOV_OBLASTI_DLHY.energia} vysvetlenie={vysvetlenieEnergetikaNehodnotena(energia)} />;
 }
 
 function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
