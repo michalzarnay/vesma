@@ -5,3 +5,7 @@ export function csvFilename(nazov: string): string {
 export function xlsxFilename(nazov: string, isoDate: string): string {
   return `${nazov || 'areal'}-hodnotenie-${isoDate}.xlsx`;
 }
+
+export function pdfFilename(nazov: string): string {
+  return `${nazov || 'areal'}-hodnotenie.pdf`;
+}
