@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { csvFilename, xlsxFilename } from '../exportFilenames';
+import { csvFilename, pdfFilename, xlsxFilename } from '../exportFilenames';
 
 describe('csvFilename', () => {
   it('obsahuje názov areálu a príponu .csv', () => {
@@ -22,5 +22,15 @@ describe('xlsxFilename', () => {
 
   it('má príponu .xlsx', () => {
     expect(xlsxFilename('Test', '2026-01-01')).toMatch(/\.xlsx$/);
+  });
+});
+
+describe('pdfFilename', () => {
+  it('obsahuje názov areálu a príponu .pdf', () => {
+    expect(pdfFilename('ZŠ Lipová')).toBe('ZŠ Lipová-hodnotenie.pdf');
+  });
+
+  it('použije fallback "areal" pre prázdny názov', () => {
+    expect(pdfFilename('')).toBe('areal-hodnotenie.pdf');
   });
 });
