@@ -86,7 +86,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
     <div className="space-y-6">
       <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
         <div className="w-10 h-10 bg-[#52A8DE]/10 rounded-xl flex items-center justify-center">
-          <BarChart3 className="w-5 h-5 text-[#52A8DE]" />
+          <BarChart3 className="w-5 h-5 text-brand-strong" />
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-900">Výsledky hodnotenia</h2>
@@ -142,7 +142,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           {vahyOpen && (
             <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3">
               <p className="text-xs text-gray-500 flex items-start gap-1.5">
-                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-400" />
+                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-700" />
                 Predvolená váha je 1 pre každú oblasť. Zvýšte váhu, ak chcete pri porovnávaní viacerých areálov v XLSX klásť väčší dôraz na danú oblasť (napr. MZI = 2 zdvojnásobí jej vplyv na vážené skóre).
               </p>
               <div className="grid grid-cols-3 gap-3">
@@ -243,14 +243,14 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={handleExportXLSX}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/90 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-strong rounded-xl hover:bg-brand-strong/90 transition-colors"
           >
             <TableProperties className="w-4 h-4" />
             Exportovať XLSX
           </button>
           <button
             onClick={handleExportPDF}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#52A8DE] border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 transition-colors"
           >
             <FileText className="w-4 h-4" />
             Stiahnuť PDF
@@ -283,7 +283,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               URBIS – model majetku →
             </button>
           </div>
-          <p className="text-[11px] text-gray-400">
+          <p className="text-xs text-gray-400">
             Export do externých systémov bude dostupný v budúcej verzii. Kontaktujte správcu VESMA.
           </p>
         </div>
@@ -402,7 +402,7 @@ function ZadaneEntity({ areal }: { areal: Areal }) {
               ))}
             </ul>
             {skupina.mimoSkore && (
-              <p className="text-[11px] text-gray-400 leading-snug">{skupina.mimoSkore}</p>
+              <p className="text-xs text-gray-400 leading-snug">{skupina.mimoSkore}</p>
             )}
           </div>
         ))}
@@ -466,19 +466,19 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
               />
             </div>
             {item.score === null && (item.dovodNehodnotenia || item.coChyba) && (
-              <p className="text-[11px] text-gray-500 leading-snug pt-0.5">
+              <p className="text-xs text-gray-500 leading-snug pt-0.5">
                 {item.dovodNehodnotenia || item.coChyba}
               </p>
             )}
             {item.vysvetlenie && (
               <div className="flex items-start gap-1 pt-0.5">
-                <p className="text-[11px] text-gray-500 leading-snug flex-1">
+                <p className="text-xs text-gray-500 leading-snug flex-1">
                   {item.vysvetlenie.sumar}{' '}
                   {onZobrazVypocet && (
                     <button
                       type="button"
                       onClick={() => onZobrazVypocet(item.vysvetlenie!)}
-                      className="text-[#52A8DE] hover:underline whitespace-nowrap"
+                      className="text-brand-strong hover:underline whitespace-nowrap"
                     >
                       Zobraziť výpočet
                     </button>
@@ -490,7 +490,7 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
           </div>
         );
       })}
-      {poznamka && <p className="text-[11px] text-gray-400 pt-1 leading-snug">{poznamka}</p>}
+      {poznamka && <p className="text-xs text-gray-400 pt-1 leading-snug">{poznamka}</p>}
     </div>
   );
 }
@@ -520,7 +520,7 @@ function RecommendationCard({ rec, index }: { rec: Odporucanie; index: number })
         <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
           <p className="text-sm text-gray-700">{rec.opatrenie.popis}</p>
           {rec.potencial && (
-            <p className="text-sm text-[#52A8DE] font-medium">{rec.potencial}</p>
+            <p className="text-sm text-brand-strong font-medium">{rec.potencial}</p>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
@@ -546,7 +546,7 @@ function RecommendationCard({ rec, index }: { rec: Odporucanie; index: number })
               <ul className="mt-1 space-y-0.5">
                 {rec.opatrenie.benefity.map((b, i) => (
                   <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                    <span className="text-[#52A8DE] mt-0.5">•</span>
+                    <span className="text-brand-strong mt-0.5">•</span>
                     {b}
                   </li>
                 ))}

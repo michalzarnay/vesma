@@ -340,12 +340,12 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
         onClick={() => setOtvoreny(true)}
         className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full shadow-lg text-white font-medium text-sm transition-all ${
           otvoreny ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        } bg-[#52A8DE] hover:bg-[#52A8DE]/90`}
+        } bg-brand-strong hover:bg-brand-strong/90`}
       >
         <MessageCircle className="w-5 h-5" />
         <span>Asistent</span>
         {neprecitane > 0 && (
-          <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {neprecitane}
           </span>
         )}
@@ -355,13 +355,13 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
       {otvoreny && (
         <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 h-[500px] sm:h-[520px] flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
           {/* Hlavička */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-[#52A8DE] text-white flex-shrink-0">
+          <div className="flex items-center gap-3 px-4 py-3 bg-brand-strong text-white flex-shrink-0">
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
               <Bot className="w-4 h-4" />
             </div>
             <div className="flex-1">
               <p className="font-semibold text-sm">Asistent VESMA</p>
-              <p className="text-xs text-white/70">
+              <p className="text-xs text-white/90">
                 Krok {currentStep}: {WIZARD_STEPS.find((k) => k.id === currentStep)?.nazov ?? ''}
               </p>
             </div>
@@ -384,12 +384,12 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
                 <div
                   className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                     sprava.odosielatel === 'user'
-                      ? 'bg-[#52A8DE] text-white rounded-br-sm'
+                      ? 'bg-brand-strong text-white rounded-br-sm'
                       : 'bg-gray-100 text-gray-800 rounded-bl-sm'
                   }`}
                 >
                   {formatText(sprava.text)}
-                  <p className={`text-[10px] mt-1 ${sprava.odosielatel === 'user' ? 'text-white/60 text-right' : 'text-gray-400'}`}>
+                  <p className={`text-xs mt-1 ${sprava.odosielatel === 'user' ? 'text-white/90 text-right' : 'text-gray-400'}`}>
                     {sprava.cas}
                   </p>
                 </div>
@@ -401,7 +401,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
           {/* Kontextové otázky */}
           {kontextoveOtazky.length > 0 && (
             <div className="px-3 py-2 border-t border-gray-100 flex-shrink-0">
-              <p className="text-[10px] text-gray-400 mb-1.5 flex items-center gap-1">
+              <p className="text-xs text-gray-400 mb-1.5 flex items-center gap-1">
                 <ChevronDown className="w-3 h-3" /> Časté otázky pre tento krok
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -410,7 +410,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
                     key={q}
                     type="button"
                     onClick={() => odosliSprav(q)}
-                    className="text-[11px] px-2 py-1 bg-gray-100 hover:bg-[#52A8DE]/10 text-gray-700 hover:text-[#52A8DE] rounded-full transition-colors"
+                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-[#52A8DE]/10 text-gray-700 hover:text-brand-strong rounded-full transition-colors"
                   >
                     {q}
                   </button>
@@ -434,7 +434,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
               type="button"
               onClick={() => odosliSprav(vstup)}
               disabled={!vstup.trim()}
-              className="p-2 bg-[#52A8DE] text-white rounded-full hover:bg-[#52A8DE]/90 disabled:opacity-40 transition-colors"
+              className="p-2 bg-brand-strong text-white rounded-full hover:bg-brand-strong/90 disabled:opacity-40 transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>
