@@ -73,15 +73,19 @@ export function StepNavigation({ currentStep, totalSteps, onNext, onPrev, onGoTo
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!canProceed}
-          className="flex items-center gap-1.5 px-6 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-white bg-brand-strong rounded-xl hover:bg-brand-strong/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLast ? 'Zobraziť výsledky' : <>Ďalej{nextName ? <span className="hidden sm:inline"> – {nextName}</span> : null}</>}
-          {!isLast && <ChevronRight className="w-4 h-4" />}
-        </button>
+        {/* Na poslednom kroku (Výsledky) už nie je kam ísť — tlačidlo „Zobraziť výsledky"
+            len nastavilo nepoužitý príznak a nikam nevedlo, preto sa tam nezobrazuje. */}
+        {!isLast && (
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={!canProceed}
+            className="flex items-center gap-1.5 px-6 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-white bg-brand-strong rounded-xl hover:bg-brand-strong/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Ďalej{nextName ? <span className="hidden sm:inline"> – {nextName}</span> : null}
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
