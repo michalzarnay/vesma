@@ -17,6 +17,9 @@ import {
   fmtNum, kartyDetailuSkore, skupinyPrehladu, textVah, vysvetlenieEnergetikaNehodnotena, zakladVysledkov,
 } from '../../utils/vysledkyPrehlad';
 import { CopyButton } from '../ui/CopyButton';
+import { SekciaVysledkov } from '../ui/SekciaVysledkov';
+import { StitokOpatrenia } from '../ui/StitokOpatrenia';
+import { stitokKategorie, stitokPriority } from '../../utils/stitkyOpatreni';
 import { VypocetDialog } from './VypocetDialog';
 import { UPOZORNENIE_ROZSAH_HODNOTENIA } from '../../data/constants';
 import {
@@ -86,7 +89,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           <BarChart3 className="w-5 h-5 text-[#52A8DE]" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-800">Výsledky hodnotenia</h2>
+          <h2 className="text-xl font-bold text-gray-900">Výsledky hodnotenia</h2>
           <p className="text-xs text-gray-500">
             {areal.nazov && `${areal.nazov} – `}Celkové skóre a odporúčané opatrenia
           </p>
@@ -106,6 +109,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
         </div>
       </details>
 
+      <SekciaVysledkov nadpis="Celkové skóre" uvod="Hodnotenie areálu podľa jednotlivých oblastí, od 0 do 100 bodov.">
       {/* Score Gauges */}
       <div className="flex flex-wrap justify-center gap-8">
         <div className="text-center">
@@ -198,6 +202,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
           <ScoreDetail key={k.title} title={k.title} items={k.items} poznamka={k.poznamka} onZobrazVypocet={setVypocet} />
         ))}
       </div>
+      </SekciaVysledkov>
 
       {/* Energetické ukazovatele (EnPI) — issue #171 */}
       {ukazEnergiu && <EnergyIndicators enpi={enpi} />}
@@ -207,10 +212,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
 
       {/* Médiá prehľad */}
       {areal.media.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-            Priložené médiá ({areal.media.length})
-          </h3>
+        <SekciaVysledkov nadpis={`Priložené médiá (${areal.media.length})`}>
           <div className="flex flex-wrap gap-2">
             {areal.media.map((m) => (
               <div key={m.id} className="flex items-center gap-1.5 text-xs bg-gray-100 rounded-full px-3 py-1 text-gray-600">
@@ -218,14 +220,11 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
               </div>
             ))}
           </div>
-        </div>
+        </SekciaVysledkov>
       )}
 
       {/* Recommendations */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-800">
-          Odporúčané opatrenia ({recommendations.length})
-        </h3>
+      <SekciaVysledkov nadpis={`Odporúčané opatrenia (${recommendations.length})`}>
         {recommendations.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">
             Zadajte viac údajov o areáli, aby sme mohli vygenerovať odporúčania.
@@ -237,11 +236,10 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
             ))}
           </div>
         )}
-      </div>
+      </SekciaVysledkov>
 
       {/* Export */}
-      <div className="space-y-3 pt-4 border-t border-gray-200">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Export výsledkov</p>
+      <SekciaVysledkov nadpis="Export výsledkov" uvod="Stiahnite si výsledky vo formáte, ktorý potrebujete.">
         <div className="flex flex-wrap gap-3">
           <button
             onClick={handleExportXLSX}
@@ -268,9 +266,9 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
 
         {/* Integrácie (stub) */}
         <div className="border border-dashed border-gray-300 rounded-xl p-4 space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Integrácie (pripravené, čakajú na špecifikáciu)
-          </p>
+          <h4 className="text-sm font-semibold text-gray-700">
+            Integrácie s externými systémami <span className="font-normal text-gray-500">(zatiaľ nedostupné)</span>
+          </h4>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={handleExportXmatik}
@@ -289,7 +287,7 @@ export function Step6_Vysledky({ areal, updateVahy }: Step6Props) {
             Export do externých systémov bude dostupný v budúcej verzii. Kontaktujte správcu VESMA.
           </p>
         </div>
-      </div>
+      </SekciaVysledkov>
 
       <p className="text-xs text-gray-400 text-center italic">
         Toto hodnotenie je orientačné. Pre presný návrh kontaktujte odborníka.
@@ -315,11 +313,12 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
   if (budovySoSpotrebou.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-800">
+    <SekciaVysledkov
+      nadpis={<>
         Energetické ukazovatele – nameraná spotreba
         {enpi.roky.length > 0 && <span className="font-normal text-gray-500"> (rok {enpi.roky.join(', ')})</span>}
-      </h3>
+      </>}
+    >
       <div className="overflow-x-auto bg-gray-50 rounded-xl p-4">
         <table className="w-full text-xs">
           <thead>
@@ -369,7 +368,7 @@ function EnergyIndicators({ enpi }: { enpi: ArealEnPI }) {
         Ide o nameranú spotrebu z faktúr, bez klimatickej normalizácie – nezamieňať s vypočítanou potrebou energie
         z energetického certifikátu.
       </p>
-    </div>
+    </SekciaVysledkov>
   );
 }
 
@@ -386,8 +385,7 @@ function ZadaneEntity({ areal }: { areal: Areal }) {
   if (skupiny.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-800">Zadané v dotazníku</h3>
+    <SekciaVysledkov nadpis="Zadané v dotazníku">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {skupiny.map((skupina) => (
           <div key={skupina.nadpis} className="bg-gray-50 rounded-xl p-4 space-y-2">
@@ -409,7 +407,7 @@ function ZadaneEntity({ areal }: { areal: Areal }) {
           </div>
         ))}
       </div>
-    </div>
+    </SekciaVysledkov>
   );
 }
 
@@ -500,18 +498,6 @@ function ScoreDetail({ title, items, poznamka, onZobrazVypocet }: {
 function RecommendationCard({ rec, index }: { rec: Odporucanie; index: number }) {
   const [isOpen, setIsOpen] = useState(index < 3);
 
-  const priorityColors = {
-    'vysoká': 'bg-red-100 text-red-700',
-    'stredná': 'bg-amber-100 text-amber-700',
-    'nízka': 'bg-blue-100 text-blue-700',
-  };
-
-  const categoryColors = {
-    'MZI': 'bg-[#2D7D46]/10 text-[#2D7D46]',
-    'OZE': 'bg-[#2196F3]/10 text-[#2196F3]',
-    'ENERGETIKA': 'bg-amber-100 text-amber-700',
-  };
-
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
       <button
@@ -523,12 +509,8 @@ function RecommendationCard({ rec, index }: { rec: Odporucanie; index: number })
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-gray-800">{rec.opatrenie.nazov}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${priorityColors[rec.priorita]}`}>
-              {rec.priorita}
-            </span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${categoryColors[rec.opatrenie.kategoria]}`}>
-              {rec.opatrenie.kategoria}
-            </span>
+            <StitokOpatrenia stitok={stitokPriority(rec.priorita)} />
+            <StitokOpatrenia stitok={stitokKategorie(rec.opatrenie.kategoria)} />
           </div>
           <p className="text-xs text-gray-500 mt-0.5 truncate">{rec.dovod}</p>
         </div>
