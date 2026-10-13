@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Home } from 'lucide-react';
 import { Budova } from '../../types/areal';
+import { maVyplnenuBudovu } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { Tooltip } from '../ui/Tooltip';
 import { BudovaForm } from './shared/BudovaForm';
@@ -63,12 +64,14 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
         items={budovy.map((b, i) => ({
           id: b.id,
           label: b.nazov || `Budova ${i + 1}`,
+          vyplnene: maVyplnenuBudovu(b),
         }))}
         activeIndex={activeIndex}
         onSelect={setActiveIndex}
         onAdd={handleAdd}
         onRemove={handleRemove}
         addLabel="Pridať budovu"
+        druhMazanej="budovu"
       />
 
       {budovy[activeIndex] && (
