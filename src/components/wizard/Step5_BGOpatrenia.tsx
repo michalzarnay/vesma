@@ -4,6 +4,7 @@ import { MimoRozsahuPoznamka } from './shared/MimoRozsahuPoznamka';
 import { mapujeVodu } from '../../utils/rozsahMapovania';
 import { Leaf } from 'lucide-react';
 import { BGOpatrenie } from '../../types/areal';
+import { maVyplneneBGOpatrenie } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { TextInput } from '../ui/TextInput';
 import { NumberInput } from '../ui/NumberInput';
@@ -64,12 +65,14 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
             items={bgOpatrenia.map((o, i) => ({
               id: o.id,
               label: o.nazov || `Opatrenie ${i + 1}`,
+          vyplnene: maVyplneneBGOpatrenie(o),
             }))}
             activeIndex={activeIndex}
             onSelect={setActiveIndex}
             onAdd={handleAdd}
             onRemove={handleRemove}
             addLabel="Pridať opatrenie"
+            druhMazanej="opatrenie"
             minItems={0}
           />
           {bgOpatrenia[activeIndex] && (

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Camera, Film, Trash2, Upload, AlertCircle, X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { MediaItem } from '../../types/areal';
+import { textPotvrdeniaMazania } from '../../utils/vyplnenyObsah';
 
 const MAX_FOTO_SIZE_MB = 20;
 const MAX_VIDEO_SIZE_MB = 50;
@@ -203,7 +204,9 @@ export function MediaUpload({ media, onAdd, onUpdate, onRemove, mediaReady = tru
                 item={item}
                 mediaReady={mediaReady}
                 onPopis={(popis) => onUpdate(item.id, { popis })}
-                onRemove={() => onRemove(item.id)}
+                onRemove={() => {
+                  if (confirm(textPotvrdeniaMazania(item.typ === 'foto' ? 'fotku' : 'súbor', item.nazov))) onRemove(item.id);
+                }}
                 onExpand={() => openLightbox(item)}
                 formatVelkost={formatVelkost}
               />

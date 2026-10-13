@@ -4,6 +4,7 @@ import { MimoRozsahuPoznamka } from './shared/MimoRozsahuPoznamka';
 import { mapujeVodu } from '../../utils/rozsahMapovania';
 import { Fence } from 'lucide-react';
 import { InaStavba } from '../../types/areal';
+import { maVyplnenuInuStavbu } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { Tooltip } from '../ui/Tooltip';
 import { TextInput } from '../ui/TextInput';
@@ -81,12 +82,14 @@ export function Step4_IneStavby({ ineStavby, addInaStavba, updateInaStavba, remo
             items={ineStavby.map((s, i) => ({
               id: s.id,
               label: s.nazov || `Stavba ${i + 1}`,
+          vyplnene: maVyplnenuInuStavbu(s),
             }))}
             activeIndex={activeIndex}
             onSelect={setActiveIndex}
             onAdd={handleAdd}
             onRemove={handleRemove}
             addLabel="Pridať stavbu"
+            druhMazanej="stavbu"
             minItems={0}
           />
           {ineStavby[activeIndex] && (
