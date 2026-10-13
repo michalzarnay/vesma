@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, useRef } from 'react';
 import { Save, FolderOpen, Trash2, Download, Upload, X, Clock, ChevronDown, Share2 } from 'lucide-react';
 import { Areal } from '../../types/areal';
-import { findMatchingSessions, Session, useSessionManager } from '../../hooks/useSessionManager';
+import { findMatchingSessions, predvolenyNazovRelacie, Session, useSessionManager } from '../../hooks/useSessionManager';
 
 interface SessionManagerProps {
   areal: Areal;
@@ -20,12 +20,13 @@ interface SessionManagerProps {
 }
 
 export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladanieZvonka }: SessionManagerProps) {
-  const { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession } = useSessionManager();
+  const { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession, pridajImportovanuRelaciu } = useSessionManager();
   const [vlastnyOtvoreny, setVlastnyOtvoreny] = useState(false);
   const otvoreny = ovladanieZvonka ? ovladanieZvonka.otvoreny : vlastnyOtvoreny;
   const setOtvoreny = ovladanieZvonka ? ovladanieZvonka.nastavOtvoreny : setVlastnyOtvoreny;
   const [rezim, setRezim] = useState<'ulozit' | 'nacitat'>('ulozit');
-  const [nazov, setNazov] = useState(areal.nazov || '');
+  // `null` = mapér nič nepísal, názov sa odvodí zo stavu (nie z toho, čo tu zostalo naposledy).
+  const [zadanyNazov, setZadanyNazov] = useState<string | null>(null);
   const [potvrdenie, setPotvrdenie] = useState<string | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
   // `null` = mapér si cieľ ešte nezvolil, platí predvoľba (prepis zhodnej relácie, #161).
@@ -39,8 +40,10 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
   // Predvolený cieľ uloženia sa odvodí pri vykreslení, nie efektom pri otvorení —
   // platí tak rovnako pri otvorení z vlastného tlačidla aj z menu hlavičky (podnet 85).
   const cielUlozenia = zvolenyCiel ?? zhody[0]?.id ?? 'nova';
+  const nazov = zadanyNazov ?? predvolenyNazovRelacie(zhody, cielUlozenia, areal);
   const zavri = useCallback(() => {
     setZvolenyCiel(null);
+    setZadanyNazov(null);
     setOtvoreny(false);
   }, [setOtvoreny]);
 
@@ -57,6 +60,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
       setPotvrdenie(`Relácia „${nazov}" bola uložená.`);
     }
     onSaved();
+    setZadanyNazov(null);
     setChyba(null);
     setTimeout(() => setPotvrdenie(null), 3000);
   };
@@ -75,9 +79,11 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
 
   const importovat = async (file: File) => {
     try {
-      const nacitany = await importSession(file);
+      const { areal: nacitany, nazov: nazovRelacie } = await importSession(file);
       if (isDirty && !confirm(`Importovať areál „${nacitany.nazov || 'bez názvu'}"? Neuložené zmeny budú stratené.`)) return;
-      onLoad(nacitany);
+      // Importovaná relácia sa hneď objaví v zozname a otvorí sa tá istá (s rovnakým ID).
+      const session = pridajImportovanuRelaciu(nacitany, nazovRelacie);
+      onLoad(session.areal);
       zavri();
     } catch {
       setChyba('Nepodarilo sa importovať súbor. Skontrolujte formát.');
@@ -159,7 +165,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                     <input
                       type="text"
                       value={nazov}
-                      onChange={(e) => setNazov(e.target.value)}
+                      onChange={(e) => setZadanyNazov(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && ulozit()}
                       placeholder={areal.nazov || 'napr. ZŠ Lipová – terénny prieskum'}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#52A8DE]"
