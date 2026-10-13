@@ -58,7 +58,7 @@ export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: Feedb
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-800">
             {fieldLabel !== undefined ? (
-              <>Podnet k: <span className="text-[#52A8DE]">{fieldLabel}</span></>
+              <>Podnet k: <span className="text-brand-strong">{fieldLabel}</span></>
             ) : (
               'Nový podnet'
             )}
@@ -74,7 +74,7 @@ export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: Feedb
         </div>
 
         {status === 'ok' ? (
-          <p className="text-sm text-green-600 text-center py-4">Podnet odoslaný. Ďakujeme!</p>
+          <p className="text-sm text-green-700 text-center py-4">Podnet odoslaný. Ďakujeme!</p>
         ) : (
           <>
             <div className="flex flex-col gap-1">
@@ -144,7 +144,7 @@ export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: Feedb
             </div>
 
             {status === 'error' && (
-              <p className="text-xs text-red-500">Odoslanie zlyhalo. Skús znova.</p>
+              <p className="text-sm text-red-700">Odoslanie zlyhalo. Skús znova.</p>
             )}
 
             <div className="flex gap-2 justify-end">
@@ -159,7 +159,7 @@ export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: Feedb
                 type="button"
                 onClick={handleSubmit}
                 disabled={!nazov.trim() || !emailPlatny || status === 'sending'}
-                className="px-4 py-2 text-sm font-medium bg-[#52A8DE] text-white rounded-xl hover:bg-[#52A8DE]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-medium bg-brand-strong text-white rounded-xl hover:bg-brand-strong/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {status === 'sending' ? 'Odosiela...' : 'Odoslať'}
               </button>

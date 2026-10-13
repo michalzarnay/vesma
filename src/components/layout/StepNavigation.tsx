@@ -36,9 +36,9 @@ export function StepNavigation({ currentStep, totalSteps, onNext, onPrev, onGoTo
                 title={step.nazov}
                 className={`flex items-center justify-center gap-1 px-2 py-1 ${DOTYK_MOBIL} text-xs rounded-md transition-colors
                   ${isActive
-                    ? 'bg-[#52A8DE] text-white cursor-default font-semibold'
+                    ? 'bg-brand-strong text-white cursor-default font-semibold'
                     : isVisited
-                      ? 'bg-[#52A8DE]/10 text-[#52A8DE] hover:bg-[#52A8DE]/20 cursor-pointer'
+                      ? 'bg-[#52A8DE]/10 text-brand-strong hover:bg-[#52A8DE]/20 cursor-pointer'
                       : 'bg-gray-100 text-gray-300 cursor-default'
                   }`}
               >
@@ -77,7 +77,7 @@ export function StepNavigation({ currentStep, totalSteps, onNext, onPrev, onGoTo
           type="button"
           onClick={onNext}
           disabled={!canProceed}
-          className="flex items-center gap-1.5 px-6 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-white bg-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-6 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-white bg-brand-strong rounded-xl hover:bg-brand-strong/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {isLast ? 'Zobraziť výsledky' : <>Ďalej{nextName ? <span className="hidden sm:inline"> – {nextName}</span> : null}</>}
           {!isLast && <ChevronRight className="w-4 h-4" />}

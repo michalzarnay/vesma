@@ -34,7 +34,7 @@ export function ZmenaPravidielDialog({ upozornenie, onZavriet }: ZmenaPravidielD
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
         <div className="flex items-start gap-3 p-5 pb-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <h3 className="flex-1 text-sm font-semibold text-gray-800">
+          <h3 className="flex-1 text-lg font-bold text-gray-800">
             Pravidlá hodnotenia sa od uloženia relácie zmenili
           </h3>
           <button
@@ -87,7 +87,7 @@ export function ZmenaPravidielDialog({ upozornenie, onZavriet }: ZmenaPravidielD
           <button
             type="button"
             onClick={onZavriet}
-            className="px-4 py-2 bg-[#52A8DE] text-white rounded-xl text-sm font-medium hover:bg-[#52A8DE]/90 transition-colors"
+            className="px-4 py-2 bg-brand-strong text-white rounded-xl text-sm font-medium hover:bg-brand-strong/90 transition-colors"
             autoFocus
           >
             Rozumiem, pokračovať
