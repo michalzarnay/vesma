@@ -1,4 +1,5 @@
 import { Budova } from '../../../types/areal';
+import { VYUZITIE_OBJEKTU_VYSVETLENIE, upozorneniePoctuDni } from '../../../utils/vyuzitieObjektu';
 import { ROOF_TYPES, INSULATION_LEVELS, YES_NO, SEWAGE_TYPES, GUTTER_TYPES, COAL_WOOD_TYPES, PD_LEVELS, PD_FORMS, ENERGY_CLASSES, FUEL_CONVERSIONS, YES_NO_UNKNOWN } from '../../../data/constants';
 import { TextInput } from '../../ui/TextInput';
 import { NumberInput } from '../../ui/NumberInput';
@@ -230,6 +231,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
         {jeSezonna && <SezonnaStavbaPoznamka />}
 
         <h4 className="text-xs font-semibold text-gray-600 mt-4">Využitie objektu</h4>
+        <p className="text-xs text-gray-500">{VYUZITIE_OBJEKTU_VYSVETLENIE}</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <NumberInput
             label="Dni v roku"
@@ -239,16 +241,18 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             tooltipText="Počet dní v roku, kedy sa budova využíva (0-365)."
           />
           <NumberInput
-            label="Mesiace za rok"
+            label="Počet mesiacov"
             value={budova.vyuzitieMesiacovVRoku}
             onChange={(v) => onChange({ vyuzitieMesiacovVRoku: v })}
             max={12}
+            tooltipText="Počet mesiacov v roku, kedy sa budova využíva (0-12). Celoročné využitie = 12."
           />
           <NumberInput
             label="Hodín denne"
             value={budova.vyuzitieHodinDenne}
             onChange={(v) => onChange({ vyuzitieHodinDenne: v })}
             max={24}
+            tooltipText="Priemerný počet hodín denne, kedy sa budova využíva (0-24)."
           />
           <NumberInput
             label="Spotreba energie"
@@ -259,6 +263,9 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             tooltipText="Podiel dní v roku, keď budova beží na plný výkon (napr. len pracovné dni = cca 70 %). Ak je prevádzka rovnaká celý rok, zadajte 100 %."
           />
         </div>
+        {upozorneniePoctuDni(budova) && (
+          <div className="text-xs text-amber-800 bg-amber-50 rounded px-3 py-2">{upozorneniePoctuDni(budova)}</div>
+        )}
       </Section>
 
       {/* Strecha */}
