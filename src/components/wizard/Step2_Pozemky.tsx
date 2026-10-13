@@ -46,6 +46,11 @@ export function Step2_Pozemky({
         </div>
       </div>
 
+      <p className="text-xs text-gray-600">
+        Ak údaj nepoznáte, nechajte pole prázdne – netreba ho dohľadávať ani odhadovať na silu.
+        Stačia údaje, ktoré viete zistiť bez odbornej obhliadky.
+      </p>
+
       {/* Nápoveda k rozhodnutiu, kam zaradiť parcelu (pozri issue #37). */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 space-y-1">
         <p><strong>Čo patrí sem (Pozemky):</strong> nezastavané parcely — trávnaté plochy, záhrady, dvory
