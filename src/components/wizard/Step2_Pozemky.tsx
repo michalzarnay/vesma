@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Trees } from 'lucide-react';
 import { Pozemok } from '../../types/areal';
+import { maVyplnenyPozemok } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { PozemokForm } from './shared/PozemokForm';
 import { formatArea } from '../../utils/formatters';
@@ -72,12 +73,14 @@ export function Step2_Pozemky({
         items={pozemky.map((p, i) => ({
           id: p.id,
           label: p.aktualneVyuzitie || p.parcela || `Parcela ${i + 1}`,
+          vyplnene: maVyplnenyPozemok(p),
         }))}
         activeIndex={activeIndex}
         onSelect={setActiveIndex}
         onAdd={handleAdd}
         onRemove={handleRemove}
         addLabel="Pridať parcelu"
+        druhMazanej="parcelu"
       />
 
       {pozemky[activeIndex] && (
