@@ -122,7 +122,7 @@ export function ComboboxInput({
           {filtered.map((option) => (
             <li
               key={option}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-[#52A8DE]"
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
               onClick={() => handleSelect(option)}
             >
               {option}

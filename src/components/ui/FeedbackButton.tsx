@@ -31,7 +31,7 @@ export function FeedbackButton({ fieldLabel, variant = 'inline', predvyplnenyPrv
           type="button"
           onClick={() => setOpen(true)}
           title="Pridať podnet"
-          className="ml-1 flex-shrink-0 text-gray-300 hover:text-[#52A8DE] transition-colors focus:outline-none"
+          className="ml-1 flex-shrink-0 text-gray-500 hover:text-brand-strong transition-colors focus:outline-none"
           aria-label="Pridať podnet"
         >
           <MessageSquarePlus className="w-3.5 h-3.5" />

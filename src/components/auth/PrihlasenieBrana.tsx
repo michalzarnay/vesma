@@ -174,7 +174,7 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setStav({ typ: 'formular' })}
-              className="text-xs text-[#52A8DE] hover:underline"
+              className="text-xs text-brand-strong hover:underline"
             >
               Poslať na inú adresu
             </button>
@@ -210,7 +210,7 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
             <button
               type="submit"
               disabled={stav.typ === 'odosielam' || !email.includes('@')}
-              className="w-full px-4 py-2 text-sm font-medium bg-[#52A8DE] text-white rounded-xl hover:bg-[#52A8DE]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-2 text-sm font-medium bg-brand-strong text-white rounded-xl hover:bg-brand-strong/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {stav.typ === 'odosielam' ? 'Odosielam…' : 'Poslať prihlasovací odkaz'}
             </button>
@@ -219,7 +219,7 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
 
         <ZalohaZTejtoAdresy />
 
-        <p className="text-[11px] text-gray-400">
+        <p className="text-xs text-gray-400">
           V spolupráci s INOVIA. Údaje o areáloch ostávajú vo vašom prehliadači; e-mail sa
           ukladá do zoznamu používateľov VESMA.
         </p>
@@ -249,12 +249,12 @@ function ZalohaZTejtoAdresy() {
       <button
         type="button"
         onClick={() => zaloha.forEach(stiahniSessionAkoJson)}
-        className="flex items-center gap-2 text-xs font-medium text-[#52A8DE] hover:underline"
+        className="flex items-center gap-2 text-xs font-medium text-brand-strong hover:underline"
       >
         <Download className="w-4 h-4" />
         Stiahnuť ako {zaloha.length === 1 ? 'súbor' : 'súbory'} JSON
       </button>
-      <ul className="text-[11px] text-gray-400 list-disc pl-4">
+      <ul className="text-xs text-gray-400 list-disc pl-4">
         {zaloha.map((s) => <li key={s.id}>{s.nazov}</li>)}
       </ul>
     </div>

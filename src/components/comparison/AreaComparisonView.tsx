@@ -63,7 +63,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-800 flex items-center gap-2">
-            <GitCompare className="w-5 h-5 text-[#52A8DE]" />
+            <GitCompare className="w-5 h-5 text-brand-strong" />
             Porovnanie areálov
           </h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -87,7 +87,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                     <label
                       key={a.id}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm cursor-pointer transition-colors ${
-                        vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE]/10 text-[#52A8DE]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE]/10 text-brand-strong' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       <input
@@ -99,7 +99,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                       <span
                         aria-hidden="true"
                         className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 ${
-                          vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE] text-white' : 'border-gray-400 bg-white'
+                          vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-brand-strong text-white' : 'border-gray-400 bg-white'
                         }`}
                       >
                         {vybraneIds.has(a.id) && <Check className="h-3 w-3" strokeWidth={4} />}
@@ -148,7 +148,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                   <button
                     type="button"
                     onClick={export_}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#52A8DE] text-white rounded-xl text-sm font-medium hover:bg-[#52A8DE]/90 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-brand-strong text-white rounded-xl text-sm font-medium hover:bg-brand-strong/90 transition-colors"
                   >
                     <Download className="w-4 h-4" />
                     Exportovať vyhodnotenie do XLSX
