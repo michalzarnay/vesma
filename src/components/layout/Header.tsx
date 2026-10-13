@@ -62,7 +62,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               <h1 className="text-sm font-bold text-gray-800 leading-tight">VESMA <span className="font-normal text-gray-400">{test ? 'Test ' : ''}{APP_VERSION}</span></h1>
               {/* Kým areál nemá názov, zostáva na riadku podtitul aplikácie. */}
               {nazov ? (
-                <p className="text-[11px] font-medium text-[#52A8DE] truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
+                <p className="text-[11px] font-medium text-brand-strong truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
               ) : (
                 <p className="text-[10px] text-gray-500 hidden sm:block">Voda a energia – sprievodca mapovaním areálov</p>
               )}
@@ -120,9 +120,9 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                   title={stepTooltips?.[step.id] ?? step.nazov}
                   className={`flex items-center gap-1 w-full rounded-xl px-1.5 py-1 text-left transition-colors min-w-0
                     ${isActive
-                      ? 'bg-[#52A8DE] text-white cursor-default'
+                      ? 'bg-brand-strong text-white cursor-default'
                       : isVisited
-                        ? 'bg-[#52A8DE]/10 text-[#52A8DE] hover:bg-[#52A8DE]/20 cursor-pointer'
+                        ? 'bg-[#52A8DE]/10 text-brand-strong hover:bg-[#52A8DE]/20 cursor-pointer'
                         : 'bg-gray-100 text-gray-400 cursor-default'
                     }`}
                 >

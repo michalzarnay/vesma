@@ -157,7 +157,7 @@ export function MediaUpload({ media, onAdd, onUpdate, onRemove, mediaReady = tru
           <button
             type="button"
             onClick={() => fotoRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#52A8DE] border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5"
           >
             <Camera className="w-3.5 h-3.5" />
             Pridať foto
@@ -181,7 +181,7 @@ export function MediaUpload({ media, onAdd, onUpdate, onRemove, mediaReady = tru
       </div>
 
       {chyba && (
-        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-xl px-3 py-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {chyba}
         </div>
@@ -318,7 +318,7 @@ function MediaCard({
             <span className="text-xs">načítava sa…</span>
           </div>
         ) : item.typ === 'foto' ? (
-          <div className="flex flex-col items-center gap-1 text-red-300">
+          <div className="flex flex-col items-center gap-1 text-red-700">
             <Camera className="w-8 h-8" />
             <span className="text-xs text-center px-1">foto sa stratilo<br />nahraj znovu</span>
           </div>
@@ -342,7 +342,7 @@ function MediaCard({
         <p className="text-xs font-medium text-gray-700 truncate" title={item.nazov}>
           {item.nazov}
         </p>
-        <p className="text-[10px] text-gray-400">{formatVelkost(item.velkost)}</p>
+        <p className="text-xs text-gray-400">{formatVelkost(item.velkost)}</p>
         <input
           type="text"
           value={item.popis}

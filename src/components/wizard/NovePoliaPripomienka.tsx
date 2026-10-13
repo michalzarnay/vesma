@@ -20,7 +20,7 @@ export function NovePoliaPripomienka({ chybajuce, onZavriet, onPrejstNaBudovy }:
       <div className="flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-amber-900">
+          <h3 className="text-lg font-bold text-amber-900">
             Relácia je z staršej verzie — pribudli nové otázky
           </h3>
           <p className="text-xs text-amber-800 mt-1">
@@ -51,7 +51,7 @@ export function NovePoliaPripomienka({ chybajuce, onZavriet, onPrejstNaBudovy }:
           type="button"
           onClick={onZavriet}
           title="Zavrieť pripomienku"
-          className="text-amber-500 hover:text-amber-700 flex-shrink-0"
+          className="text-amber-700 hover:text-amber-900 flex-shrink-0"
         >
           <X className="w-4 h-4" />
         </button>

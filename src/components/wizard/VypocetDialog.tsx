@@ -74,7 +74,7 @@ export function VypocetDialog({ vysvetlenie, onClose }: VypocetDialogProps) {
             {vysvetlenie.zaver}
           </p>
 
-          <p className="text-[11px] text-gray-400 leading-snug">
+          <p className="text-xs text-gray-400 leading-snug">
             Tlačidlo kopírovania vloží tabuľku ako text oddelený tabulátormi — vo Worde ju
             prevediete cez Vložiť → Previesť text na tabuľku, do Excelu sa vloží priamo.
           </p>

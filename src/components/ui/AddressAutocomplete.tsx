@@ -197,7 +197,7 @@ export function AddressAutocomplete({
           {results.map((r, i) => (
             <li
               key={i}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-[#52A8DE]"
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
               onClick={() => handleSelect(r)}
             >
               <div className="font-medium">{r.displayPrimary}</div>
