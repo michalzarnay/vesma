@@ -136,8 +136,9 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
               <button
                 type="button"
                 onClick={() => setRezim('ulozit')}
+                aria-current={rezim === 'ulozit' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'ulozit' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE]' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'ulozit' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <Save className="w-4 h-4 inline mr-1.5" />
@@ -146,8 +147,9 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
               <button
                 type="button"
                 onClick={() => setRezim('nacitat')}
+                aria-current={rezim === 'nacitat' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'nacitat' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE]' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'nacitat' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <FolderOpen className="w-4 h-4 inline mr-1.5" />
