@@ -50,6 +50,18 @@ podľa metodiky KLIMASKEN zaviedol #212, podklad #214.
 | M7 | Váha delenej zrážkovej kanalizácie oproti jednotnej | `src/data/comparisonWeights.ts` | čaká | Otvorené rozhodnutie z revízie MZI. |
 | M8 | Ceny a návratnosť troch opatrení pre pravidelne obrábanú pôdu (mulčovanie, krycie plodiny, obmedzenie orby) | zatiaľ nie sú v kóde — návrh v [#200](https://github.com/michalzarnay/vesma/issues/200) | čaká | Bez potvrdených cien sa opatrenia do katalógu nepridajú, takže VESMA pri obrábanej pôde zníži skóre, ale nepovie, čo s ňou. Otvorené je aj to, čo pri nich znamená „návratnosť" (je skôr agronomická), či zaradiť aj vetrolam a prahy 50 m² / 500 m². |
 
+## Register adries SR — čaká na overenie zdroja a rozhodnutie majiteľa
+
+Podnety č. 13 (#127), 98 a 99: výber adresy areálu z registra adries a predvyplnenie
+obce, okresu a kraja. Majiteľ rozhodol ísť do registra. Zdroj sa však z prostredia,
+kde vznikol tento PR, nedal overiť (žiadny výstup na internet), preto sa nič neimplementovalo.
+
+| # | Čo chýba | Kto / čo je potrebné | Stav | Čo bez toho nefunguje |
+|---|---|---|---|---|
+| R1 | Overený zdroj registra adries: skutočný endpoint alebo súbor na stiahnutie, formát odpovede, limity, CORS, licencia a podmienky použitia (kandidáti: dataset na data.slovensko.sk `f2b3af7a-b4d4-45d7-9605-29fa5d7ad115`, stránka MV SR `minv.sk/?register-adries`) | človek s prístupom na internet, alebo správca datasetu | čaká | Nedá sa napísať serverless funkcia ani normalizácia odpovede bez vymyslených endpointov. |
+| R2 | Zoznam obec → okres → kraj (dnes je v `src/data/slovakLocations.ts` len zoznam názvov obcí `OBCE_SR` bez väzby na okres, a okresy podľa krajov) | rovnaký zdroj ako R1 (alebo Štatistický úrad SR, číselník obcí) | čaká | Pri ručne zadanej obci (podnet 99) sa kraj a okres nedajú predvyplniť. Dnes sa dopĺňajú len po výbere návrhu z Photonu (OSM). |
+| R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | čaká | Aplikácia tvrdí, že dáta ostávajú v prehliadači. Návrh textu je v popise PR. |
+
 ## Ako register používať
 
 **Keď narazíš na hodnotu, ktorú by si si musel vymyslieť:** nechaj ju v kóde
