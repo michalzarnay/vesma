@@ -33,7 +33,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
       {/* Identifikacia */}
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-          <h3 className="text-sm font-semibold text-gray-800">Identifikácia</h3>
+          <h3 className="text-base font-bold text-gray-800">Identifikácia</h3>
           <PDFUploadButton
             label="Nahrať list vlastníctva"
             acceptTypes={['lv']}
@@ -231,7 +231,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
 
       {/* Stromy */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">Stromy</h3>
+        <h3 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-2">Stromy</h3>
         <p className="text-xs text-gray-500">
           Do plochy stromov započítajte aj stromy z parciel susediacich s riešenou parcelou, ak ich koruny presahujú
           cez hranicu na túto parcelu a majú adaptačný význam pre ňu. Zvlášť v prípade, že ide o susedné parcely
@@ -266,7 +266,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
       {/* Potenciál pre FV / solárne kolektory na pozemku (issue #184) */}
       {mapujeEnergiu(rozsah) && (
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">
+        <h3 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-2">
           Potenciál pre fotovoltiku alebo solárne kolektory
         </h3>
         <NumberInput
@@ -287,7 +287,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
       {/* Existujuca infrastruktura */}
       {mapujeVodu(rozsah) && (
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-100 pb-2">
+        <h3 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-2">
           Už zrealizovaná infraštruktúra na pozemkoch
         </h3>
 

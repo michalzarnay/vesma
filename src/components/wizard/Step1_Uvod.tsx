@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, MapPin, Camera, ClipboardList, Globe, Loader2, Gauge } from 'lucide-react';
+import { Building2, MapPin, Camera, ClipboardList, Globe, Loader2, Info, BookOpen, FileText } from 'lucide-react';
 import {
   Areal, MediaItem, KategoriaObjektu, KATEGORIE_OBJEKTU, TYP_OBJEKTU_OPTIONS, FIRMA_TYPY_S_KAPACITOU,
   ROZSAHY_MAPOVANIA, RozsahMapovania,
@@ -14,6 +14,11 @@ import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
 import { matchKraj, matchOkres } from '../../utils/locationMatchers';
 import { apiUrl } from '../../utils/apiUrl';
+import { NAZOV_KROKU_1 } from '../../types/wizard';
+import { checklistPripravy } from '../../utils/uvodChecklist';
+
+// Rovnaký mechanizmus ako v Header.tsx: bez nastavenej URL sa odkaz nezobrazí.
+const PRIRUCKA_URL: string = import.meta.env.VITE_PRIRUCKA_URL ?? '';
 
 interface Step1Props {
   areal: Areal;
@@ -163,7 +168,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
             </div>
             <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#FBBB4B]" aria-hidden="true" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Identifikácia areálu</h2>
+          <h2 className="text-xl font-bold text-gray-800">{NAZOV_KROKU_1}</h2>
           <p className="text-sm text-gray-500 max-w-md mx-auto">
             Zadajte základné údaje o areáli, ktorý chcete vyhodnotiť.
             Areál je súvislé územie s pozemkami a budovami, ktoré patria k sebe.
@@ -171,35 +176,66 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         </div>
       </div>
 
-      {/* Presné hodnoty vs. odhady */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-        <Gauge className="w-5 h-5 text-[#2196F3] flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-800 space-y-1">
-          <p className="font-semibold">Presné hodnoty vs. odhady</p>
-          <p>
+      {/* Jedna informačná sekcia (podnety 101, 113): jeden neutrálny štýl, bez varovných farieb. */}
+      <section className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4" aria-labelledby="uvod-priprava">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Info className="w-5 h-5 text-[#52A8DE] flex-shrink-0" />
+            <h3 id="uvod-priprava" className="text-base font-bold text-gray-800">Čo si pripraviť</h3>
+          </div>
+          {PRIRUCKA_URL && (
+            <a
+              href={PRIRUCKA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Príručka VESMA (otvorí sa v novej karte)"
+              className="flex items-center gap-1.5 text-xs font-medium text-[#2196F3] hover:underline flex-shrink-0"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Príručka
+            </a>
+          )}
+        </div>
+        <ul className="text-xs text-gray-700 space-y-1 list-disc list-inside">
+          {checklistPripravy(areal.rozsahMapovania).map((p) => (
+            <li key={p.id}>{p.text}</li>
+          ))}
+        </ul>
+        <p className="text-xs text-gray-700">
+          Všetko nemusíte mať hneď – formulár môžete rozrobiť, uložiť a doplniť neskôr.
+          Povinné polia sú označené hviezdičkou <span className="text-red-600" aria-hidden="true">*</span>; ostatné sú nepovinné.
+        </p>
+
+        <div className="space-y-1 border-t border-gray-200 pt-3">
+          <p className="text-xs font-semibold text-gray-800">Presné hodnoty vs. odhady</p>
+          <p className="text-xs text-gray-700">
             Tam, kde viete zohnať presné dáta a fakty, vypĺňajte presné hodnoty.
             Kde ich nemáte k dispozícii, stačí odborný odhad. Čím presnejšie údaje
             zadáte, tým priliehavejší bude výsledok – zmysel má však aj vyplnenie
             iba odhadov. Je na vás, do akej presnosti chcete ísť.
           </p>
         </div>
-      </div>
 
-      {/* Workflow info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-        <p className="text-xs font-semibold text-amber-800 mb-2">Odporúčaný postup mapovania</p>
-        <ol className="text-xs text-amber-700 space-y-1 list-decimal list-inside">
-          <li>Vyplňte polia dostupné z internetu (zrážky, slnečný svit, katastrálna mapa)</li>
-          <li>Uložte si rozrobený formulár pomocou tlačidla <strong>Relácie</strong> v hlavičke</li>
-          <li>Choďte do terénu – robte si poznámky, fotky, videá (nahrajte ich tu dole)</li>
-          <li>Po návrate otvorte uloženú reláciu a doplňte zvyšné polia</li>
-        </ol>
-      </div>
+        <div className="space-y-1 border-t border-gray-200 pt-3">
+          <p className="text-xs font-semibold text-gray-800">Odporúčaný postup mapovania</p>
+          <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
+            <li>Vyplňte polia dostupné z internetu (zrážky, slnečný svit, katastrálna mapa)</li>
+            <li>Uložte si rozrobený formulár pomocou tlačidla <strong>Relácie</strong> v hlavičke</li>
+            <li>Choďte do terénu – robte si poznámky, fotky, videá (nahrajte ich tu dole)</li>
+            <li>Po návrate otvorte uloženú reláciu a doplňte zvyšné polia</li>
+          </ol>
+        </div>
+      </section>
 
       {/* Form */}
       <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-[#52A8DE]" />
+          <h3 className="text-base font-bold text-gray-800">Základné údaje o areáli</h3>
+        </div>
         <TextInput
           label="Názov areálu"
+          required
           value={areal.nazov}
           onChange={(v) => updateAreal({ nazov: v })}
           placeholder="napr. Základná škola Lipová"
@@ -429,7 +465,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       <div className="space-y-4 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-4 h-4 text-[#52A8DE]" />
-          <h3 className="text-sm font-semibold text-gray-800">Záznam z obhliadky</h3>
+          <h3 className="text-base font-bold text-gray-800">Záznam z obhliadky</h3>
         </div>
         <div className={`grid grid-cols-1 ${showOrganizacia ? 'sm:grid-cols-2' : ''} gap-4`}>
           {showOrganizacia && (
@@ -498,7 +534,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       <div className="space-y-3 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <Camera className="w-4 h-4 text-[#52A8DE]" />
-          <h3 className="text-sm font-semibold text-gray-800">Foto a video materiál</h3>
+          <h3 className="text-base font-bold text-gray-800">Foto a video materiál</h3>
           <span className="text-xs text-gray-400">(terénny prieskum)</span>
         </div>
         <p className="text-xs text-gray-500">
@@ -514,9 +550,9 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       </div>
 
       {/* Info box */}
-      <div className="bg-blue-50 rounded-xl p-4 flex gap-3">
-        <MapPin className="w-5 h-5 text-[#2196F3] flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-800">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex gap-3">
+        <MapPin className="w-5 h-5 text-[#52A8DE] flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700">
           <p className="font-medium">V ďalších krokoch budete postupne zadávať:</p>
           <ul className="mt-1 list-disc list-inside text-xs space-y-0.5">
             <li>Pozemok – nezastavané parcely{mapujeVodu(areal) ? ', odvod vody, zeleň' : ''}{mapujeEnergiu(areal) ? ', plocha pre fotovoltiku' : ''}</li>

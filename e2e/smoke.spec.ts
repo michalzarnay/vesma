@@ -14,7 +14,7 @@ test.describe('Smoke – preklik wizardom', () => {
   });
 
   test('appka nabehne na Kroku 1', async ({ page }) => {
-    // Krok 1 = Úvod / Identifikácia areálu. Hlavné tlačidlo "Ďalej" je viditeľné,
+    // Krok 1 = Identifikácia areálu. Hlavné tlačidlo "Ďalej" je viditeľné,
     // tlačidlo "Späť" je na prvom kroku zakázané.
     await expect(page.getByRole('button', { name: /Ďalej/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Späť/ }).first()).toBeDisabled();

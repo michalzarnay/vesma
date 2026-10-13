@@ -78,7 +78,7 @@ test('zmena rozsahu späť na oboje vráti skryté sekcie a údaje sa nestratia'
   const plyn = page.getByRole('heading', { name: 'Vykurovanie', exact: true });
   await expect(plyn).toBeVisible();
 
-  // Späť na Úvod, prepnúť na vodu a znova na oboje.
+  // Späť na Identifikáciu areálu, prepnúť na vodu a znova na oboje.
   await page.getByRole('button', { name: /Späť|Predchádzajúci/ }).first().click();
   await page.getByRole('button', { name: /Späť|Predchádzajúci/ }).first().click();
   await ROZSAH(page, 'Voda').click();
