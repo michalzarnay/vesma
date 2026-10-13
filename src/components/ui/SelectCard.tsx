@@ -1,7 +1,7 @@
-import { Check } from 'lucide-react';
-import { jeMoznostVybrana } from '../../utils/vyber';
 import { Tooltip } from './Tooltip';
 import { FeedbackButton } from './FeedbackButton';
+import { SelectionMark } from './SelectionMark';
+import { jeVybrana } from './selection';
 
 interface SelectOption {
   value: number | string;
@@ -12,7 +12,7 @@ interface SelectOption {
 interface SelectCardProps {
   label: string;
   options: readonly SelectOption[];
-  value: number | string | null | undefined;
+  value: number | string;
   onChange: (value: number | string) => void;
   tooltipKey?: string;
   tooltipText?: string;
@@ -37,29 +37,21 @@ export function SelectCard({
       </label>
       <div role="group" aria-label={label} className={`flex gap-2 ${layout === 'vertical' ? 'flex-col' : 'flex-wrap'}`}>
         {options.map((option) => {
-          const isSelected = jeMoznostVybrana(value, option.value);
+          const isSelected = jeVybrana(value, option.value);
           return (
             <button
               key={String(option.value)}
               type="button"
               onClick={() => onChange(option.value)}
               aria-pressed={isSelected}
-              className={`flex-1 min-w-[80px] flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-sm text-left transition-all
+              className={`flex-1 flex items-start gap-2 min-w-[80px] rounded-xl border-2 px-3 py-2 text-sm text-left transition-all
                 ${isSelected
-                  ? 'border-[#52A8DE] bg-[#52A8DE]/5 text-[#52A8DE] font-medium shadow-sm ring-1 ring-[#52A8DE]'
+                  ? 'border-[#52A8DE] bg-[#52A8DE]/5 text-[#52A8DE] font-medium'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                 }`}
             >
-              {/* Indikátor výberu nezávislý od farby: vyplnený kruh s fajkou vs. prázdny kruh (podnet č. 96). */}
-              <span
-                aria-hidden="true"
-                data-vybrane={isSelected ? 'true' : 'false'}
-                className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2
-                  ${isSelected ? 'border-[#52A8DE] bg-[#52A8DE] text-white' : 'border-gray-400 bg-white'}`}
-              >
-                {isSelected && <Check className="h-3 w-3" strokeWidth={4} />}
-              </span>
-              <span className="min-w-0">
+              <span className="mt-0.5"><SelectionMark selected={isSelected} /></span>
+              <span className="block">
                 <span className="block font-medium">{option.label}</span>
                 {option.description && (
                   <span className="block text-xs mt-0.5 opacity-70">{option.description}</span>
