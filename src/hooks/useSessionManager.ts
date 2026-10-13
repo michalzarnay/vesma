@@ -36,6 +36,43 @@ export function findMatchingSessions(sessions: Session[], areal: Areal): Session
     .sort((a, b) => new Date(b.datumUlozenia).getTime() - new Date(a.datumUlozenia).getTime());
 }
 
+/**
+ * Rozparsuje obsah importovaného JSON súboru. Môže to byť celá relácia (vtedy sa
+ * zachová jej názov), alebo iba areál. `migrateAreal` doplní chýbajúce polia aj verziu
+ * schémy (issue #177), takže importovaná staršia relácia dostane rovnakú pripomienku
+ * ako uložená.
+ */
+export function rozparsujImportRelacie(text: string): { areal: Areal; nazov: string } {
+  const data = JSON.parse(text);
+  const areal = migrateAreal(data.areal ?? data);
+  const nazovRelacie = typeof data.nazov === 'string' && data.areal ? data.nazov.trim() : '';
+  return { areal, nazov: nazovRelacie || areal.nazov.trim() || 'Importovaná relácia' };
+}
+
+/**
+ * Relácia vzniknutá importom. Areál sa neprepisuje (na rozdiel od `saveSession`):
+ * zachová verziu schémy aj verziu pravidiel, s ktorou vznikol, takže používateľ po
+ * importe uvidí upozornenie na zmenu pravidiel, ako keby relácia bola uložená v
+ * zozname od začiatku. Areál dostane ID, aby ho zoznam rozpoznal ako otvorený (#161).
+ */
+export function vytvorImportovanuRelaciu(areal: Areal, nazov: string, teraz = new Date()): Session {
+  return {
+    id: crypto.randomUUID(),
+    nazov,
+    areal: { ...areal, id: areal.id || crypto.randomUUID() },
+    datumUlozenia: teraz.toISOString(),
+  };
+}
+
+/**
+ * Názov, ktorý dialóg „Uložiť“ ponúkne: názov relácie, ktorú by uloženie prepísalo
+ * (predvolený cieľ je najnovšia zhoda), inak názov areálu. Odvodzuje sa pri každom
+ * otvorení z aktuálneho stavu — nikdy z toho, čo tam ostalo po predošlej relácii.
+ */
+export function predvolenyNazovRelacie(zhody: Session[], cielId: string, areal: Areal): string {
+  return zhody.find((s) => s.id === cielId)?.nazov ?? areal.nazov;
+}
+
 function saveSessions(sessions: Session[]): void {
   try {
     // Ukladáme bez media base64 dat aby sme šetrili miesto — len metadata
@@ -121,16 +158,23 @@ export function useSessionManager() {
     window.location.href = buildShareMailto(session.nazov, filename);
   }, [exportSession]);
 
-  const importSession = useCallback((file: File): Promise<Areal> => {
+  /** Pridá importovanú reláciu do zoznamu (bez zásahu do areálu). */
+  const pridajImportovanuRelaciu = useCallback((areal: Areal, nazov: string): Session => {
+    const session = vytvorImportovanuRelaciu(areal, nazov);
+    setSessions((prev) => {
+      const updated = [session, ...prev];
+      saveSessions(updated);
+      return updated;
+    });
+    return session;
+  }, []);
+
+  const importSession = useCallback((file: File): Promise<{ areal: Areal; nazov: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const data = JSON.parse(e.target?.result as string);
-          // Môže byť celá Session alebo iba Areal. migrateAreal doplní chýbajúce polia
-          // aj verziu schémy (issue #177), takže importovaná staršia relácia dostane
-          // rovnakú pripomienku ako uložená.
-          resolve(migrateAreal(data.areal ?? data));
+          resolve(rozparsujImportRelacie(e.target?.result as string));
         } catch {
           reject(new Error('Neplatný súbor relácie'));
         }
@@ -140,5 +184,5 @@ export function useSessionManager() {
     });
   }, []);
 
-  return { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession };
+  return { sessions, saveSession, updateSession, deleteSession, exportSession, shareSession, importSession, pridajImportovanuRelaciu };
 }
