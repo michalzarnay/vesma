@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
+import { DOTYK_MOBIL } from '../../utils/nazovKrokuMobil';
 import { glossary, GlossaryEntry } from '../../data/glossary';
 
 interface TooltipProps {
@@ -41,7 +42,7 @@ export function Tooltip({ glossaryKey, text, example, whereToFind }: TooltipProp
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="ml-1 text-gray-400 hover:text-brand-strong transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full"
+        className={`ml-1 inline-flex items-center justify-center ${DOTYK_MOBIL} -my-3 sm:my-0 text-gray-400 hover:text-brand-strong transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full`}
         aria-label="Zobraziť nápovedu"
       >
         <HelpCircle className="w-4 h-4" />
