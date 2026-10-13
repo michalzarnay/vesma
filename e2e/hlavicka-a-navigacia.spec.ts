@@ -87,6 +87,34 @@ test('nový areál zabudne uložené pozície kariet (podnet 78)', async ({ page
   expect(await scrollY(page)).toBe(0);
 });
 
+test('na mobile je v hlavičke názov aktuálneho kroku a ovládanie má aspoň 44 px (podnet 93)', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 700 });
+  await openClean(page);
+
+  await expect(page.getByTestId('nazov-kroku-mobil')).toContainText(/^Krok 1 z 6 – /);
+  await kartaVHlavicke(page, 2).click();
+  await expect(page.getByTestId('nazov-kroku-mobil')).toHaveText('Krok 2 z 6 – Pozemky');
+
+  const ovladanie = [kartaVHlavicke(page, 1), page.getByRole('button', { name: 'Menu' }), page.locator('header button[title="Pridať podnet"]')];
+  for (const lokator of ovladanie) {
+    const box = await lokator.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(43.5);
+    expect(box!.width).toBeGreaterThanOrEqual(43.5);
+  }
+  const ikonka = page.getByRole('button', { name: 'Zobraziť nápovedu' }).first();
+  if (await ikonka.count()) {
+    await ikonka.scrollIntoViewIfNeeded();
+    const box = await ikonka.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(43.5);
+    expect(box!.width).toBeGreaterThanOrEqual(43.5);
+  }
+});
+
+test('na desktope sa názov kroku mimo pásu neukazuje (podnet 93)', async ({ page }) => {
+  await openClean(page);
+  await expect(page.getByTestId('nazov-kroku-mobil')).toBeHidden();
+});
+
 test('pri jedinej hodnotenej oblasti dostane rozpis skóre celú šírku (podnet 86)', async ({ page }) => {
   await openClean(page);
   // „Len voda" — hodnotí sa jedine MZI, mriežka teda nemá mať tri stĺpce.

@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { WIZARD_STEPS } from '../../types/wizard';
 import { APP_VERSION } from '../../version';
 import { jeTestovaciKanal } from '../../utils/kanalNasadenia';
+import { nazovKrokuNaMobile, DOTYK_MOBIL } from '../../utils/nazovKrokuMobil';
 
 interface HeaderProps {
   progress: number;
@@ -68,7 +69,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 sm:gap-2 flex-shrink-0">
             {extraActions}
             <div className="relative" ref={menuRef}>
               <button
@@ -77,7 +78,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                 title="Menu"
                 aria-haspopup="true"
                 aria-expanded={menuOtvorene}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 ${DOTYK_MOBIL} text-xs font-medium text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors`}
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Menu</span>
@@ -118,7 +119,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                   onClick={() => isClickable && onGoTo(step.id)}
                   disabled={!isClickable}
                   title={stepTooltips?.[step.id] ?? step.nazov}
-                  className={`flex items-center gap-1 w-full rounded-xl px-1.5 py-1 text-left transition-colors min-w-0
+                  className={`flex items-center gap-1 w-full rounded-xl px-1.5 py-1 min-h-11 sm:min-h-0 text-left transition-colors min-w-0
                     ${isActive
                       ? 'bg-[#52A8DE] text-white cursor-default'
                       : isVisited
@@ -136,6 +137,11 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
             );
           })}
         </div>
+
+        {/* Mobil: v páse sú len čísla, preto názov aktuálneho kroku zvlášť (podnet 93). */}
+        <p className="sm:hidden text-xs font-semibold text-[#52A8DE]" data-testid="nazov-kroku-mobil" aria-live="polite">
+          {nazovKrokuNaMobile(currentStep)}
+        </p>
 
         {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-1">
