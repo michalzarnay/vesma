@@ -96,7 +96,8 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
       {mapujeVodu(rozsah) && (<>
       <PercentageGroup
         title="Odvod vody z pozemku"
-        tooltipText="Kam odteká voda (zrejme najmä dažďová) z vášho pozemku? Rozdeľte 100% plochy medzi jednotlivé spôsoby odvodu."
+        tooltipText="Kam odteká dažďová voda z vášho pozemku? Rozdeľte 100% plochy medzi jednotlivé spôsoby odvodu."
+        description="Ide o to, kam sa dostane dažďová voda, ktorá spadne na nezastavanú časť pozemku – či odtečie do kanalizácie alebo potoka, vsiakne na mieste, zachytí sa v nádrži, alebo len steká po povrchu. Stačí hrubý odhad podielu plochy pre každý spôsob; hotovo je, keď sa rozdelí celých 100 %."
         fields={[
           { key: 'odvodVodyJednotnaKanalizacia', label: 'jednotná stokova sieť', tooltipText: 'Kanalizácia spoločná pre splaškovú aj dažďovú vodu.' },
           { key: 'odvodVodySplaskovaKanalizacia', label: 'delená splašková kanalizácia (omylom zvedené zrážky)', tooltipText: 'Samostatná splašková kanalizácia určená len pre splašky – sem uveďte podiel plochy, z ktorej sú zrážky omylom zvedené do splaškovej kanalizácie (hoci tam nepatria).' },
@@ -133,8 +134,8 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
             tooltipText="Rozdeľte prírodný (vsakovací) povrch podľa typu povrchu. Súčet musí byť 100%."
             fields={[
               { key: 'priepustnaPlochaByliny', label: 'byliny (trávnik, lúka, príp. dočasne holé miesto)' },
-              { key: 'priepustnaPlochaKry', label: 'kry' },
-              { key: 'priepustnaPlochaStromy', label: 'stromy' },
+              { key: 'priepustnaPlochaKry', label: 'kry', tooltipText: 'Odhadnite, aký podiel prírodného povrchu zakrývajú koruny krov (plocha pod nimi pri pohľade zhora). Stačí hrubý odhad.' },
+              { key: 'priepustnaPlochaStromy', label: 'stromy', tooltipText: 'Odhadnite, aký podiel prírodného povrchu zakrývajú koruny stromov (plocha pod korunami pri pohľade zhora). Pri jednom-dvoch stromoch stačí hrubý odhad alebo 0 %.' },
               {
                 key: 'priepustnaPlochaObrabanaPoda',
                 label: 'pravidelne obrábaná pôda bez mulča (aspoň 2× ročne)',

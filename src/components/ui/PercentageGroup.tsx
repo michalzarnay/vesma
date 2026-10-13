@@ -1,5 +1,6 @@
 import { Tooltip } from './Tooltip';
 import { FeedbackButton } from './FeedbackButton';
+import { stavSuctu, textSuctu } from '../../utils/sucetPercent';
 
 interface PercentageField {
   key: string;
@@ -15,13 +16,15 @@ interface PercentageGroupProps {
   onChange: (key: string, value: number) => void;
   tooltipKey?: string;
   tooltipText?: string;
+  /** Krátke vysvetlenie skupiny pre laika, zobrazené pod nadpisom. */
+  description?: string;
 }
 
 export function PercentageGroup({
-  title, fields, values, onChange, tooltipKey, tooltipText,
+  title, fields, values, onChange, tooltipKey, tooltipText, description,
 }: PercentageGroupProps) {
   const total = fields.reduce((sum, f) => sum + (values[f.key] || 0), 0);
-  const isValid = Math.abs(total - 100) < 0.01 || total === 0;
+  const stav = stavSuctu(total);
 
   return (
     <div className="space-y-3">
@@ -32,16 +35,18 @@ export function PercentageGroup({
           <FeedbackButton fieldLabel={title} />
         </h4>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-          total === 0
-            ? 'bg-gray-100 text-gray-500'
-            : isValid
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+          stav === 'hotovy'
+            ? 'bg-green-100 text-green-700'
+            : stav === 'prekroceny'
+              ? 'bg-red-100 text-red-700'
+              : stav === 'neuplny'
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-gray-100 text-gray-500'
         }`}>
-          Súčet: {Math.round(total)}%
-          {!isValid && total > 0 && ' (musí byť 100%)'}
+          {textSuctu(total)}
         </span>
       </div>
+      {description && <p className="text-xs text-gray-500">{description}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {fields.map((field) => (
