@@ -8,6 +8,7 @@
 // tisícov), aby ich Excel po vložení prevzal ako čísla, nie ako text.
 
 import { Areal } from '../types/areal';
+import { NAZOV_KROKU_1 } from '../types/wizard';
 import {
   EnergiaScore, MZIScore, OZEScore, RozpisPodskore, saHodnotiEnergetika, saHodnotiMZI, saHodnotiOZE,
 } from '../types/scoring';
@@ -255,9 +256,9 @@ export function chybajuceUdajeMZI(areal: Areal, score: MZIScore): Map<KlucMZI, s
     const chybaju: string[] = [];
     // Optimálny objem vzniká z dvojice (zrážky × strechy) alebo z počtu osôb;
     // stačí jedna z nich, preto sa vypíšu všetky nevyplnené vstupy.
-    if (d.zrazky <= 0) chybaju.push('úhrn zrážok (krok Úvod)');
+    if (d.zrazky <= 0) chybaju.push(`úhrn zrážok (krok ${NAZOV_KROKU_1})`);
     if (d.plochaStriech <= 0) chybaju.push('plocha pôdorysu budov (krok Budovy)');
-    if (d.osoby <= 0) chybaju.push('počet zamestnancov (krok Úvod)');
+    if (d.osoby <= 0) chybaju.push(`počet zamestnancov (krok ${NAZOV_KROKU_1})`);
     chyba.set('akumulacia',
       `Optimálny objem nádrže sa nedá určiť — chýba ${zoznamPoloziek(chybaju)}.`);
   }

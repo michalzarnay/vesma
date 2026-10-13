@@ -29,7 +29,8 @@ test('Krok 1: podnet je aj pri adrese a obci', async ({ page }) => {
   await openClean(page);
 
   const prvky = await page.locator(PODNET).evaluateAll((btns) =>
-    btns.map((b) => b.parentElement?.textContent?.trim() ?? ''),
+    // Povinné pole nesie za názvom hviezdičku (aria-hidden), tá k názvu nepatrí.
+    btns.map((b) => (b.parentElement?.textContent ?? '').replace(/\s*\*\s*$/, '').trim()),
   );
 
   expect(prvky).toContain('Názov areálu'); // TextInput – pôvodné pokrytie

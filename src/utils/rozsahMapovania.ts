@@ -1,4 +1,5 @@
 import { Areal, RozsahMapovania } from '../types/areal';
+import { NAZOV_KROKU_1 } from '../types/wizard';
 
 /**
  * Rozsah mapovania — jediné miesto, kde sa rozhoduje, či sa voda alebo energia
@@ -32,6 +33,6 @@ export function mapujeEnergiu(x: SRozsahom): boolean {
 /** Text pre používateľa, prečo časť dotazníka alebo hodnotenia nevidí. */
 export function poznamkaMimoRozsahu(oblast: 'voda' | 'energia'): string {
   return oblast === 'voda'
-    ? 'Tento krok sa týka vody. Areál mapujete len pre energiu — krok preskočte alebo zmeňte rozsah mapovania na kroku 1 (Úvod).'
-    : 'Táto časť sa týka energie. Areál mapujete len pre vodu — časť je skrytá; rozsah mapovania zmeníte na kroku 1 (Úvod).';
+    ? `Tento krok sa týka vody. Areál mapujete len pre energiu — krok preskočte alebo zmeňte rozsah mapovania na kroku 1 (${NAZOV_KROKU_1}).`
+    : `Táto časť sa týka energie. Areál mapujete len pre vodu — časť je skrytá; rozsah mapovania zmeníte na kroku 1 (${NAZOV_KROKU_1}).`;
 }

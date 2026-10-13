@@ -5,8 +5,14 @@ export interface WizardStep {
   icon: string;
 }
 
+/**
+ * Jediný zdroj pravdy pre názov prvého kroku (podnet 95). Použitý v hlavičke,
+ * navigácii, nadpise karty aj v textoch, ktoré na krok odkazujú.
+ */
+export const NAZOV_KROKU_1 = 'Identifikácia areálu';
+
 export const WIZARD_STEPS: WizardStep[] = [
-  { id: 1, nazov: 'Úvod', popis: 'Identifikácia areálu', icon: 'building-2' },
+  { id: 1, nazov: NAZOV_KROKU_1, popis: 'Základné údaje, obhliadka, fotky', icon: 'building-2' },
   { id: 2, nazov: 'Pozemky', popis: 'Plochy, voda, zeleň, stromy', icon: 'trees' },
   { id: 3, nazov: 'Budovy', popis: 'Strecha, voda, energia, vykurovanie', icon: 'home' },
   { id: 4, nazov: 'Iné stavby', popis: 'Altánky, prístrešky, búdy bez základov', icon: 'tent' },
