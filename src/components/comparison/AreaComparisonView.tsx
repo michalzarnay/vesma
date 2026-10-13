@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { X, GitCompare, Download, Droplets, Thermometer, CloudRain, Zap } from 'lucide-react';
-import { SelectionMark } from '../ui/SelectionMark';
+import { Check, X, GitCompare, Download, Droplets, Thermometer, CloudRain, Zap } from 'lucide-react';
 import { useSessionManager } from '../../hooks/useSessionManager';
 import { Areal } from '../../types/areal';
 import { computeAreaComparisonScore, rankAreaComparisons } from '../../utils/comparisonScoring';
@@ -95,9 +94,16 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                         type="checkbox"
                         checked={vybraneIds.has(a.id)}
                         onChange={() => toggleVyber(a.id)}
-                        className="hidden"
+                        className="sr-only"
                       />
-                      <SelectionMark kind="checkbox" selected={vybraneIds.has(a.id)} />
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 ${
+                          vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE] text-white' : 'border-gray-400 bg-white'
+                        }`}
+                      >
+                        {vybraneIds.has(a.id) && <Check className="h-3 w-3" strokeWidth={4} />}
+                      </span>
                       {a.nazov || 'Areál bez názvu'}
                     </label>
                   ))}
