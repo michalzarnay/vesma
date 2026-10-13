@@ -15,7 +15,7 @@ const IKONY: Record<IkonaStitku, LucideIcon> = {
 // štítky odlišuje text, tvar a ikona, nie farba (pozri utils/stitkyOpatreni.ts).
 const TRIEDY_FARBY: Record<string, string> = {
   cervena: 'bg-red-600 text-white',
-  oranzova: 'bg-orange-500 text-white',
+  oranzova: 'bg-orange-700 text-white',
   siva: 'bg-gray-500 text-white',
   zelena: 'border-green-700 text-green-800',
   modra: 'border-sky-700 text-sky-800',
@@ -30,7 +30,7 @@ export function StitokOpatrenia({ stitok }: { stitok: Stitok }) {
   return (
     <span
       title={stitok.popis}
-      className={`inline-flex items-center gap-1 text-[11px] leading-none whitespace-nowrap ${tvar} ${TRIEDY_FARBY[stitok.farba] ?? ''}`}
+      className={`inline-flex items-center gap-1 text-xs leading-none whitespace-nowrap ${tvar} ${TRIEDY_FARBY[stitok.farba] ?? ''}`}
     >
       <Ikona className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
       {stitok.text}
