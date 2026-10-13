@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Check, Plus, X } from 'lucide-react';
 
 interface EntityTabBarProps {
   items: { id: string; label: string }[];
@@ -20,12 +20,14 @@ export function EntityTabBar({
           <button
             type="button"
             onClick={() => onSelect(index)}
+            aria-current={activeIndex === index ? 'true' : undefined}
             className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
               ${activeIndex === index
                 ? 'border-[#52A8DE] text-[#52A8DE]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
           >
+            {activeIndex === index && <Check className="inline w-3.5 h-3.5 mr-1 -mt-0.5" strokeWidth={3} aria-hidden="true" />}
             {item.label || `#${index + 1}`}
           </button>
           {items.length > minItems && (
