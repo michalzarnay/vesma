@@ -138,7 +138,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                 onClick={() => setRezim('ulozit')}
                 aria-current={rezim === 'ulozit' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'ulozit' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'ulozit' ? 'text-brand-strong border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <Save className="w-4 h-4 inline mr-1.5" />
@@ -149,7 +149,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                 onClick={() => setRezim('nacitat')}
                 aria-current={rezim === 'nacitat' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'nacitat' ? 'text-[#52A8DE] border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'nacitat' ? 'text-brand-strong border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <FolderOpen className="w-4 h-4 inline mr-1.5" />
@@ -202,12 +202,12 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                   )}
 
                   {chyba && <p className="text-sm text-red-600">{chyba}</p>}
-                  {potvrdenie && <p className="text-sm text-[#52A8DE]">{potvrdenie}</p>}
+                  {potvrdenie && <p className="text-sm text-brand-strong">{potvrdenie}</p>}
 
                   <button
                     type="button"
                     onClick={ulozit}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#52A8DE] text-white rounded-xl text-sm font-medium hover:bg-[#52A8DE]/90 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-strong text-white rounded-xl text-sm font-medium hover:bg-brand-strong/90 transition-colors"
                   >
                     <Save className="w-4 h-4" />
                     Uložiť aktuálny stav
@@ -218,7 +218,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                     <button
                       type="button"
                       onClick={() => importRef.current?.click()}
-                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#52A8DE] transition-colors"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-strong transition-colors"
                     >
                       <Upload className="w-4 h-4" />
                       Importovať zo súboru…
@@ -301,7 +301,7 @@ function SessionKarta({
         title={zvyraznena ? 'Zodpovedá aktuálne otvorenému areálu' : undefined}
         className="w-full flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
       >
-        <FolderOpen className="w-4 h-4 text-[#52A8DE] flex-shrink-0 mt-0.5" />
+        <FolderOpen className="w-4 h-4 text-brand-strong flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className={`text-sm text-gray-800 truncate ${zvyraznena ? 'font-bold' : 'font-medium'}`}>{session.nazov}</p>
           <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
@@ -327,7 +327,7 @@ function SessionKarta({
           <button
             type="button"
             onClick={onNacitat}
-            className="flex items-center gap-1 text-xs text-[#52A8DE] hover:underline"
+            className="flex items-center gap-1 text-xs text-brand-strong hover:underline"
           >
             <FolderOpen className="w-3 h-3" />
             Načítať
@@ -351,7 +351,7 @@ function SessionKarta({
           <button
             type="button"
             onClick={onZmazat}
-            className="flex items-center gap-1 text-xs text-red-500 hover:underline ml-auto"
+            className="flex items-center gap-1 text-xs text-red-700 hover:underline ml-auto"
           >
             <Trash2 className="w-3 h-3" />
             Zmazať

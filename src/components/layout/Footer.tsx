@@ -11,7 +11,7 @@ export function Footer() {
         </div>
         <p>VESMA – Voda a energia – sprievodca mapovaním areálov</p>
         <p className="mt-1">Toto hodnotenie je orientačné. Pre presný návrh kontaktujte odborníka.</p>
-        <div className="mt-2 flex items-center justify-end gap-1.5 text-[10px] text-gray-400">
+        <div className="mt-2 flex items-center justify-end gap-1.5 text-xs text-gray-400">
           <img
             src={`${import.meta.env.BASE_URL}INOVIA_Logo_Final_RGB.jpg`}
             alt="INOVIA"

@@ -41,7 +41,7 @@ export function Tooltip({ glossaryKey, text, example, whereToFind }: TooltipProp
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="ml-1 text-gray-400 hover:text-[#2196F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full"
+        className="ml-1 text-gray-400 hover:text-brand-strong transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full"
         aria-label="Zobraziť nápovedu"
       >
         <HelpCircle className="w-4 h-4" />

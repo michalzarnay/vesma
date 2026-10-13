@@ -36,7 +36,7 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
     <div className="space-y-4">
       <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
         <div className="w-10 h-10 bg-[#52A8DE]/10 rounded-xl flex items-center justify-center">
-          <Leaf className="w-5 h-5 text-[#52A8DE]" />
+          <Leaf className="w-5 h-5 text-brand-strong" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-gray-800">Zamýšľané opatrenia pre MZI</h2>
@@ -54,7 +54,7 @@ export function Step5_BGOpatrenia({ bgOpatrenia, addBGOpatrenie, updateBGOpatren
           <button
             type="button"
             onClick={handleAdd}
-            className="px-4 py-2 text-sm font-medium text-[#52A8DE] border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 transition-colors"
           >
             Pridať opatrenie pre MZI
           </button>
