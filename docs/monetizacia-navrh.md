@@ -20,9 +20,9 @@ Ako čítať značky:
 > bezplatná natrvalo — čo už neplatí. Neposielať ďalej; je tam len ako záznam
 > východiskovej pozície.
 
-> **Termíny v tomto dokumente sú prekonané (stav k 2. 10. 2026).** Po piatich
-> prezentáciách sa na workshopy zapísalo 23 obcí z 315 a do aplikácie sa
-> prihlásili tri, preto je **platený štart zmrazený**.
+> **Termíny v tomto dokumente sú prekonané (stav k 12. 10. 2026).** Po piatich
+> prezentáciách bolo na workshopoch 27 obcí z 315 (zapísaných 33) a do aplikácie
+> sa prihlásili tri, preto je **platený štart zmrazený**.
 > Všetky dátumy v A.3 a v časti D — prechodné obdobie do 31. 12. 2026, platená
 > verzia od 1. 1. 2027, infraštruktúra do konca roka — čakajú na rozhodnutie
 > o novom termíne (krok M1 v `docs/validacia-dalsie-kroky.md`). Do dovtedy sa
@@ -389,9 +389,9 @@ Treba to povedať dopredu, aby to o rok nebolo prekvapenie: **prvý rok je o dô
 PLUS tomu dôkazu pomáha viac než základ — ochota priplatiť si za konkrétnu
 funkciu je oveľa silnejší signál než zaplatenie vstupného.
 
-> **Poznámka k B.11 (2. 10. 2026): predpoklad adopcie nemá oporu v dátach.**
-> K 30. 9. je v aplikácii 3 obce z 315 (1 %), na workshopy sa zapísalo 23
-> (7,3 %). Predpoklad 15 – 25 % v prvom roku (47 – 79 obcí) nepodporuje nič,
+> **Poznámka k B.11 (aktualizované 15. 10. 2026): predpoklad adopcie nemá oporu v dátach.**
+> K 30. 9. je v aplikácii 3 obce z 315 (1 %), na workshope bolo 27 (8,6 %;
+> pôvodne 23 zapísaných podľa staršieho zoznamu). Predpoklad 15 – 25 % v prvom roku (47 – 79 obcí) nepodporuje nič,
 > čo dnes meriame. Rovnomerne rozložená adopcia 15 – 25 % by pri návrhových
 > cenách dala asi 4 200 – 7 100 € za základ, nie 8 – 10 tisíc; vyššiu sumu
 > dostanete len vtedy, ak adoptujú nadpriemerne veľké obce. Ročný cieľ dosahu
