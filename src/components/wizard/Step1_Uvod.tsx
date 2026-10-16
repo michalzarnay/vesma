@@ -12,6 +12,7 @@ import { ComboboxInput } from '../ui/ComboboxInput';
 import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
+import { okresyObce, potrebujeVyberOkresu, predvyplnenieZObce } from '../../utils/obceSR';
 import { apiUrl } from '../../utils/apiUrl';
 import { NAZOV_KROKU_1 } from '../../types/wizard';
 import { checklistPripravy } from '../../utils/uvodChecklist';
@@ -75,6 +76,19 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
     }
     updateAreal(update);
   };
+
+  // Výber obce z registra predvyplní okres a kraj (podnety 99 a 100). Funkcia sa volá
+  // aj pri odchode z poľa s nezmenenou obcou, preto prepisuje len po skutočnej zmene.
+  const handleObecChange = (obec: string) => {
+    const predvyplnenie = isSlovak
+      ? predvyplnenieZObce(obec, { kraj: areal.kraj, okres: areal.okres }, obec !== areal.obec)
+      : {};
+    updateAreal({ obec, ...predvyplnenie });
+  };
+
+  const okresyObceVoViac = isSlovak && potrebujeVyberOkresu(areal.obec, areal.okres)
+    ? okresyObce(areal.obec).map((m) => m.okres)
+    : [];
 
   const handleFetchKlima = async () => {
     setFetchLoading(true);
@@ -269,7 +283,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           <ComboboxInput
             label="Obec"
             value={areal.obec}
-            onChange={(v) => updateAreal({ obec: v })}
+            onChange={handleObecChange}
             options={OBCE_SR}
             placeholder="napr. Likavka"
           />
@@ -280,6 +294,12 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
             onChange={(v) => updateAreal({ obec: v })}
             placeholder="napr. Ružomberok"
           />
+        )}
+
+        {okresyObceVoViac.length > 1 && (
+          <p className="text-sm text-gray-600" role="status">
+            Obec „{areal.obec}“ je vo viacerých okresoch ({okresyObceVoViac.join(', ')}). Vyberte nižšie okres.
+          </p>
         )}
 
         {/* Kraj + Okres */}
