@@ -104,7 +104,7 @@ napr. `Abrahamovce` bez dĺžňa, `Bratislava`), zo 79 okresov chýbajú **Priev
 
 ### Navrhované poradie (každý krok je samostatný PR)
 
-1. **Obce, okresy, kraje** → statický súbor + skript v `scripts/`, ktorý ho vyrobí z CSV
+1. **Obce, okresy, kraje** (hotové v PR #288, issue #287) → statický súbor + skript v `scripts/`, ktorý ho vyrobí z CSV
    (podnety 99 a 100). Bez externého volania, preto nič neodchádza z prehliadača.
    Pri 95 názvoch obcí, ktoré sú vo viacerých okresoch, sa okres nesmie hádať: používateľ si
    vyberie okres, alebo sa predvyplní až po jednoznačnej voľbe.
@@ -115,10 +115,10 @@ napr. `Abrahamovce` bez dĺžňa, `Bratislava`), zo 79 okresov chýbajú **Priev
 | # | Čo chýba | Kto / čo je potrebné | Stav | Čo bez toho nefunguje |
 |---|---|---|---|---|
 | R1 | Zdroj: odkaz na súbory, formát, licencia, hlavička a stĺpce | — | **overené 16. 10. 2026** (viď vyššie) | — |
-| R2 | Väzba obec → okres → kraj | — | **overené**: v súbore je v každom riadku (2 927 kombinácií). Ostáva len rozhodnutie, ako riešiť 95 názvov obcí vo viacerých okresoch | Podnet 99 sa dá spraviť, treba len dohodnúť správanie pri duplicitných názvoch (návrh: používateľ vyberie okres, predvyplnenie len pri jednoznačnej obci). |
+| R2 | Väzba obec → okres → kraj | — | **hotové v PR #288** (`src/data/obceSR.json`, skript `scripts/vyrob-ciselnik-obci.mjs`); väzba je v každom riadku zdroja: v súbore je v každom riadku (2 927 kombinácií). Ostáva len rozhodnutie, ako riešiť 95 názvov obcí vo viacerých okresoch | Podnet 99 sa dá spraviť, treba len dohodnúť správanie pri duplicitných názvoch (návrh: používateľ vyberie okres, predvyplnenie len pri jednoznačnej obci). |
 | R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe (Photon, serverová funkcia) a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | čaká | Platí len pre krok 3; kroky 1 a 2 so statickým súborom nič neodosielajú. Dnes už odchádza adresa do Photonu (OSM). Návrh textu je v PR #259. |
-| R4 | Rozhodnutie, ktoré súbory sa smú pridať do repozitára / nasadenia: 126 kB (obce) a 1,6 MB (ulice, po krajoch) | majiteľ | čaká | Určuje rozsah krokov 1 a 2. Licencia CC0 to dovoľuje bez uvedenia zdroja. |
-| R5 | Kto a ako často obnoví číselníky (dataset sa mení štvrťročne) | majiteľ | čaká | Návrh: skript v `scripts/`, spúšťaný ručne po každom vydaní, mesiac vydania uvedený v súbore. |
+| R4 | Rozhodnutie, ktoré súbory sa smú pridať do repozitára / nasadenia: 141 kB (obce) a asi 430 kB (ulice, po krajoch) | majiteľ | **súhlasil 16. 10. 2026** | Určuje rozsah krokov 1 a 2. Licencia CC0 to dovoľuje bez uvedenia zdroja. |
+| R5 | Kto a ako často obnoví číselníky (dataset sa mení štvrťročne) | majiteľ | **súhlasil 16. 10. 2026**: skript spúšťa ručne po každom vydaní | Návrh: skript v `scripts/`, spúšťaný ručne po každom vydaní, mesiac vydania uvedený v súbore. |
 
 ## Ako register používať
 
