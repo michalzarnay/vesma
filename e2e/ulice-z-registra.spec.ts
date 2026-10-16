@@ -41,12 +41,11 @@ test('v obci s ulicami sa ponúkajú ulice z registra a Photon sa nevolá', asyn
   expect(photon.pocet()).toBe(0);
 });
 
-test('v obci bez ulíc ostáva pôvodné správanie (návrhy z externej služby)', async ({ page }) => {
+test('ak obec nie je zvolená, platí pôvodné správanie (návrhy z externej služby)', async ({ page }) => {
   await openClean(page);
   const photon = pocitajPhoton(page);
-  await vyberObec(page, 'Likavka');
 
-  await page.getByPlaceholder('napr. Hlavná 15').fill('Hlavná');
+  await page.getByPlaceholder('napr. Hlavná 15').fill('Hlavná 15');
   await expect.poll(() => photon.pocet(), { timeout: 5000 }).toBeGreaterThan(0);
   await expect(page.getByText(/Register adries\)/)).toHaveCount(0);
 });
@@ -79,4 +78,39 @@ test('ulica s číslicou v názve (1.mája) sa ponúkne a číslo domu sa nerozr
   await ulica.press('Home');
   await ulica.press('End');
   await expect(ulica).toHaveValue('1.mája 7');
+});
+
+test('po výbere ulice sa ponúknu čísla domov, číslo sa vyberie a Photon sa nevolá', async ({ page }) => {
+  await openClean(page);
+  const photon = pocitajPhoton(page);
+  await vyberObec(page, 'Ružomberok');
+
+  const ulica = page.getByPlaceholder('napr. Hlavná 15');
+  await ulica.fill('Andr');
+  await page.getByRole('listitem').filter({ hasText: /^Andreja Hlinku$/ }).click();
+  await expect(ulica).toHaveValue('Andreja Hlinku ');
+
+  await expect(page.getByText('Čísla domov na ulici Andreja Hlinku, súpisné/orientačné (Register adries)')).toBeVisible();
+  await ulica.pressSequentially('12');
+  const navrh = page.getByRole('listitem').filter({ hasText: /^\d+\/12[A-Z]?$/ }).first();
+  const text = (await navrh.textContent()) ?? '';
+  await navrh.click();
+  await expect(ulica).toHaveValue(`Andreja Hlinku ${text}`);
+  await page.waitForTimeout(500);
+  expect(photon.pocet()).toBe(0);
+});
+
+test('v obci bez ulíc sa ponúknu čísla domov po zadaní číslice', async ({ page }) => {
+  await openClean(page);
+  const photon = pocitajPhoton(page);
+  await vyberObec(page, 'Likavka');
+
+  const ulica = page.getByPlaceholder('napr. Hlavná 15');
+  await ulica.fill('15');
+  await expect(page.getByText('Čísla domov v obci Likavka (Register adries)')).toBeVisible();
+  const navrh = page.getByRole('listitem').filter({ hasText: /^15\d?$/ }).first();
+  await navrh.click();
+  await expect(ulica).toHaveValue(/^15\d?$/);
+  await page.waitForTimeout(500);
+  expect(photon.pocet()).toBe(0);
 });

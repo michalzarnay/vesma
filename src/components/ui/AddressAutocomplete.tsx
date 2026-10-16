@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { KRAJE, OKRESY_BY_KRAJ } from '../../data/slovakLocations';
 import { FeedbackButton } from './FeedbackButton';
-import { dosadUlicu, navrhyUlic } from '../../utils/uliceSR';
+import { dosadUlicu } from '../../utils/uliceSR';
+import { lokalneNavrhy as navrhyZRegistra, type AdresyObce } from '../../utils/adresySR';
 
 interface AddressAutocompleteProps {
   value: string;
@@ -17,7 +18,9 @@ interface AddressAutocompleteProps {
    * neodchádza. Bez nich (obec nie je zvolená alebo nemá ulice) platí pôvodné správanie.
    */
   lokalneUlice?: string[] | null;
-  /** Obec, ku ktorej patria `lokalneUlice` (len na popis nad návrhmi). */
+  /** Čísla domov zvolenej obce z Registra adries (súbor z nášho servera). */
+  lokalneAdresy?: AdresyObce | null;
+  /** Obec, ku ktorej patria ulice a čísla (len na popis nad návrhmi). */
   obecUlic?: string;
 }
 
@@ -88,6 +91,13 @@ function featureToResult(f: PhotonFeature): PhotonResult {
 const inputClasses =
   'w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none';
 
+function nadpisLokalnych(druh: 'ulice' | 'cisla', ulica: string, obec: string): string {
+  if (druh === 'ulice') return `Ulice v obci ${obec}`;
+  return ulica
+    ? `Čísla domov na ulici ${ulica}, súpisné/orientačné`
+    : `Čísla domov v obci ${obec}`;
+}
+
 export function AddressAutocomplete({
   value,
   onChange,
@@ -96,6 +106,7 @@ export function AddressAutocomplete({
   placeholder,
   label,
   lokalneUlice = null,
+  lokalneAdresy = null,
   obecUlic = '',
 }: AddressAutocompleteProps) {
   const [results, setResults] = useState<PhotonResult[]>([]);
@@ -106,9 +117,11 @@ export function AddressAutocomplete({
 
   // If no supported countryCode, render plain input
   const isSupported = countryCode === 'sk' || countryCode === 'cz';
-  const lokalnyRezim = lokalneUlice !== null && lokalneUlice.length > 0;
+  const lokalnyRezim =
+    (lokalneUlice !== null && lokalneUlice.length > 0) ||
+    (lokalneAdresy !== null && Object.keys(lokalneAdresy).length > 0);
   const [lokalneOtvorene, setLokalneOtvorene] = useState(false);
-  const lokalneNavrhy = lokalnyRezim ? navrhyUlic(lokalneUlice, value) : [];
+  const lokalneNavrhy = lokalnyRezim ? navrhyZRegistra(value, lokalneUlice ?? [], lokalneAdresy) : null;
 
   const fetchResults = useCallback(async (query: string) => {
     if (abortRef.current) abortRef.current.abort();
@@ -180,11 +193,18 @@ export function AddressAutocomplete({
   }, []);
 
   const handleSelectLokalna = useCallback(
-    (ulica: string) => {
-      onChange(dosadUlicu(value, ulica, lokalneUlice ?? []));
-      setLokalneOtvorene(false);
+    (polozka: string) => {
+      if (lokalneNavrhy?.druh === 'cisla') {
+        onChange(`${lokalneNavrhy.ulica} ${polozka}`.trim());
+        setLokalneOtvorene(false);
+      } else {
+        const ulice = lokalneUlice ?? Object.keys(lokalneAdresy ?? {}).filter((k) => k !== '');
+        onChange(dosadUlicu(value, polozka, ulice));
+        // Po výbere ulice zoznam ostane otvorený: ponúkne sa číslo domu.
+        setLokalneOtvorene(true);
+      }
     },
-    [onChange, value, lokalneUlice],
+    [onChange, value, lokalneUlice, lokalneAdresy, lokalneNavrhy],
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -217,22 +237,22 @@ export function AddressAutocomplete({
           </div>
         )}
       </div>
-      {lokalnyRezim && lokalneOtvorene && lokalneNavrhy.length > 0 && (
+      {lokalnyRezim && lokalneOtvorene && lokalneNavrhy !== null && (
         <ul
           className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
-          aria-label={obecUlic ? `Ulice v obci ${obecUlic}` : 'Ulice v obci'}
+          aria-label={nadpisLokalnych(lokalneNavrhy.druh, lokalneNavrhy.ulica, obecUlic)}
         >
           <li className="px-3 pt-2 pb-1 text-xs text-gray-600" aria-hidden="true">
-            Ulice v obci {obecUlic} (Register adries)
+            {nadpisLokalnych(lokalneNavrhy.druh, lokalneNavrhy.ulica, obecUlic)} (Register adries)
           </li>
-          {lokalneNavrhy.map((ulica) => (
+          {lokalneNavrhy.polozky.map((polozka) => (
             <li
-              key={ulica}
+              key={polozka}
               className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
-              onClick={() => handleSelectLokalna(ulica)}
+              onClick={() => handleSelectLokalna(polozka)}
             >
-              {ulica}
+              {polozka}
             </li>
           ))}
         </ul>

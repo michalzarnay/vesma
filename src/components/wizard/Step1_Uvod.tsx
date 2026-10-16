@@ -14,6 +14,7 @@ import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
 import { okresyObce, potrebujeVyberOkresu, predvyplnenieZObce } from '../../utils/obceSR';
 import { useUliceObce } from '../../hooks/useUliceObce';
+import { useAdresyObce } from '../../hooks/useAdresyObce';
 import { apiUrl } from '../../utils/apiUrl';
 import { NAZOV_KROKU_1 } from '../../types/wizard';
 import { checklistPripravy } from '../../utils/uvodChecklist';
@@ -88,6 +89,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
   };
 
   const uliceObce = useUliceObce(isSlovak, areal.obec, areal.okres);
+  const adresyObce = useAdresyObce(isSlovak, areal.obec, areal.okres);
 
   const okresyObceVoViac = isSlovak && potrebujeVyberOkresu(areal.obec, areal.okres)
     ? okresyObce(areal.obec).map((m) => m.okres)
@@ -280,6 +282,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           countryCode={photonCountryCode}
           placeholder="napr. Hlavná 15"
           lokalneUlice={uliceObce}
+          lokalneAdresy={adresyObce}
           obecUlic={areal.obec}
         />
 
