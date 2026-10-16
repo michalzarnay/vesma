@@ -36,7 +36,7 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
     <div className="space-y-4">
       <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
         <div className="w-10 h-10 bg-[#2196F3]/10 rounded-xl flex items-center justify-center">
-          <Home className="w-5 h-5 text-brand-strong" />
+          <Home className="w-5 h-5 text-brand-ink" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-gray-800">Budovy</h2>

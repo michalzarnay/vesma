@@ -46,8 +46,8 @@ export function SelectCard({
               aria-pressed={isSelected}
               className={`flex-1 min-w-[80px] flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-sm text-left transition-all
                 ${isSelected
-                  ? 'border-[#52A8DE] bg-[#52A8DE]/5 text-brand-strong font-medium shadow-sm ring-1 ring-[#52A8DE]'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                  ? 'border-[#52A8DE] bg-[#52A8DE]/5 text-brand-ink font-medium shadow-sm ring-1 ring-[#52A8DE]'
+                  : 'border-gray-200 bg-surface text-gray-600 hover:border-gray-300'
                 }`}
             >
               {/* Indikátor výberu nezávislý od farby: vyplnený kruh s fajkou vs. prázdny kruh (podnet č. 96). */}
@@ -55,7 +55,7 @@ export function SelectCard({
                 aria-hidden="true"
                 data-vybrane={isSelected ? 'true' : 'false'}
                 className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2
-                  ${isSelected ? 'border-[#52A8DE] bg-brand-strong text-white' : 'border-gray-400 bg-white'}`}
+                  ${isSelected ? 'border-[#52A8DE] bg-brand-strong text-white' : 'border-gray-400 bg-surface'}`}
               >
                 {isSelected && <Check className="h-3 w-3" strokeWidth={4} />}
               </span>

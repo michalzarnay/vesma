@@ -138,7 +138,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         <div className="text-center space-y-2">
           <div className="relative w-16 h-16 mx-auto">
             <div className="w-16 h-16 bg-[#52A8DE]/10 rounded-full flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-brand-strong" />
+              <Building2 className="w-8 h-8 text-brand-ink" />
             </div>
             <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#FBBB4B]" aria-hidden="true" />
           </div>
@@ -154,7 +154,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       <section className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4" aria-labelledby="uvod-priprava">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Info className="w-5 h-5 text-brand-strong flex-shrink-0" />
+            <Info className="w-5 h-5 text-brand-ink flex-shrink-0" />
             <h3 id="uvod-priprava" className="text-base font-bold text-gray-800">Čo si pripraviť</h3>
           </div>
           {PRIRUCKA_URL && (
@@ -163,7 +163,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
               target="_blank"
               rel="noopener noreferrer"
               title="Príručka VESMA (otvorí sa v novej karte)"
-              className="flex items-center gap-1.5 text-xs font-medium text-brand-strong hover:underline flex-shrink-0"
+              className="flex items-center gap-1.5 text-xs font-medium text-brand-ink hover:underline flex-shrink-0"
             >
               <BookOpen className="w-3.5 h-3.5" />
               Príručka
@@ -204,7 +204,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       {/* Form */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-brand-strong" />
+          <FileText className="w-4 h-4 text-brand-ink" />
           <h3 className="text-base font-bold text-gray-800">Základné údaje o areáli</h3>
         </div>
         <TextInput
@@ -371,7 +371,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
               type="button"
               onClick={handleFetchKlima}
               disabled={fetchLoading || (!areal.adresa && !areal.obec)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-ink border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               title="Načíta priemerné zrážky (Open-Meteo) a potenciál slnečného svitu (PVGIS) pre polohu určenú adresou a obcou vyššie"
             >
               {fetchLoading
@@ -451,7 +451,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       {/* Záznam z obhliadky */}
       <div className="space-y-4 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-brand-strong" />
+          <ClipboardList className="w-4 h-4 text-brand-ink" />
           <h3 className="text-base font-bold text-gray-800">Záznam z obhliadky</h3>
         </div>
         <div className={`grid grid-cols-1 ${showOrganizacia ? 'sm:grid-cols-2' : ''} gap-4`}>
@@ -520,7 +520,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       {/* Foto a video materiál */}
       <div className="space-y-3 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <Camera className="w-4 h-4 text-brand-strong" />
+          <Camera className="w-4 h-4 text-brand-ink" />
           <h3 className="text-base font-bold text-gray-800">Foto a video materiál</h3>
           <span className="text-xs text-gray-400">(terénny prieskum)</span>
         </div>
@@ -538,7 +538,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
 
       {/* Info box */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex gap-3">
-        <MapPin className="w-5 h-5 text-brand-strong flex-shrink-0 mt-0.5" />
+        <MapPin className="w-5 h-5 text-brand-ink flex-shrink-0 mt-0.5" />
         <div className="text-sm text-gray-700">
           <p className="font-medium">V ďalších krokoch budete postupne zadávať:</p>
           <ul className="mt-1 list-disc list-inside text-xs space-y-0.5">

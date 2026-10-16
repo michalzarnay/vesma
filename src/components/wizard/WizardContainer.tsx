@@ -246,7 +246,7 @@ export function WizardContainer() {
           onZavriet={() => setZavretaPripomienkaPre(arealState.areal.id)}
           onPrejstNaBudovy={() => prejstNaKrok(3)}
         />
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="bg-surface rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           {renderStep()}
           <StepNavigation
             currentStep={wizard.currentStep}

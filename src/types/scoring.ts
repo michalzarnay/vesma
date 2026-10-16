@@ -209,3 +209,13 @@ export function getScoreLevel(score: number): ScoreLevelInfo {
   if (score <= 85) return { level: 'zelena', color: '#16A34A', bgColor: '#F0FDF4', label: 'Veľmi dobrý stav' };
   return { level: 'tmavaZelena', color: '#166534', bgColor: '#DCFCE7', label: 'Vynikajúci stav' };
 }
+
+/**
+ * Farba úrovne skóre pre obrazovku – CSS premenná zo `src/index.css`, ktorá sa
+ * v tmavom režime zosvetlí (tmavozelená #166534 by na tmavom pozadí zanikla).
+ * Vo svetlom režime je zhodná s `getScoreLevel().color`; PDF export používa
+ * priamo `color`.
+ */
+export function farbaUrovneNaObrazovke(level: ScoreLevel): string {
+  return `var(--skore-${level})`;
+}

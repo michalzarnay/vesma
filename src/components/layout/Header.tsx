@@ -1,9 +1,11 @@
-import { BookOpen, Leaf, MoreHorizontal } from 'lucide-react';
+import { BookOpen, Leaf, Monitor, Moon, MoreHorizontal, Sun, type LucideIcon } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { WIZARD_STEPS } from '../../types/wizard';
 import { APP_VERSION } from '../../version';
 import { jeTestovaciKanal } from '../../utils/kanalNasadenia';
 import { nazovKrokuNaMobile, DOTYK_MOBIL } from '../../utils/nazovKrokuMobil';
+import { useTema } from '../../hooks/useTema';
+import { VOLBY_TEMY, type VolbaTemy } from '../../utils/tema';
 
 interface HeaderProps {
   progress: number;
@@ -27,9 +29,12 @@ interface HeaderProps {
 /** Adresa online Príručky (issue #237) — bez nej sa odkaz v hlavičke neukáže. */
 const PRIRUCKA_URL: string = import.meta.env.VITE_PRIRUCKA_URL ?? '';
 
+const IKONY_TEMY: Record<VolbaTemy, LucideIcon> = { svetly: Sun, tmavy: Moon, auto: Monitor };
+
 export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraActions, menuActions, nazovArealu, stepTooltips }: HeaderProps) {
   const test = jeTestovaciKanal();
   const [menuOtvorene, setMenuOtvorene] = useState(false);
+  const [volbaTemy, nastavTemu] = useTema();
   const menuRef = useRef<HTMLDivElement>(null);
   const nazov = nazovArealu?.trim() ?? '';
 
@@ -51,7 +56,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
   }, [menuOtvorene]);
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="bg-surface border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-4xl mx-auto px-4 py-3 space-y-2">
         {/* Top row */}
         <div className="flex items-center justify-between gap-2">
@@ -63,7 +68,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               <h1 className="text-sm font-bold text-gray-800 leading-tight">VESMA <span className="font-normal text-gray-400">{test ? 'Test ' : ''}{APP_VERSION}</span></h1>
               {/* Kým areál nemá názov, zostáva na riadku podtitul aplikácie. */}
               {nazov ? (
-                <p className="text-xs font-medium text-brand-strong truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
+                <p className="text-xs font-medium text-brand-ink truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
               ) : (
                 <p className="text-xs text-gray-500 hidden sm:block">Voda a energia – sprievodca mapovaním areálov</p>
               )}
@@ -85,7 +90,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               </button>
               {menuOtvorene && (
                 <div
-                  className="absolute right-0 mt-1 w-60 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-1 flex flex-col gap-0.5"
+                  className="absolute right-0 mt-1 w-60 z-50 bg-surface border border-gray-200 rounded-xl shadow-lg p-1 flex flex-col gap-0.5"
                   onClick={() => setMenuOtvorene(false)}
                 >
                   {PRIRUCKA_URL && (
@@ -101,6 +106,34 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                     </a>
                   )}
                   {menuActions}
+                  {/* Vzhľad (docs/tmavy-rezim.md) — Auto sa riadi systémom/prehliadačom. */}
+                  <div className="border-t border-gray-100 mt-0.5 pt-1.5 px-3 pb-1">
+                    <p id="vzhlad-nadpis" className="text-xs text-gray-500 mb-1">Vzhľad</p>
+                    <div role="radiogroup" aria-labelledby="vzhlad-nadpis" className="grid grid-cols-3 gap-1" data-testid="volba-vzhladu">
+                      {VOLBY_TEMY.map(({ hodnota, nazov, popis }) => {
+                        const Ikona = IKONY_TEMY[hodnota];
+                        const zvolena = volbaTemy === hodnota;
+                        return (
+                          <button
+                            key={hodnota}
+                            type="button"
+                            role="radio"
+                            aria-checked={zvolena}
+                            title={popis}
+                            onClick={() => nastavTemu(hodnota)}
+                            className={`flex flex-col items-center gap-0.5 px-1 py-1.5 ${DOTYK_MOBIL} text-xs font-medium rounded-lg border transition-colors ${
+                              zvolena
+                                ? 'border-[#52A8DE] bg-[#52A8DE]/10 text-brand-ink'
+                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Ikona className="w-3.5 h-3.5" aria-hidden="true" />
+                            <span>{nazov}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -123,7 +156,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                     ${isActive
                       ? 'bg-brand-strong text-white cursor-default'
                       : isVisited
-                        ? 'bg-[#52A8DE]/10 text-brand-strong hover:bg-[#52A8DE]/20 cursor-pointer'
+                        ? 'bg-[#52A8DE]/10 text-brand-ink hover:bg-[#52A8DE]/20 cursor-pointer'
                         : 'bg-gray-100 text-gray-400 cursor-default'
                     }`}
                 >
@@ -139,7 +172,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
         </div>
 
         {/* Mobil: v páse sú len čísla, preto názov aktuálneho kroku zvlášť (podnet 93). */}
-        <p className="sm:hidden text-xs font-semibold text-brand-strong" data-testid="nazov-kroku-mobil" aria-live="polite">
+        <p className="sm:hidden text-xs font-semibold text-brand-ink" data-testid="nazov-kroku-mobil" aria-live="polite">
           {nazovKrokuNaMobile(currentStep)}
         </p>
 

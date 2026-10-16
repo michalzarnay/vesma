@@ -122,7 +122,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => zavri()} />
 
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Hlavička */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-800">Správa relácií</h2>
@@ -138,7 +138,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                 onClick={() => setRezim('ulozit')}
                 aria-current={rezim === 'ulozit' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'ulozit' ? 'text-brand-strong border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'ulozit' ? 'text-brand-ink border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <Save className="w-4 h-4 inline mr-1.5" />
@@ -149,7 +149,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                 onClick={() => setRezim('nacitat')}
                 aria-current={rezim === 'nacitat' ? 'true' : undefined}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                  rezim === 'nacitat' ? 'text-brand-strong border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
+                  rezim === 'nacitat' ? 'text-brand-ink border-b-2 border-[#52A8DE] font-bold' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <FolderOpen className="w-4 h-4 inline mr-1.5" />
@@ -202,7 +202,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                   )}
 
                   {chyba && <p className="text-sm text-red-600">{chyba}</p>}
-                  {potvrdenie && <p className="text-sm text-brand-strong">{potvrdenie}</p>}
+                  {potvrdenie && <p className="text-sm text-brand-ink">{potvrdenie}</p>}
 
                   <button
                     type="button"
@@ -218,7 +218,7 @@ export function SessionManager({ areal, onLoad, onNew, isDirty, onSaved, ovladan
                     <button
                       type="button"
                       onClick={() => importRef.current?.click()}
-                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-strong transition-colors"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-ink transition-colors"
                     >
                       <Upload className="w-4 h-4" />
                       Importovať zo súboru…
@@ -301,7 +301,7 @@ function SessionKarta({
         title={zvyraznena ? 'Zodpovedá aktuálne otvorenému areálu' : undefined}
         className="w-full flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
       >
-        <FolderOpen className="w-4 h-4 text-brand-strong flex-shrink-0 mt-0.5" />
+        <FolderOpen className="w-4 h-4 text-brand-ink flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className={`text-sm text-gray-800 truncate ${zvyraznena ? 'font-bold' : 'font-medium'}`}>{session.nazov}</p>
           <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
@@ -327,7 +327,7 @@ function SessionKarta({
           <button
             type="button"
             onClick={onNacitat}
-            className="flex items-center gap-1 text-xs text-brand-strong hover:underline"
+            className="flex items-center gap-1 text-xs text-brand-ink hover:underline"
           >
             <FolderOpen className="w-3 h-3" />
             Načítať

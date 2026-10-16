@@ -20,7 +20,7 @@ export function VypocetDialog({ vysvetlenie, onClose }: VypocetDialogProps) {
       aria-modal="true"
       aria-label={`Výpočet – ${vysvetlenie.nadpis}`}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
         <div className="flex items-start justify-between gap-3 p-5 pb-3">
           <div>
             <h3 className="text-sm font-semibold text-gray-800">{vysvetlenie.nadpis}</h3>

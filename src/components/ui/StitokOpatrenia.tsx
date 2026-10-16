@@ -14,9 +14,9 @@ const IKONY: Record<IkonaStitku, LucideIcon> = {
 // Palety sa nekryjú (červená/oranžová/sivá vs. zelená/modrá/fialová) — a aj tak
 // štítky odlišuje text, tvar a ikona, nie farba (pozri utils/stitkyOpatreni.ts).
 const TRIEDY_FARBY: Record<string, string> = {
-  cervena: 'bg-red-600 text-white',
-  oranzova: 'bg-orange-700 text-white',
-  siva: 'bg-gray-500 text-white',
+  cervena: 'bg-pevna-red-600 text-white',
+  oranzova: 'bg-pevna-orange-700 text-white',
+  siva: 'bg-pevna-gray-500 text-white',
   zelena: 'border-green-700 text-green-800',
   modra: 'border-sky-700 text-sky-800',
   fialova: 'border-violet-700 text-violet-800',
@@ -26,7 +26,7 @@ export function StitokOpatrenia({ stitok }: { stitok: Stitok }) {
   const Ikona = IKONY[stitok.ikona];
   const tvar = stitok.tvar === 'pilulka'
     ? 'rounded-full px-2 py-0.5 font-semibold'
-    : 'rounded-md border bg-white px-1.5 py-0.5 font-medium';
+    : 'rounded-md border bg-surface px-1.5 py-0.5 font-medium';
   return (
     <span
       title={stitok.popis}

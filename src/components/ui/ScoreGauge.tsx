@@ -1,4 +1,4 @@
-import { getScoreLevel } from '../../types/scoring';
+import { farbaUrovneNaObrazovke, getScoreLevel } from '../../types/scoring';
 
 interface ScoreGaugeProps {
   score: number;
@@ -7,7 +7,8 @@ interface ScoreGaugeProps {
 }
 
 export function ScoreGauge({ score, label, size = 'md' }: ScoreGaugeProps) {
-  const { color, label: levelLabel } = getScoreLevel(score);
+  const { level, label: levelLabel } = getScoreLevel(score);
+  const color = farbaUrovneNaObrazovke(level);
 
   const dimensions = {
     sm: { width: 100, height: 100, strokeWidth: 8, fontSize: 'text-lg', labelSize: 'text-xs' },
@@ -27,7 +28,7 @@ export function ScoreGauge({ score, label, size = 'md' }: ScoreGaugeProps) {
         <path
           d={`M ${d.strokeWidth / 2} ${d.width / 2} A ${radius} ${radius} 0 0 1 ${d.width - d.strokeWidth / 2} ${d.width / 2}`}
           fill="none"
-          stroke="#E5E7EB"
+          stroke="var(--color-gray-200)"
           strokeWidth={d.strokeWidth}
           strokeLinecap="round"
         />
@@ -57,7 +58,7 @@ export function ScoreGauge({ score, label, size = 'md' }: ScoreGaugeProps) {
           y={d.width / 2 + 15}
           textAnchor="middle"
           className="text-xs"
-          fill="#6B7280"
+          fill="var(--color-gray-400)"
         >
           zo 100
         </text>

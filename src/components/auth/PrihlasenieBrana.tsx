@@ -151,7 +151,7 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" data-testid="brana">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+      <div className="w-full max-w-md bg-surface rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#52A8DE] rounded-xl flex items-center justify-center flex-shrink-0">
             <Leaf className="w-6 h-6 text-white" />
@@ -174,7 +174,7 @@ export function PrihlasenieBrana({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setStav({ typ: 'formular' })}
-              className="text-xs text-brand-strong hover:underline"
+              className="text-xs text-brand-ink hover:underline"
             >
               Poslať na inú adresu
             </button>
@@ -249,7 +249,7 @@ function ZalohaZTejtoAdresy() {
       <button
         type="button"
         onClick={() => zaloha.forEach(stiahniSessionAkoJson)}
-        className="flex items-center gap-2 text-xs font-medium text-brand-strong hover:underline"
+        className="flex items-center gap-2 text-xs font-medium text-brand-ink hover:underline"
       >
         <Download className="w-4 h-4" />
         Stiahnuť ako {zaloha.length === 1 ? 'súbor' : 'súbory'} JSON

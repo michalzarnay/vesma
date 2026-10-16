@@ -24,6 +24,166 @@
      textom sa používa tmavšia varianta; pôvodná ostáva pre okraje,
      zvýraznenie fokusu a dekoratívne prvky. */
   --color-brand-strong: #356d90;
+
+  /* Tmavý režim (docs/tmavy-rezim.md) – tokeny, ktoré sa medzi režimami líšia
+     alebo naopak meniť nesmú. Vo svetlom režime majú presne pôvodné hodnoty,
+     takže svetlý vzhľad ostáva bez zmeny. */
+
+  /* Plocha kariet, hlavičky, dialógov a polí (pôvodne bg-white). Na rozdiel
+     od --color-white sa v tmavom režime mení; biela ostáva pre biely text
+     na farebných tlačidlách. */
+  --color-surface: #ffffff;
+
+  /* Značková modrá pre TEXT (text-brand-ink). V tmavom režime je svetlejšia.
+     brand-strong ostáva pre plochy s bielym textom a v oboch režimoch je
+     rovnaká. */
+  --color-brand-ink: #356d90;
+
+  /* Plné farebné plochy s bielym textom (štítky, tlačidlá). Odtiene red-600
+     a pod. sa v tmavom režime zosvetľujú pre text, biely text na nich by bol
+     nečitateľný – preto majú vlastné, nemenné tokeny. */
+  --color-pevna-red-600: #e7000b;
+  --color-pevna-red-700: #c10007;
+  --color-pevna-orange-700: #ca3500;
+  --color-pevna-gray-500: #4f5a69;
+  --color-pevna-purple-600: #9810fa;
+  --color-pevna-purple-700: #8200db;
+}
+
+/*
+ * Farby úrovní skóre na obrazovke (ScoreGauge, pruhy vo výsledkoch). Svetlé
+ * hodnoty sú tie isté ako v getScoreLevel() (src/types/scoring.ts), ktoré
+ * používa aj PDF export; test kontrast.test.ts stráži, že sa nerozídu.
+ */
+:root {
+  --skore-cervena: #DC2626;
+  --skore-oranzova: #EA580C;
+  --skore-zlta: #CA8A04;
+  --skore-zelena: #16A34A;
+  --skore-tmavaZelena: #166534;
+  color-scheme: light;
+}
+
+/*
+ * TMAVÝ REŽIM – <html data-theme="dark"> nastavuje skript v index.html
+ * (ešte pred vykreslením, aby stránka nezablikla) a src/utils/tema.ts.
+ *
+ * Paleta sa prestaví cez CSS premenné, nie cez dark: varianty pri každej
+ * triede: sivé a farebné odtiene sa „otočia" – nízke čísla (50–300, plochy
+ * a okraje) sú tmavé, vysoké (400–900, text a ikony) svetlé. Dvojica
+ * text-red-700 na bg-red-50 tak ostáva čitateľná v oboch režimoch.
+ * Kontrast hodnôt nižšie strážia testy v src/utils/__tests__/kontrast.test.ts.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-surface: #1b2433;
+  --color-brand-ink: #7cc0ea;
+
+  --color-gray-50: #111827;
+  --color-gray-100: #243042;
+  --color-gray-200: #2f3b4e;
+  --color-gray-300: #465369;
+  --color-gray-400: #99a3b4;
+  --color-gray-500: #aab3c2;
+  --color-gray-600: #bdc4cf;
+  --color-gray-700: #d1d5dc;
+  --color-gray-800: #e5e7eb;
+  --color-gray-900: #f3f4f6;
+
+  --color-red-50: #3a2533;
+  --color-red-100: #512634;
+  --color-red-200: #6c2734;
+  --color-red-300: #8b2835;
+  --color-red-400: #ff6467;
+  --color-red-500: #ffa2a2;
+  --color-red-600: #ffa2a2;
+  --color-red-700: #ffa2a2;
+  --color-red-800: #ffc9c9;
+  --color-red-900: #ffe2e2;
+
+  --color-orange-50: #3b2e2c;
+  --color-orange-100: #523527;
+  --color-orange-200: #6d3d21;
+  --color-orange-300: #8d471a;
+  --color-orange-400: #ff8904;
+  --color-orange-500: #ffb86a;
+  --color-orange-600: #ffb86a;
+  --color-orange-700: #ffb86a;
+  --color-orange-800: #ffd6a7;
+  --color-orange-900: #ffedd4;
+
+  --color-amber-50: #3b352c;
+  --color-amber-100: #514027;
+  --color-amber-200: #6d4e21;
+  --color-amber-300: #8d5f1a;
+  --color-amber-400: #ffb900;
+  --color-amber-500: #ffd230;
+  --color-amber-600: #ffd230;
+  --color-amber-700: #ffd230;
+  --color-amber-800: #fee685;
+  --color-amber-900: #fef3c6;
+
+  --color-green-50: #173b37;
+  --color-green-100: #154c3a;
+  --color-green-200: #115f3d;
+  --color-green-300: #0e7742;
+  --color-green-400: #05df72;
+  --color-green-500: #7bf1a8;
+  --color-green-600: #7bf1a8;
+  --color-green-700: #7bf1a8;
+  --color-green-800: #b9f8cf;
+  --color-green-900: #dcfce7;
+
+  --color-sky-50: #17364e;
+  --color-sky-100: #154361;
+  --color-sky-200: #115378;
+  --color-sky-300: #0e6594;
+  --color-sky-400: #00bcff;
+  --color-sky-500: #74d4ff;
+  --color-sky-600: #74d4ff;
+  --color-sky-700: #74d4ff;
+  --color-sky-800: #b8e6fe;
+  --color-sky-900: #dff2fe;
+
+  --color-blue-50: #1d3150;
+  --color-blue-100: #1f3a64;
+  --color-blue-200: #21457c;
+  --color-blue-300: #235299;
+  --color-blue-400: #51a2ff;
+  --color-blue-500: #8ec5ff;
+  --color-blue-600: #8ec5ff;
+  --color-blue-700: #8ec5ff;
+  --color-blue-800: #bedbff;
+  --color-blue-900: #dbeafe;
+
+  --color-violet-50: #2b2a50;
+  --color-violet-100: #372f64;
+  --color-violet-200: #44347c;
+  --color-violet-300: #553b99;
+  --color-violet-400: #a684ff;
+  --color-violet-500: #c4b4ff;
+  --color-violet-600: #c4b4ff;
+  --color-violet-700: #c4b4ff;
+  --color-violet-800: #ddd6ff;
+  --color-violet-900: #ede9fe;
+
+  --color-purple-50: #2f2950;
+  --color-purple-100: #3e2c64;
+  --color-purple-200: #50307c;
+  --color-purple-300: #643599;
+  --color-purple-400: #c27aff;
+  --color-purple-500: #dab2ff;
+  --color-purple-600: #dab2ff;
+  --color-purple-700: #dab2ff;
+  --color-purple-800: #e9d4ff;
+  --color-purple-900: #f3e8ff;
+
+  --skore-cervena: #f87171;
+  --skore-oranzova: #fb923c;
+  --skore-zlta: #facc15;
+  --skore-zelena: #4ade80;
+  --skore-tmavaZelena: #22c55e;
 }
 
 body {
@@ -33,6 +193,11 @@ body {
   font-size: 1rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme='dark'] body {
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
 }
 
 /* Predvolený placeholder v Tailwinde je currentColor na 50 % (príliš bledý). */
