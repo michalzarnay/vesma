@@ -56,7 +56,7 @@ describe('spracujCsv – číselník obec → okres → kraj', () => {
   });
 
   it('zvládne BOM na začiatku súboru', () => {
-    const text = `﻿${HLAVICKA}\n${riadok('Trnavský', 'Galanta', 'Galanta')}`;
+    const text = `\uFEFF${HLAVICKA}\n${riadok('Trnavský', 'Galanta', 'Galanta')}`;
     expect(spracujCsv(text).trojice.size).toBe(1);
   });
 
