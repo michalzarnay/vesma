@@ -9,6 +9,7 @@ import { PDFUploadButton } from '../../ui/PDFUploadButton';
 import { ParsedDocument } from '../../../utils/pdfParser';
 import { mapujeEnergiu, mapujeVodu } from '../../../utils/rozsahMapovania';
 import { useRozsah } from '../../../hooks/useRozsah';
+import { InfoBlok } from '../../ui/InfoBlok';
 
 interface PozemokFormProps {
   pozemok: Pozemok;
@@ -79,10 +80,10 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
           />
         </div>
         {/* Nápoveda k rozhodnutiu, kam zaradiť parcelu (pozri issue #37). */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 space-y-1">
+        <InfoBlok className="space-y-1">
           <p>Pozor: pozemok (parcela) <strong>nezahŕňa</strong> zastavanú plochu budov. Údaje o budovách zadajte v kroku Budovy.</p>
           <p>Parcela len so stavbou sem <strong>nepatrí</strong> — zadajte ju len medzi Budovy. Ak je na parcele budova aj nezastavaný pozemok, zaraďte ju tam, kde prevažuje dominantné využitie.</p>
-        </div>
+        </InfoBlok>
         <TextInput
           label="Členitosť terénu"
           value={pozemok.clenitosTerenu}
@@ -277,11 +278,11 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
           unit="m²"
           tooltipText="Nezatienená, nevyužívaná časť pozemku (napr. nevyužitá lúka, plocha pri hospodárskych objektoch), na ktorú by sa dali umiestniť fotovoltické panely alebo solárne kolektory. Do porovnania areálov vstupuje s nízkou váhou 3."
         />
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800">
+        <InfoBlok>
           <strong>Upozornenie:</strong> umiestňovanie fotovoltických elektrární a solárnych kolektorov na zelených
           plochách je otvorená regulačná téma – možnosti sa môžu meniť podľa legislatívy a územného plánu.
           Zadanú plochu berte ako orientačný, nie záväzný potenciál.
-        </div>
+        </InfoBlok>
       </div>
       )}
 
