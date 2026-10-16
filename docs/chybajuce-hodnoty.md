@@ -50,17 +50,75 @@ podľa metodiky KLIMASKEN zaviedol #212, podklad #214.
 | M7 | Váha delenej zrážkovej kanalizácie oproti jednotnej | `src/data/comparisonWeights.ts` | čaká | Otvorené rozhodnutie z revízie MZI. |
 | M8 | Ceny a návratnosť troch opatrení pre pravidelne obrábanú pôdu (mulčovanie, krycie plodiny, obmedzenie orby) | zatiaľ nie sú v kóde — návrh v [#200](https://github.com/michalzarnay/vesma/issues/200) | čaká | Bez potvrdených cien sa opatrenia do katalógu nepridajú, takže VESMA pri obrábanej pôde zníži skóre, ale nepovie, čo s ňou. Otvorené je aj to, čo pri nich znamená „návratnosť" (je skôr agronomická), či zaradiť aj vetrolam a prahy 50 m² / 500 m². |
 
-## Register adries SR — čaká na overenie zdroja a rozhodnutie majiteľa
+## Register adries SR — zdroj overený, čaká na rozhodnutie majiteľa
 
 Podnety č. 13 (#127), 98 a 99: výber adresy areálu z registra adries a predvyplnenie
-obce, okresu a kraja. Majiteľ rozhodol ísť do registra. Zdroj sa však z prostredia,
-kde vznikol tento PR, nedal overiť (žiadny výstup na internet), preto sa nič neimplementovalo.
+obce, okresu a kraja. Majiteľ rozhodol ísť do registra. Zdroj bol overený 16. 10. 2026
+(postup a čísla nižšie); implementácia ešte nezačala.
+
+### Overený zdroj
+
+Dataset **Adresy podľa krajov (csv)**, Ministerstvo vnútra SR, v katalógu
+data.slovensko.sk / data.gov.sk: `b27f57f1-7e76-45e0-8968-631f9176b2e9`
+(`https://data.gov.sk/set/b27f57f1-7e76-45e0-8968-631f9176b2e9`).
+
+- **Licencia: CC0 1.0** (verejná doména) pri všetkých distribúciách, bez povinnosti uviesť zdroj.
+- **Aktualizácia:** štvrťročne. Názvy súborov nesú mesiac vydania (väčšina `08_2026`;
+  súbor Trenčianskeho kraja a súbor „všetky kraje“ majú `04_2026`).
+- **Formát:** CSV v UTF-8, oddeľovač `;`, desatinná čiarka v súradniciach, hlavička
+  `IDENTIFIKATOR;KRAJ;OKRES;OBEC;CAST_OBCE;ULICA;SUPISNE_CISLO;ORIENTACNE_CISLO_CELE;PSC;ADRBOD_X;ADRBOD_Y`.
+  Kraj je bez slova „kraj“ (napr. `Banskobystrický`), v kóde je `Banskobystrický kraj`.
+- **Distribúcie:** 9 súborov, jeden na kraj (16 – 25 MB) a jeden „všetky kraje“ (162 MB).
+  Odkazy majú tvar `https://data.slovensko.sk/download?id=<UUID distribúcie>`; UUID sa
+  zistí cez katalóg (`POST https://data.slovensko.sk/datasets/search`, telo
+  `{"language":"sk","page":1,"filters":{},"pageSize":100,"orderBy":"name","queryText":"Adresy podľa krajov"}`).
+  Je to rozhranie, ktoré používa samotný web portálu; nie je dokumentované ako verejné API,
+  preto skript na spracovanie nemá byť od neho závislý (adresu súboru dostane ako parameter).
+- **CORS a limity** sa neoverovali: súbory sa do prehliadača nesmú sťahovať a sťahuje ich
+  len skript pri vytváraní číselníkov.
+- Samostatné datasety Register obcí / okresov / krajov / ulíc (z opisu série) sa vo
+  vyhľadávaní katalógu nenašli. Nie sú potrebné: tento súbor má všetky potrebné stĺpce.
+
+### Čo obsahuje (zmerané na súbore „všetky kraje“)
+
+| Údaj | Hodnota |
+|---|---|
+| Riadkov (adries) | 1 739 536 |
+| Kraje / okresy | 8 / 79 |
+| Obce (kombinácia kraj + okres + obec) | 2 927 |
+| Rôzne názvy obcí | 2 817 (z toho **95 názvov** je vo viac ako jednom okrese, napr. Riečka, Selce, Podhorie) |
+| Časti obcí | 1 744 |
+| Dvojice obec + ulica | 27 710 |
+| Riadkov bez PSČ | 401 |
+
+Zdroj sa líši od súčasného zoznamu v `src/data/slovakLocations.ts`:
+`OBCE_SR` má **821 obcí z 2 817** (723 sa zhoduje, 98 názvov v kóde v registri nie je,
+napr. `Abrahamovce` bez dĺžňa, `Bratislava`), zo 79 okresov chýbajú **Prievidza** a
+**Svidník** a `Košice-okolie` je v registri `Košice - okolie`.
+
+### Veľkosť odvodených súborov (JSON, nestlačené)
+
+- obec + okres + kraj: **126 kB** → vhodné ako statický súbor v repozitári;
+- dvojice obec + ulica: **1,6 MB** → vhodné ako súbor sťahovaný na požiadanie (po krajoch);
+- úplné adresy (162 MB): **nie do prehliadača**, len cez server alebo vlastný index.
+
+### Navrhované poradie (každý krok je samostatný PR)
+
+1. **Obce, okresy, kraje** (hotové v PR #288, issue #287) → statický súbor + skript v `scripts/`, ktorý ho vyrobí z CSV
+   (podnety 99 a 100). Bez externého volania, preto nič neodchádza z prehliadača.
+   Pri 95 názvoch obcí, ktoré sú vo viacerých okresoch, sa okres nesmie hádať: používateľ si
+   vyberie okres, alebo sa predvyplní až po jednoznačnej voľbe.
+2. **Ulice** podľa obce (súbory po krajoch, načítané až po výbere obce) → výber ulice (podnet 98).
+3. **Úplné adresy** s číslami len cez serverovú funkciu alebo index → podnet 13. Vyžaduje
+   rozhodnutie R3.
 
 | # | Čo chýba | Kto / čo je potrebné | Stav | Čo bez toho nefunguje |
 |---|---|---|---|---|
-| R1 | Overený zdroj registra adries: skutočný endpoint alebo súbor na stiahnutie, formát odpovede, limity, CORS, licencia a podmienky použitia (kandidáti: dataset na data.slovensko.sk `f2b3af7a-b4d4-45d7-9605-29fa5d7ad115`, stránka MV SR `minv.sk/?register-adries`) | človek s prístupom na internet, alebo správca datasetu | čaká | Nedá sa napísať serverless funkcia ani normalizácia odpovede bez vymyslených endpointov. |
-| R2 | Zoznam obec → okres → kraj (dnes je v `src/data/slovakLocations.ts` len zoznam názvov obcí `OBCE_SR` bez väzby na okres, a okresy podľa krajov) | rovnaký zdroj ako R1 (alebo Štatistický úrad SR, číselník obcí) | čaká | Pri ručne zadanej obci (podnet 99) sa kraj a okres nedajú predvyplniť. Dnes sa dopĺňajú len po výbere návrhu z Photonu (OSM). |
-| R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | čaká | Aplikácia tvrdí, že dáta ostávajú v prehliadači. Návrh textu je v popise PR. |
+| R1 | Zdroj: odkaz na súbory, formát, licencia, hlavička a stĺpce | — | **overené 16. 10. 2026** (viď vyššie) | — |
+| R2 | Väzba obec → okres → kraj | — | **hotové v PR #288** (`src/data/obceSR.json`, skript `scripts/vyrob-ciselnik-obci.mjs`); väzba je v každom riadku zdroja: v súbore je v každom riadku (2 927 kombinácií). Ostáva len rozhodnutie, ako riešiť 95 názvov obcí vo viacerých okresoch | Podnet 99 sa dá spraviť, treba len dohodnúť správanie pri duplicitných názvoch (návrh: používateľ vyberie okres, predvyplnenie len pri jednoznačnej obci). |
+| R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe (Photon, serverová funkcia) a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | čaká | Platí len pre krok 3; kroky 1 a 2 so statickým súborom nič neodosielajú. Dnes už odchádza adresa do Photonu (OSM). Návrh textu je v PR #259. |
+| R4 | Rozhodnutie, ktoré súbory sa smú pridať do repozitára / nasadenia: 141 kB (obce) a asi 430 kB (ulice, po krajoch) | majiteľ | **súhlasil 16. 10. 2026** | Určuje rozsah krokov 1 a 2. Licencia CC0 to dovoľuje bez uvedenia zdroja. |
+| R5 | Kto a ako často obnoví číselníky (dataset sa mení štvrťročne) | majiteľ | **súhlasil 16. 10. 2026**: skript spúšťa ručne po každom vydaní | Návrh: skript v `scripts/`, spúšťaný ručne po každom vydaní, mesiac vydania uvedený v súbore. |
 
 ## Ako register používať
 
