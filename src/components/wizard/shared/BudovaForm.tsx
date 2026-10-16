@@ -20,6 +20,7 @@ import { apiUrl } from '../../../utils/apiUrl';
 import { mapujeEnergiu, mapujeVodu } from '../../../utils/rozsahMapovania';
 import { useRozsah } from '../../../hooks/useRozsah';
 import { useState } from 'react';
+import { InfoBlok } from '../../ui/InfoBlok';
 import { MapPin, Loader2 } from 'lucide-react';
 
 interface BudovaFormProps {
@@ -41,16 +42,16 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
   const { nesplnene, nezname } = vysledok;
   if (nesplnene.length === 0 && nezname.length === 0) {
     return (
-      <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+      <InfoBlok velkost="text-sm">
         Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
         takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> Podľa zadaných
         údajov sú všetky štyri povinnosti splnené.
-      </div>
+      </InfoBlok>
     );
   }
 
   return (
-    <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+    <InfoBlok velkost="text-sm">
       <p>
         Budova má nad {PARAGRAF_11_PLOCHA_M2.toLocaleString('sk')} m² a teplovodné vykurovanie,
         takže na ňu dopadá <strong>§ 11 ods. 1 zákona č. 321/2014 Z. z.</strong> — vlastník je
@@ -58,7 +59,7 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
       </p>
       {nesplnene.length > 0 && (
         <>
-          <p className="mt-2 font-medium">Podľa zadaných údajov nesplnené:</p>
+          <p className="mt-3 text-base font-semibold text-gray-800">Podľa zadaných údajov nesplnené:</p>
           <ul className="list-disc list-inside">
             {nesplnene.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
           </ul>
@@ -66,7 +67,7 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
       )}
       {nezname.length > 0 && (
         <>
-          <p className="mt-2 font-medium">Neviete posúdiť — oplatí sa overiť u správcu budovy:</p>
+          <p className="mt-3 text-base font-semibold text-gray-800">Neviete posúdiť — oplatí sa overiť u správcu budovy:</p>
           <ul className="list-disc list-inside">
             {nezname.map((p) => <li key={p.pismeno}>{p.nazov} — písm. {p.pismeno})</li>)}
           </ul>
@@ -76,7 +77,7 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
         Upozornenie je orientačné. Zákon počíta celkovú podlahovú plochu z vonkajších rozmerov,
         VESMA pracuje s úžitkovou, a teplovodné vykurovanie odvodzuje zo zadaného zdroja tepla.
       </p>
-    </div>
+    </InfoBlok>
   );
 }
 
@@ -86,14 +87,14 @@ function Paragraf11Upozornenie({ budova }: { budova: Budova }) {
  */
 function SezonnaStavbaPoznamka() {
   return (
-    <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+    <InfoBlok velkost="text-sm">
       Stavba je označená ako <strong>sezónna nevykurovaná</strong>. VESMA jej preto
       nebude počítať potenciál zateplenia, výmeny okien, rekuperácie ani obnovy zdroja
       tepla a nenavrhne v tomto smere žiadne opatrenia. Údaje nižšie môžete vyplniť,
       ak ich poznáte — do hodnotenia energetickej efektívnosti nevstúpia. Hodnotí sa
       naďalej to, čo so sezónnosťou nesúvisí: strecha pre fotovoltiku, zelená strecha,
       odvod zrážkovej vody a osvetlenie.
-    </div>
+    </InfoBlok>
   );
 }
 
@@ -321,8 +322,8 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
           onChange={(v) => onChange({ strechaProblemy: v as 0 | 1 })}
         />
         {budova.potencialZelenejStrechy != null && budova.potencialZelenejStrechy > 0 && (
-          <div className="text-xs text-green-700 bg-green-50 rounded px-3 py-2">
-            Potenciál zelenej strechy: <span className="font-medium">{Math.round(budova.potencialZelenejStrechy)} m²</span>
+          <div className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+            Potenciál zelenej strechy: <span className="font-semibold text-gray-800">{Math.round(budova.potencialZelenejStrechy)} m²</span>
           </div>
         )}
 
@@ -580,7 +581,7 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
             <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
             Ako odhadnúť ročnú spotrebu?
           </summary>
-          <div className="mt-2 text-xs text-gray-600 bg-blue-50 rounded-xl p-3 space-y-1.5">
+          <div className="mt-2 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-1.5">
             <p><strong>Zemný plyn:</strong> m³ × 10,55 = kWh &nbsp;·&nbsp; alebo pozrite „spotreba v kWh" priamo na ročnom vyúčtovaní</p>
             <p><strong>Elektrina:</strong> kWh je uvedené priamo na faktúre</p>
             <p><strong>CZT (diaľkové teplo):</strong> GJ × 277,78 = kWh &nbsp;·&nbsp; MWh × 1 000 = kWh</p>
@@ -786,28 +787,28 @@ export function BudovaForm({ budova, onChange, arealAdresa, verziaRelacie }: Bud
 
         {/* Total */}
         {(budova.celkovaSpotreba ?? 0) > 0 && (
-          <div className="text-sm font-medium text-gray-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1">
+          <div className="text-sm font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 space-y-1">
             <div>
-              Celková spotreba všetkých zdrojov kúrenia: <span className="text-amber-700">
+              Celková spotreba všetkých zdrojov kúrenia: <span className="font-semibold text-gray-900">
                 {fmt(budova.celkovaSpotreba!)} kWh/rok
               </span>
               {budova.spotrebaRok > 0 && <span className="text-gray-500 font-normal"> (rok {budova.spotrebaRok})</span>}
             </div>
             {(budova.celkoveNakladyKurenie ?? 0) > 0 && (
               <div>
-                Celkové ročné náklady na kúrenie: <span className="text-amber-700">
+                Celkové ročné náklady na kúrenie: <span className="font-semibold text-gray-900">
                   {fmt(budova.celkoveNakladyKurenie!)} EUR/rok
                 </span>
                 <span className="text-gray-500 font-normal"> (priemerne {fmt(budova.celkoveNakladyKurenie! / budova.celkovaSpotreba!, 3)} EUR/kWh)</span>
               </div>
             )}
             {enpi.mernaSpotrebaVykurovanie !== undefined && (
-              <div className="text-xs font-normal text-gray-700 pt-1 border-t border-amber-200">
-                Merná spotreba na vykurovanie (nameraná, z faktúr): <span className="font-medium text-amber-700">
+              <div className="text-xs font-normal text-gray-700 pt-1 border-t border-gray-200">
+                Merná spotreba na vykurovanie (nameraná, z faktúr): <span className="font-semibold text-gray-900">
                   {fmt(enpi.mernaSpotrebaVykurovanie)} kWh/(m²·rok)
                 </span> na vykurovanú plochu {fmt(enpi.vykurovanaPlocha)} m²
                 {enpi.vykurovanieNaHodinu !== undefined && (
-                  <> · na hodinu prevádzky: <span className="font-medium text-amber-700">{fmt(enpi.vykurovanieNaHodinu, 1)} kWh/h</span></>
+                  <> · na hodinu prevádzky: <span className="font-semibold text-gray-900">{fmt(enpi.vykurovanieNaHodinu, 1)} kWh/h</span></>
                 )}
               </div>
             )}

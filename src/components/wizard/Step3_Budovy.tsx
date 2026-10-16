@@ -5,6 +5,7 @@ import { maVyplnenuBudovu } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { Tooltip } from '../ui/Tooltip';
 import { BudovaForm } from './shared/BudovaForm';
+import { InfoBlok } from '../ui/InfoBlok';
 
 interface Step3Props {
   budovy: Budova[];
@@ -46,7 +47,7 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
       </div>
 
       {/* Nápoveda k rozhodnutiu, kam zaradiť parcelu (pozri issue #37). */}
-      <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700 space-y-1">
+      <InfoBlok className="space-y-1">
         <p>Parcela, na ktorej je iba budova, patrí <strong>len sem (medzi Budovy)</strong> — nezadávajte ju medzi Pozemky.</p>
         <p>Ak je na parcele budova aj nezastavaný pozemok, zaraďte ju podľa toho, čo na nej prevažuje (dominantné využitie) — buď medzi Budovy, alebo medzi Pozemky.</p>
         <p className="flex items-start">
@@ -58,7 +59,7 @@ export function Step3_Budovy({ budovy, addBudova, updateBudova, removeBudova, ar
           </span>
           <Tooltip glossaryKey="kamPatriStavbaDef" />
         </p>
-      </div>
+      </InfoBlok>
 
       <EntityTabBar
         items={budovy.map((b, i) => ({

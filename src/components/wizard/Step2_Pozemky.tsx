@@ -5,6 +5,7 @@ import { maVyplnenyPozemok } from '../../utils/vyplnenyObsah';
 import { EntityTabBar } from '../ui/EntityTabBar';
 import { PozemokForm } from './shared/PozemokForm';
 import { formatArea } from '../../utils/formatters';
+import { InfoBlok } from '../ui/InfoBlok';
 
 interface Step2Props {
   pozemky: Pozemok[];
@@ -52,7 +53,7 @@ export function Step2_Pozemky({
       </p>
 
       {/* Nápoveda k rozhodnutiu, kam zaradiť parcelu (pozri issue #37). */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 space-y-1">
+      <InfoBlok className="space-y-1">
         <p><strong>Čo patrí sem (Pozemky):</strong> nezastavané parcely — trávnaté plochy, záhrady, dvory
           a <strong>chodníky, terasy aj parkoviská</strong>. Tie nie sú samostatné stavby, ale povrchy pozemku —
           zadajte ich nižšie podľa toho, či vodu prepúšťajú.</p>
@@ -64,14 +65,14 @@ export function Step2_Pozemky({
         <p><strong>Parcela s budovou aj nezastavaným pozemkom:</strong> zaraďte ju podľa toho, čo na nej prevažuje (dominantné využitie) — buď medzi Budovy, alebo medzi Pozemky.</p>
         <p><strong>Príklad:</strong> Škola má parcelu 100/1 (budova) a 100/2 (školský dvor). Do Pozemkov zadajte len 100/2.
           Ak je dvorová parcela rozdelená plotom na dve časti s rôznym povrchom, pridajte každú ako samostatnú kartu.</p>
-      </div>
+      </InfoBlok>
 
       {plochaInychStavieb > 0 && (
-        <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-xs text-blue-700">
+        <InfoBlok>
           V kroku Iné stavby máte zadaných <strong>{formatArea(plochaInychStavieb)}</strong> zastavanej plochy.
           Tie sa do hodnotenia pripočítajú ako nepriepustná plocha samy — vo výmerach nižšie ich nechajte
           nezapočítané.
-        </div>
+        </InfoBlok>
       )}
 
       <EntityTabBar
