@@ -104,6 +104,40 @@ describe('kontrast farieb zo zdieľaných tokenov (WCAG AA 4,5 : 1)', () => {
   })
 })
 
+describe('ikony a netextové prvky nesúce význam (WCAG 1.4.11, 3 : 1)', () => {
+  const NETEXT = 3
+
+  it('sivé ikony (gray-400, gray-500) majú aspoň 3 : 1 na bielej, gray-50 aj gray-100', () => {
+    for (const farba of [GRAY_400, GRAY_500]) {
+      for (const podklad of [BIELA, GRAY_50, GRAY_100]) {
+        expect(kontrast(farba, podklad)).toBeGreaterThanOrEqual(NETEXT)
+      }
+    }
+  })
+
+  it('v komponentoch sa ikona/text nefarbí svetlejšie než gray-400 (gray-100/200/300), okrem deaktivovaných', () => {
+    const najdene: string[] = []
+    const prejdi = (dir: string) => {
+      for (const meno of readdirSync(dir)) {
+        const cesta = join(dir, meno)
+        if (statSync(cesta).isDirectory()) prejdi(cesta)
+        else if (cesta.endsWith('.tsx')) {
+          // Deaktivované prvky sú podľa WCAG vyňaté (nenavštívený krok: `bg-gray-100 text-gray-300`).
+          const zdroj = readFileSync(cesta, 'utf8').replaceAll('bg-gray-100 text-gray-300 cursor-default', '')
+          if (/(?:text|stroke|fill)-(?:gray|slate)-(?:100|200|300)\b/.test(zdroj)) najdene.push(cesta)
+        }
+      }
+    }
+    prejdi(join(process.cwd(), 'src/components'))
+    expect(najdene).toEqual([])
+  })
+
+  it('hlavička nepoužíva pôvodnú značkovú modrú #52A8DE pre text (2,6 : 1)', () => {
+    const hlavicka = readFileSync(join(process.cwd(), 'src/components/layout/Header.tsx'), 'utf8')
+    expect(hlavicka).not.toMatch(/text-\[#52A8DE\]/)
+  })
+})
+
 describe('veľkosť písma zo zdieľaných tokenov', () => {
   const rem = (nazov: string) => parseFloat(token(nazov))
 
@@ -122,14 +156,12 @@ describe('veľkosť písma zo zdieľaných tokenov', () => {
   })
 
   it('v komponentoch nie je pevné písmo pod 14 px (text-[10px] … text-[13px])', () => {
-    // Výnimky sú vedomé a vymenované v popise PR (kompaktná hlavička, SVG ukazovateľ).
-    const VYNIMKY = ['layout/Header.tsx', 'ui/ScoreGauge.tsx']
     const najdene: string[] = []
     const prejdi = (dir: string) => {
       for (const meno of readdirSync(dir)) {
         const cesta = join(dir, meno)
         if (statSync(cesta).isDirectory()) prejdi(cesta)
-        else if (cesta.endsWith('.tsx') && !VYNIMKY.some((v) => cesta.endsWith(v))) {
+        else if (cesta.endsWith('.tsx')) {
           if (/text-\[(?:\d|1[0-3])(?:\.\d+)?px\]/.test(readFileSync(cesta, 'utf8'))) najdene.push(cesta)
         }
       }
