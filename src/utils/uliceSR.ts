@@ -61,17 +61,74 @@ export function nazovUliceZTextu(text: string): string {
   return (m?.[1] ?? text).trim();
 }
 
+function bezMedzier(text: string): string {
+  return normalizuj(text).replace(/\s+/g, '');
+}
+
+/**
+ * Text normalizovaný po znakoch (bez diakritiky, malými písmenami), aby jeho dĺžka
+ * zodpovedala pôvodnému textu a dalo sa podľa nej rezať. Pri znakoch, ktoré by dĺžku
+ * zmenili, vráti `null`.
+ */
+function zarovnanyNormalizovany(text: string): string | null {
+  let vystup = '';
+  for (const znak of text) vystup += znak.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  return vystup.length === text.length ? vystup : null;
+}
+
+export interface CastiAdresy {
+  /** Názov ulice: presne podľa registra, ak je napísaná celá, inak to, čo mapér zatiaľ napísal. */
+  ulica: string;
+  /** Všetko za ulicou (číslo domu), bez okolitých medzier. */
+  cislo: string;
+  /** Pravda, ak je napísaná celá ulica z registra. */
+  presna: boolean;
+}
+
+/**
+ * Rozdelí zadaný text na ulicu a číslo domu. Ulice, ktoré samy obsahujú číslice
+ * (`1.mája`, `29. augusta`; v registri ich je 255, patria k najčastejším), sa rozpoznajú
+ * podľa registra: berie sa najdlhšia ulica, ktorou text začína a za ktorou je koniec
+ * textu, medzera alebo číslica. Ak taká nie je, ale text je začiatkom niektorej ulice
+ * (`1.m`), je celý názvom ulice. Inak sa odreže všetko od prvého čísla.
+ */
+export function rozdelAdresu(text: string, ulice: readonly string[]): CastiAdresy {
+  const t = text.trimStart();
+  const nt = zarovnanyNormalizovany(t);
+  if (nt) {
+    let najlepsia: string | null = null;
+    for (const ulica of ulice) {
+      const nu = zarovnanyNormalizovany(ulica);
+      if (!nu || !nt.startsWith(nu)) continue;
+      const dalsi = nt.charAt(nu.length);
+      if (dalsi !== '' && !/[\s\d]/.test(dalsi)) continue;
+      if (najlepsia === null || ulica.length > najlepsia.length) najlepsia = ulica;
+    }
+    if (najlepsia !== null) {
+      return { ulica: najlepsia, cislo: t.slice(najlepsia.length).trim(), presna: true };
+    }
+  }
+
+  const cely = bezMedzier(t);
+  if (cely && ulice.some((ulica) => bezMedzier(ulica).startsWith(cely))) {
+    return { ulica: t.trim(), cislo: '', presna: false };
+  }
+
+  const ulica = nazovUliceZTextu(t);
+  return { ulica, cislo: t.slice(t.indexOf(ulica) + ulica.length).trim(), presna: false };
+}
+
 /**
  * Návrhy ulíc k zadanému textu: najprv tie, ktoré začínajú zadaným textom, potom tie,
  * ktoré ho obsahujú (bez ohľadu na veľkosť písmen a diakritiku). Číslo domu sa ignoruje.
  */
 export function navrhyUlic(ulice: readonly string[], text: string, limit = 8): string[] {
-  const hladany = normalizuj(nazovUliceZTextu(text));
+  const hladany = bezMedzier(rozdelAdresu(text, ulice).ulica);
   if (!hladany) return [];
   const zaciatok: string[] = [];
   const obsahuje: string[] = [];
   for (const ulica of ulice) {
-    const n = normalizuj(ulica);
+    const n = bezMedzier(ulica);
     if (n === hladany) continue; // presná zhoda sa neponúka, už je napísaná
     if (n.startsWith(hladany)) zaciatok.push(ulica);
     else if (n.includes(hladany)) obsahuje.push(ulica);
@@ -80,11 +137,13 @@ export function navrhyUlic(ulice: readonly string[], text: string, limit = 8): s
   return [...zaciatok, ...obsahuje].slice(0, limit);
 }
 
-/** Dosadí vybranú ulicu do zadaného textu a zachová číslo domu, ak ho už mapér napísal. */
-export function dosadUlicu(text: string, ulica: string): string {
-  const nazov = nazovUliceZTextu(text);
-  const zvysok = text.slice(text.indexOf(nazov) + nazov.length).trim();
-  return zvysok ? `${ulica} ${zvysok}` : `${ulica} `;
+/**
+ * Dosadí vybranú ulicu do zadaného textu a zachová číslo domu, ak ho už mapér napísal.
+ * Zoznam ulíc obce je potrebný, aby sa správne rozpoznali ulice s číslicami (`1.mája`).
+ */
+export function dosadUlicu(text: string, ulica: string, ulice: readonly string[] = []): string {
+  const { cislo } = rozdelAdresu(text, ulice);
+  return cislo ? `${ulica} ${cislo}` : `${ulica} `;
 }
 
 type NacitacKraja = () => Promise<{ default: UliceKraja }>;
