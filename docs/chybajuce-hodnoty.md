@@ -50,7 +50,7 @@ podľa metodiky KLIMASKEN zaviedol #212, podklad #214.
 | M7 | Váha delenej zrážkovej kanalizácie oproti jednotnej | `src/data/comparisonWeights.ts` | čaká | Otvorené rozhodnutie z revízie MZI. |
 | M8 | Ceny a návratnosť troch opatrení pre pravidelne obrábanú pôdu (mulčovanie, krycie plodiny, obmedzenie orby) | zatiaľ nie sú v kóde — návrh v [#200](https://github.com/michalzarnay/vesma/issues/200) | čaká | Bez potvrdených cien sa opatrenia do katalógu nepridajú, takže VESMA pri obrábanej pôde zníži skóre, ale nepovie, čo s ňou. Otvorené je aj to, čo pri nich znamená „návratnosť" (je skôr agronomická), či zaradiť aj vetrolam a prahy 50 m² / 500 m². |
 
-## Register adries SR — zdroj overený, čaká na rozhodnutie majiteľa
+## Register adries SR — kroky 1 až 3 hotové, ostáva obnova dát
 
 Podnety č. 13 (#127), 98 a 99: výber adresy areálu z registra adries a predvyplnenie
 obce, okresu a kraja. Majiteľ rozhodol ísť do registra. Zdroj bol overený 16. 10. 2026
@@ -108,17 +108,38 @@ napr. `Abrahamovce` bez dĺžňa, `Bratislava`), zo 79 okresov chýbajú **Priev
    (podnety 99 a 100). Bez externého volania, preto nič neodchádza z prehliadača.
    Pri 95 názvoch obcí, ktoré sú vo viacerých okresoch, sa okres nesmie hádať: používateľ si
    vyberie okres, alebo sa predvyplní až po jednoznačnej voľbe.
-2. **Ulice** podľa obce (súbory po krajoch, načítané až po výbere obce) → výber ulice (podnet 98).
-3. **Úplné adresy** s číslami len cez serverovú funkciu alebo index → podnet 13. Vyžaduje
-   rozhodnutie R3.
+2. **Ulice** podľa obce (hotové v PR #290 a oprave #292, issue #289) → výber ulice (podnet 98).
+3. **Čísla domov** (hotové, krok 3) → podnet 13. Namiesto serverovej funkcie sú to statické
+   súbory po obciach (`public/data/adresy/<kraj>/<okres>__<obec>.json`, 2 927 súborov, 6,8 MB),
+   ktoré si prehliadač stiahne z vlastného servera po výbere ulice: zadaný text adresy nikam
+   neodchádza (rozhodnutie R3 o odosielaní adresy sa tak nepoužilo). Číslo domu je
+   súpisné/orientačné (`8229/1`), v obci bez ulíc len číslo.
+
+### Obnova dát po vydaní nového datasetu (štvrťročne)
+
+1. Stiahnuť 8 súborov „Adresy podľa krajov (csv)“ (odkazy cez katalóg, pozri vyššie). Súbory
+   sú verejné, CC0; do repozitára sa nepridávajú (majú 16 – 25 MB každý).
+2. `node scripts/vyrob-ciselnik-obci.mjs <8 súborov .csv>` prepíše `src/data/obceSR.json`,
+   `src/data/ulice/*.json` a `public/data/adresy/` (starý adresár `adresy` sa pred zápisom zmaže).
+3. `npm test` a `npx vitest run`: testy hlásia, ak okres z registra nie je v `OKRESY_BY_KRAJ`
+   (napr. nový okres), ak chýba súbor obce alebo sa ulice v súboroch rozchádzajú.
+4. Commit zmien dát a `npm run verzia`. Diff má tisíce riadkov, ale ide o strojovo vyrobené dáta.
+
+### Možné ďalšie kroky (nerobené)
+
+- **PSČ a súradnice** sú v registri pri každej adrese (stĺpce `PSC`, `ADRBOD_X`, `ADRBOD_Y`).
+  Súradnice presnej adresy by mohli nahradiť geokódovanie cez Nominatim pri „Načítať z webu“
+  (podnety 102 a 104), PSČ by sa dalo predvyplniť. Nič z toho dnes nie je v súboroch, bolo by
+  to ďalšie rozšírenie dát (veľkosť, formát).
 
 | # | Čo chýba | Kto / čo je potrebné | Stav | Čo bez toho nefunguje |
 |---|---|---|---|---|
 | R1 | Zdroj: odkaz na súbory, formát, licencia, hlavička a stĺpce | — | **overené 16. 10. 2026** (viď vyššie) | — |
 | R2 | Väzba obec → okres → kraj | — | **hotové v PR #288** (`src/data/obceSR.json`, skript `scripts/vyrob-ciselnik-obci.mjs`); väzba je v každom riadku zdroja: v súbore je v každom riadku (2 927 kombinácií). Ostáva len rozhodnutie, ako riešiť 95 názvov obcí vo viacerých okresoch | Podnet 99 sa dá spraviť, treba len dohodnúť správanie pri duplicitných názvoch (návrh: používateľ vyberie okres, predvyplnenie len pri jednoznačnej obci). |
-| R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe (Photon, serverová funkcia) a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | **rozhodnuté 16. 10. 2026**: adresa sa **môže** odosielať našej serverovej funkcii a registru (áno). Text upozornenia pri poli ostáva na doplnenie pri kroku 3 | Platí len pre krok 3; kroky 1 a 2 so statickým súborom nič neodosielajú. Dnes už odchádza adresa do Photonu (OSM). Návrh textu je v PR #259. |
+| R3 | Rozhodnutie o odosielaní rozpísanej adresy externej službe (Photon, serverová funkcia) a o texte upozornenia pri poli | majiteľ (CLAUDE.md, bod 3) | **rozhodnuté 16. 10. 2026**: adresa sa môže odosielať našej serverovej funkcii a registru (áno). V kroku 3 sa to nepoužilo: čísla domov sú statické súbory z vlastného servera, takže upozornenie pri poli netreba | Platí len pre krok 3; kroky 1 a 2 so statickým súborom nič neodosielajú. Dnes už odchádza adresa do Photonu (OSM). Návrh textu je v PR #259. |
 | R4 | Rozhodnutie, ktoré súbory sa smú pridať do repozitára / nasadenia: 141 kB (obce) a asi 430 kB (ulice, po krajoch) | majiteľ | **súhlasil 16. 10. 2026** | Určuje rozsah krokov 1 a 2. Licencia CC0 to dovoľuje bez uvedenia zdroja. |
 | R5 | Kto a ako často obnoví číselníky (dataset sa mení štvrťročne) | majiteľ | **súhlasil 16. 10. 2026**: skript spúšťa ručne po každom vydaní | Návrh: skript v `scripts/`, spúšťaný ručne po každom vydaní, mesiac vydania uvedený v súbore. |
+| R6 | Súhlas so súbormi čísel domov v repozitári: 2 927 súborov, 6,8 MB (okolo 3,4 MB po komprimácii), každý 1 – 113 kB | majiteľ | **čaká na potvrdenie** (PR kroku 3) | Presahuje veľkosti odsúhlasené v R4 (141 kB a 430 kB). Alternatíva: súbory do repozitára nedávať a vyrábať ich pri nasadení (vyžaduje stiahnutie 160 MB pri každom builde) alebo serverová funkcia (R3 to dovoľuje). |
 
 ## Ako register používať
 

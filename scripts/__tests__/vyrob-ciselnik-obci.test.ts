@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 // @ts-expect-error – skript je čistý ESM bez typov.
 import {
   rozdelRiadok, spracujCsv, zoradTrojice, vydanieZNazvu, nazovKraja, nazovOkresu, zostavVystup,
-  slugKraja, zostavUlice,
+  slugKraja, zostavUlice, kodujCisla, cisloDomu, slugNazvu, nazovSuboruObce, zostavAdresy,
 } from '../vyrob-ciselnik-obci.mjs';
 
 const HLAVICKA = 'IDENTIFIKATOR;KRAJ;OKRES;OBEC;CAST_OBCE;ULICA;SUPISNE_CISLO;ORIENTACNE_CISLO_CELE;PSC;ADRBOD_X;ADRBOD_Y';
@@ -124,5 +124,60 @@ describe('ulice podľa obce a okresu', () => {
     expect(slugKraja('Žilinský kraj')).toBe('zilinsky');
     expect(slugKraja('Banskobystrický kraj')).toBe('banskobystricky');
     expect(slugKraja('Prešovský')).toBe('presovsky');
+  });
+});
+
+describe('čísla domov podľa obce a ulice', () => {
+  it('čísla zapíše úsporne: rady čisto číselných, ostatné po jednom', () => {
+    expect(kodujCisla(['3', '1', '2', '7', '9', '10', '11'])).toBe('1-3,7,9-11');
+    expect(kodujCisla(['150/2', '2A', '5', '150/2'])).toBe('5,2A,150/2');
+    expect(kodujCisla([''])).toBe('');
+  });
+
+  it('číslo domu je súpisné/orientačné, alebo jediné číslo', () => {
+    expect(cisloDomu('8229', '1')).toBe('8229/1');
+    expect(cisloDomu('150', '')).toBe('150');
+    expect(cisloDomu('', '12')).toBe('12');
+    expect(cisloDomu(' 7 ', ' 2A ')).toBe('7/2A');
+  });
+
+  it('názov súboru obce nesie okres a obec bez diakritiky', () => {
+    expect(slugNazvu('Žilina – Bánová')).toBe('zilina-banova');
+    expect(nazovSuboruObce('Ružomberok', 'Likavka')).toBe('ruzomberok__likavka.json');
+    expect(nazovSuboruObce('Košice-okolie', 'Čaňa')).toBe('kosice-okolie__cana.json');
+  });
+
+  it('zbiera čísla domov podľa obce a ulice, aj adresy bez ulice', () => {
+    const text = [
+      HLAVICKA,
+      '1;Žilinský;Ružomberok;Ružomberok;;Hlavná;8229;1;03401;1;1',
+      '2;Žilinský;Ružomberok;Ružomberok;;Hlavná;8230;3;03401;1;1',
+      '3;Žilinský;Ružomberok;Ružomberok;;;59;;03401;1;1',
+      '4;Žilinský;Ružomberok;Likavka;;;1;;03421;1;1',
+      '5;Žilinský;Ružomberok;Likavka;;;2;;03421;1;1',
+    ].join('\n');
+    const adresy = new Map();
+    spracujCsv(text, new Map(), null, adresy);
+    const subory = zostavAdresy(adresy);
+    expect(subory.map((f: { cesta: string }) => f.cesta)).toEqual([
+      'zilinsky/ruzomberok__likavka.json',
+      'zilinsky/ruzomberok__ruzomberok.json',
+    ]);
+    expect(subory[0].obsah).toEqual({ '': '1-2' });
+    expect(subory[1].obsah).toEqual({ '': '59', Hlavná: '8229/1,8230/3' });
+  });
+
+  it('riadok bez čísla domu sa preskočí', () => {
+    const adresy = new Map();
+    spracujCsv([HLAVICKA, '1;Žilinský;Bytča;Bytča;;Hlavná;;;01401;1;1'].join('\n'), new Map(), null, adresy);
+    expect(adresy.size).toBe(0);
+  });
+
+  it('dve obce s rovnakým názvom súboru skončia chybou, nie tichým prepísaním', () => {
+    const adresy = new Map([
+      ['Žilinský\u0000Bytča\u0000Šaľa', new Map([['', new Set(['1'])]])],
+      ['Žilinský\u0000Bytča\u0000Sala', new Map([['', new Set(['2'])]])],
+    ]);
+    expect(() => zostavAdresy(adresy)).toThrow(/rovnaký názov súboru/);
   });
 });
