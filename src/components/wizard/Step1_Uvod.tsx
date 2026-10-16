@@ -12,10 +12,10 @@ import { ComboboxInput } from '../ui/ComboboxInput';
 import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
-import { matchKraj, matchOkres } from '../../utils/locationMatchers';
 import { apiUrl } from '../../utils/apiUrl';
 import { NAZOV_KROKU_1 } from '../../types/wizard';
 import { checklistPripravy } from '../../utils/uvodChecklist';
+import { nacitajKlimatickeUdaje, klasifikujChybu, textChyby } from '../../utils/klimaUdaje';
 
 // Rovnaký mechanizmus ako v Header.tsx: bez nastavenej URL sa odkaz nezobrazí.
 const PRIRUCKA_URL: string = import.meta.env.VITE_PRIRUCKA_URL ?? '';
@@ -30,57 +30,6 @@ interface Step1Props {
 }
 
 
-async function fetchKlimatickeUdaje(
-  adresa: string,
-  obec: string,
-  onStatus: (msg: string) => void,
-): Promise<{ zrazky: number; solar: number; kraj: string; okres: string } | null> {
-  const query = [adresa, obec, 'Slovensko'].filter(Boolean).join(', ');
-
-  // 1. Geocoding
-  onStatus('Hľadám polohu adresy…');
-  const geoRes = await fetch(
-    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`,
-    { headers: { 'Accept-Language': 'sk' } }
-  );
-  if (!geoRes.ok) throw new Error(`Geocoding zlyhal (${geoRes.status})`);
-  const geoData = await geoRes.json();
-  if (!geoData.length) return null;
-  const lat = parseFloat(geoData[0].lat);
-  const lon = parseFloat(geoData[0].lon);
-
-  // Extract kraj + okres from address details
-  const addr = geoData[0].address ?? {};
-  const krajMatched = matchKraj(addr.state ?? '');
-  const okresMatched = matchOkres(addr.county ?? addr.state_district ?? '', krajMatched);
-
-  // 2. Zrážky – Open-Meteo (priemer posledných 5 rokov)
-  onStatus('Načítavam zrážkové dáta…');
-  const rok = new Date().getFullYear();
-  const precipRes = await fetch(
-    `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
-    `&start_date=${rok - 6}-01-01&end_date=${rok - 1}-12-31` +
-    `&daily=precipitation_sum&timezone=Europe%2FBerlin`
-  );
-  if (!precipRes.ok) throw new Error(`Open-Meteo zlyhal (${precipRes.status})`);
-  const precipData = await precipRes.json();
-  if (precipData.error) throw new Error(`Open-Meteo: ${precipData.reason ?? 'neznáma chyba'}`);
-  const sums: number[] = precipData.daily?.precipitation_sum ?? [];
-  const zrazky = sums.length > 0
-    ? Math.round(sums.reduce((a, b) => a + (b ?? 0), 0) / 5)
-    : 0;
-
-  // 3. Slnečný svit – PVGIS cez server proxy (CORS)
-  onStatus('Načítavam dáta slnečného svitu…');
-  const pvRes = await fetch(apiUrl(`pvgis?lat=${lat}&lon=${lon}`));
-  if (!pvRes.ok) throw new Error(`PVGIS zlyhal (${pvRes.status})`);
-  const pvData = await pvRes.json() as { solar?: number; error?: string };
-  if (pvData.error) throw new Error(`PVGIS: ${pvData.error}`);
-  const solar = pvData.solar ?? 0;
-
-  return { zrazky, solar, kraj: krajMatched, okres: okresMatched };
-}
-
 const selectClasses =
   'w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none';
 
@@ -89,6 +38,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
   const [fetchStatus, setFetchStatus] = useState('');
   const [fetchError, setFetchError] = useState('');
   const [fetchOk, setFetchOk] = useState(false);
+  const [fetchPodlaObce, setFetchPodlaObce] = useState(false);
 
   const okresy = areal.kraj ? (OKRESY_BY_KRAJ[areal.kraj] ?? []) : [];
 
@@ -130,17 +80,22 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
     setFetchLoading(true);
     setFetchError('');
     setFetchOk(false);
+    setFetchPodlaObce(false);
     setFetchStatus('');
     try {
-      const res = await fetchKlimatickeUdaje(areal.adresa, areal.obec, setFetchStatus);
-      if (!res) { setFetchError('Adresu sa nepodarilo nájsť. Skúste zadať obec presnejšie.'); return; }
+      const res = await nacitajKlimatickeUdaje(
+        { adresa: areal.adresa, obec: areal.obec, krajina: areal.krajina },
+        setFetchStatus,
+        undefined,
+        (lat, lon) => apiUrl(`pvgis?lat=${lat}&lon=${lon}`),
+      );
+      setFetchPodlaObce(res.polohaPodlaObce);
       const update: Partial<Areal> = { mnozstvoZrazok: res.zrazky, potencialSlnecnehoSvitu: res.solar };
       if (res.kraj) { update.kraj = res.kraj; update.okres = res.okres || ''; }
       updateAreal(update);
       setFetchOk(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Neznáma chyba';
-      setFetchError(msg);
+      setFetchError(textChyby(klasifikujChybu(err)));
     } finally {
       setFetchLoading(false);
       setFetchStatus('');
@@ -382,23 +337,27 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
 
         {/* Klimatické údaje s auto-fetch */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <span className="text-sm font-medium text-gray-700">Klimatické údaje oblasti</span>
             <button
               type="button"
               onClick={handleFetchKlima}
               disabled={fetchLoading || (!areal.adresa && !areal.obec)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              title="Načíta priemerné zrážky z Open-Meteo a potenciál slnečného svitu z PVGIS podľa zadanej adresy"
+              title="Načíta priemerné zrážky (Open-Meteo) a potenciál slnečného svitu (PVGIS) pre polohu určenú adresou a obcou vyššie"
             >
               {fetchLoading
                 ? <><Loader2 className="w-3 h-3 animate-spin" /> Načítava…</>
-                : <><Globe className="w-3 h-3" /> Načítať z webu</>}
+                : <><Globe className="w-3 h-3" /> Načítať klimatické údaje podľa adresy</>}
             </button>
           </div>
+          <p className="text-xs text-gray-500">
+            Tlačidlo určí polohu podľa adresy a obce uvedených vyššie a doplní zrážky (Open-Meteo)
+            a slnečné žiarenie (PVGIS). Údaje môžete aj zadať ručne.
+          </p>
           {fetchStatus && !fetchError && <p className="text-xs text-gray-500 italic">{fetchStatus}</p>}
-          {fetchError && <p className="text-xs text-red-600">{fetchError}</p>}
-          {fetchOk && <p className="text-xs text-green-700">✓ Údaje načítané – skontrolujte a upravte podľa potreby.</p>}
+          {fetchError && <p className="text-xs text-amber-700" role="status">{fetchError}</p>}
+          {fetchOk && <p className="text-xs text-green-700">✓ Údaje načítané – skontrolujte a upravte podľa potreby.{fetchPodlaObce && ' Poloha bola určená podľa obce, nie presnej adresy.'}</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {mapujeVodu(areal) && (
               <NumberInput
