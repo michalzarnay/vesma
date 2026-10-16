@@ -200,6 +200,19 @@ body {
   color: var(--color-gray-900);
 }
 
+/*
+ * Natívne rozbaľovacie zoznamy (<select>). Tailwind im dáva priehľadné
+ * pozadie; rozbalený zoznam kreslí prehliadač mimo stránky a priehľadnú farbu
+ * nahradí bielou – so svetlým zdedeným textom bol zoznam biely a nečitateľný.
+ * Preto v tmavom režime explicitná plocha aj text, pre pole aj jeho položky.
+ */
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] option,
+:root[data-theme='dark'] optgroup {
+  background-color: var(--color-surface);
+  color: var(--color-gray-900);
+}
+
 /* Predvolený placeholder v Tailwinde je currentColor na 50 % (príliš bledý). */
 input::placeholder,
 textarea::placeholder {

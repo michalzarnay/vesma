@@ -52,3 +52,19 @@ test('voľba v menu prepne režim, pamätá sa a Auto sa znova riadi systémom',
   await zvolVzhlad(page, 'Svetlý');
   expect(await tema(page)).toBe('light');
 });
+
+test('natívne rozbaľovacie zoznamy (select) majú v tmavom režime tmavú plochu aj položky', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await openClean(page);
+  const farby = await page.locator('select').first().evaluate((s) => {
+    const o = s.querySelector('option')!;
+    return [getComputedStyle(s).backgroundColor, getComputedStyle(o).backgroundColor, getComputedStyle(o).color];
+  });
+  const [pole, polozka, text] = farby;
+  // Priehľadné pozadie by prehliadač v rozbalenom zozname nahradil bielou.
+  for (const farba of [pole, polozka]) {
+    expect(farba).not.toBe('rgba(0, 0, 0, 0)');
+    expect(farba).not.toBe('rgb(255, 255, 255)');
+  }
+  expect(text).not.toBe(polozka);
+});

@@ -39,6 +39,10 @@ režimoch rovnaké.
   lebo `red-600` sa v tmavom režime zosvetlí.
 - Farby v SVG/inline štýloch cez premenné: `var(--color-gray-200)`,
   farby skóre cez `farbaUrovneNaObrazovke()` (`src/types/scoring.ts`).
+- Natívne `<select>` zoznamy majú farby z globálneho pravidla v `src/index.css`
+  (priehľadné pozadie by prehliadač v rozbalenom zozname nahradil bielou).
+  Na macOS kreslí rozbalený zoznam systém podľa vzhľadu macOS – tam ho VESMA
+  ovplyvniť nevie.
 - Nové pevné hex farby v komponentoch nepridávať; ak treba novú farbu, pridaj
   token do oboch blokov v `src/index.css` a jeho kontrast do `kontrast.test.ts`.
 
