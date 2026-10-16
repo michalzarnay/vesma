@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Svetlý / tmavý režim sa nastaví ešte pred načítaním aplikácie, aby
+         stránka pri štarte nezablikla. Rovnakú logiku má src/utils/tema.ts
+         (zhodu stráži src/utils/__tests__/tema.test.ts). -->
+    <script id="vesma-tema">
+      (function () {
+        var volba = 'auto';
+        try {
+          var ulozena = localStorage.getItem('vesma_vzhlad');
+          if (ulozena === 'svetly' || ulozena === 'tmavy' || ulozena === 'auto') volba = ulozena;
+        } catch (e) {}
+        var tema = 'dark';
+        if (volba === 'svetly') tema = 'light';
+        else if (volba === 'auto' && window.matchMedia) {
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) tema = 'dark';
+          else if (window.matchMedia('(prefers-color-scheme: light)').matches) tema = 'light';
+        }
+        document.documentElement.setAttribute('data-theme', tema);
+      })();
+    </script>
     <title>VESMA – Voda a energia – sprievodca mapovaním areálov</title>
     <meta name="description" content="VESMA – webový nástroj pre mapovanie areálov z hľadiska vody, energie a klimatickej adaptácie." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

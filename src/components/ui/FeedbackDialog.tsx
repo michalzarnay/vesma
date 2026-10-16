@@ -54,11 +54,11 @@ export function FeedbackDialog({ fieldLabel, predvyplnenyPrvok, onClose }: Feedb
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-5 flex flex-col gap-4">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-800">
             {fieldLabel !== undefined ? (
-              <>Podnet k: <span className="text-brand-strong">{fieldLabel}</span></>
+              <>Podnet k: <span className="text-brand-ink">{fieldLabel}</span></>
             ) : (
               'Nový podnet'
             )}

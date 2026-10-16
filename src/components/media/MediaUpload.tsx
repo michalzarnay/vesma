@@ -157,7 +157,7 @@ export function MediaUpload({ media, onAdd, onUpdate, onRemove, mediaReady = tru
           <button
             type="button"
             onClick={() => fotoRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-strong border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-ink border border-[#52A8DE] rounded-xl hover:bg-[#52A8DE]/5"
           >
             <Camera className="w-3.5 h-3.5" />
             Pridať foto
@@ -331,7 +331,7 @@ function MediaCard({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="absolute top-1 right-1 p-1 rounded-full bg-white/90 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 z-10"
+          className="absolute top-1 right-1 p-1 rounded-full bg-surface/90 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 z-10"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>

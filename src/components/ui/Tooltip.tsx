@@ -42,15 +42,15 @@ export function Tooltip({ glossaryKey, text, example, whereToFind }: TooltipProp
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`ml-1 inline-flex items-center justify-center ${DOTYK_MOBIL} -my-3 sm:my-0 text-gray-400 hover:text-brand-strong transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full`}
+        className={`ml-1 inline-flex items-center justify-center ${DOTYK_MOBIL} -my-3 sm:my-0 text-gray-400 hover:text-brand-ink transition-colors focus:outline-none focus:ring-2 focus:ring-[#2196F3] rounded-full`}
         aria-label="Zobraziť nápovedu"
       >
         <HelpCircle className="w-4 h-4" />
       </button>
       {isOpen && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-200 p-3 text-sm text-gray-700">
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 bg-surface rounded-xl shadow-lg border border-gray-200 p-3 text-sm text-gray-700">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full">
-            <div className="w-3 h-3 bg-white border-r border-b border-gray-200 transform rotate-45 -translate-y-1.5" />
+            <div className="w-3 h-3 bg-surface border-r border-b border-gray-200 transform rotate-45 -translate-y-1.5" />
           </div>
           <p>{displayText}</p>
           {displayExample && (

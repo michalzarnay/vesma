@@ -38,7 +38,7 @@ export function StepNavigation({ currentStep, totalSteps, onNext, onPrev, onGoTo
                   ${isActive
                     ? 'bg-brand-strong text-white cursor-default font-semibold'
                     : isVisited
-                      ? 'bg-[#52A8DE]/10 text-brand-strong hover:bg-[#52A8DE]/20 cursor-pointer'
+                      ? 'bg-[#52A8DE]/10 text-brand-ink hover:bg-[#52A8DE]/20 cursor-pointer'
                       : 'bg-gray-100 text-gray-300 cursor-default'
                   }`}
               >
@@ -56,7 +56,7 @@ export function StepNavigation({ currentStep, totalSteps, onNext, onPrev, onGoTo
           type="button"
           onClick={onPrev}
           disabled={currentStep === 1}
-          className="flex items-center gap-1.5 px-4 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 min-h-11 sm:min-h-0 text-sm font-medium text-gray-600 bg-surface border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Späť{prevName ? <span className="hidden sm:inline"> – {prevName}</span> : null}</span>

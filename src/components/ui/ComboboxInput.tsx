@@ -126,7 +126,7 @@ export function ComboboxInput({
           id={navigacia.idZoznamu}
           role="listbox"
           aria-label={label}
-          className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-60 overflow-y-auto"
+          className="absolute top-full left-0 right-0 z-50 bg-surface border border-gray-200 rounded-xl shadow-lg mt-1 max-h-60 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()} // prevent blur before click
         >
           {filtered.map((option, index) => (
@@ -135,8 +135,8 @@ export function ComboboxInput({
               id={navigacia.idMoznosti(index)}
               role="option"
               aria-selected={index === navigacia.aktivny}
-              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${
-                index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-ink ${
+                index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-ink' : ''
               }`}
               onMouseMove={() => navigacia.nastavAktivny(index)}
               onClick={() => handleSelect(option)}

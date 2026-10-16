@@ -345,7 +345,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
         <MessageCircle className="w-5 h-5" />
         <span>Asistent</span>
         {neprecitane > 0 && (
-          <span className="bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="bg-pevna-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {neprecitane}
           </span>
         )}
@@ -353,7 +353,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
 
       {/* Panel */}
       {otvoreny && (
-        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 h-[500px] sm:h-[520px] flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 h-[500px] sm:h-[520px] flex flex-col bg-surface rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
           {/* Hlavička */}
           <div className="flex items-center gap-3 px-4 py-3 bg-brand-strong text-white flex-shrink-0">
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -410,7 +410,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
                     key={q}
                     type="button"
                     onClick={() => odosliSprav(q)}
-                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-[#52A8DE]/10 text-gray-700 hover:text-brand-strong rounded-full transition-colors"
+                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-[#52A8DE]/10 text-gray-700 hover:text-brand-ink rounded-full transition-colors"
                   >
                     {q}
                   </button>
@@ -428,7 +428,7 @@ export function ChatPanel({ currentStep }: ChatPanelProps) {
               onChange={(e) => setVstup(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && odosliSprav(vstup)}
               placeholder="Napíšte otázku…"
-              className="flex-1 text-sm bg-white border border-gray-200 rounded-full px-3 py-1.5 focus:outline-none focus:border-[#52A8DE]"
+              className="flex-1 text-sm bg-surface border border-gray-200 rounded-full px-3 py-1.5 focus:outline-none focus:border-[#52A8DE]"
             />
             <button
               type="button"

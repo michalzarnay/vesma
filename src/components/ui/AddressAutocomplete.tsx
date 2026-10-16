@@ -258,7 +258,7 @@ export function AddressAutocomplete({
         <ul
           id={navigacia.idZoznamu}
           role="listbox"
-          className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
+          className="absolute top-full left-0 right-0 z-50 bg-surface border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
           aria-label={nadpisLokalnych(lokalneNavrhy.druh, lokalneNavrhy.ulica, obecUlic)}
         >
@@ -271,7 +271,7 @@ export function AddressAutocomplete({
               id={navigacia.idMoznosti(index)}
               role="option"
               aria-selected={index === navigacia.aktivny}
-              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''}`}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-ink ${index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-ink' : ''}`}
               onMouseMove={() => navigacia.nastavAktivny(index)}
               onClick={() => handleSelectLokalna(polozka)}
             >
@@ -284,7 +284,7 @@ export function AddressAutocomplete({
         <ul
           id={navigacia.idZoznamu}
           role="listbox"
-          className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
+          className="absolute top-full left-0 right-0 z-50 bg-surface border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
         >
           {results.map((r, i) => (
@@ -293,7 +293,7 @@ export function AddressAutocomplete({
               id={navigacia.idMoznosti(i)}
               role="option"
               aria-selected={i === navigacia.aktivny}
-              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${i === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''}`}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-ink ${i === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-ink' : ''}`}
               onMouseMove={() => navigacia.nastavAktivny(i)}
               onClick={() => handleSelect(r)}
             >

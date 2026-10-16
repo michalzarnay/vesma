@@ -60,10 +60,10 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+      <div className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-800 flex items-center gap-2">
-            <GitCompare className="w-5 h-5 text-brand-strong" />
+            <GitCompare className="w-5 h-5 text-brand-ink" />
             Porovnanie areálov
           </h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -87,7 +87,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                     <label
                       key={a.id}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm cursor-pointer transition-colors ${
-                        vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE]/10 text-brand-strong' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-[#52A8DE]/10 text-brand-ink' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       <input
@@ -99,7 +99,7 @@ export function AreaComparisonView({ aktualnyAreal, onClose }: AreaComparisonVie
                       <span
                         aria-hidden="true"
                         className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 ${
-                          vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-brand-strong text-white' : 'border-gray-400 bg-white'
+                          vybraneIds.has(a.id) ? 'border-[#52A8DE] bg-brand-strong text-white' : 'border-gray-400 bg-surface'
                         }`}
                       >
                         {vybraneIds.has(a.id) && <Check className="h-3 w-3" strokeWidth={4} />}

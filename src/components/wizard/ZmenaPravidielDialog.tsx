@@ -31,7 +31,7 @@ export function ZmenaPravidielDialog({ upozornenie, onZavriet }: ZmenaPravidielD
       aria-modal="true"
       aria-label="Pravidlá hodnotenia sa od uloženia relácie zmenili"
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
         <div className="flex items-start gap-3 p-5 pb-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <h3 className="flex-1 text-lg font-bold text-gray-800">

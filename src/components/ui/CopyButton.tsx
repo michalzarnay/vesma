@@ -31,10 +31,10 @@ export function CopyButton({ text, label }: CopyButtonProps) {
       onClick={kopiruj}
       title={label}
       aria-label={label}
-      className="flex-shrink-0 p-1 rounded-lg text-gray-400 hover:text-brand-strong hover:bg-[#52A8DE]/10 transition-colors"
+      className="flex-shrink-0 p-1 rounded-lg text-gray-400 hover:text-brand-ink hover:bg-[#52A8DE]/10 transition-colors"
     >
       {skopirovane
-        ? <Check className="w-3.5 h-3.5 text-[#2D7D46]" aria-hidden />
+        ? <Check className="w-3.5 h-3.5 text-green-700" aria-hidden />
         : <Copy className="w-3.5 h-3.5" aria-hidden />}
     </button>
   );
