@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Tooltip } from './Tooltip';
 import { FeedbackButton } from './FeedbackButton';
+import { useNavigaciaZoznamu } from '../../hooks/useNavigaciaZoznamu';
 
 interface ComboboxInputProps {
   label: string;
@@ -82,14 +83,14 @@ export function ComboboxInput({
     }, 150);
   }, [inputText, onChange]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-      }
-    },
-    []
-  );
+  const navigacia = useNavigaciaZoznamu({
+    pocet: filtered.length,
+    otvoreny: isOpen && filtered.length > 0,
+    otvor: () => setIsOpen(true),
+    zatvor: () => setIsOpen(false),
+    vyber: (index) => handleSelect(filtered[index]),
+    kluc: filtered.join('|'),
+  });
 
   const inputClasses =
     'w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none';
@@ -109,20 +110,35 @@ export function ComboboxInput({
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
+        onKeyDown={navigacia.onKeyDown}
         placeholder={placeholder}
         className={inputClasses}
         autoComplete="off"
+        role="combobox"
+        aria-label={label}
+        aria-autocomplete="list"
+        aria-expanded={isOpen && filtered.length > 0}
+        aria-controls={navigacia.idZoznamu}
+        aria-activedescendant={navigacia.aktivny >= 0 ? navigacia.idMoznosti(navigacia.aktivny) : undefined}
       />
       {isOpen && filtered.length > 0 && (
         <ul
+          id={navigacia.idZoznamu}
+          role="listbox"
+          aria-label={label}
           className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-60 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()} // prevent blur before click
         >
-          {filtered.map((option) => (
+          {filtered.map((option, index) => (
             <li
               key={option}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
+              id={navigacia.idMoznosti(index)}
+              role="option"
+              aria-selected={index === navigacia.aktivny}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${
+                index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''
+              }`}
+              onMouseMove={() => navigacia.nastavAktivny(index)}
               onClick={() => handleSelect(option)}
             >
               {option}
