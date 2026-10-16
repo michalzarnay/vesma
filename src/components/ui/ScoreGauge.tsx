@@ -22,7 +22,7 @@ export function ScoreGauge({ score, label, size = 'md' }: ScoreGaugeProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width={d.width} height={d.width / 2 + 20} viewBox={`0 0 ${d.width} ${d.width / 2 + 20}`}>
+      <svg width={d.width} height={d.width / 2 + 22} viewBox={`0 0 ${d.width} ${d.width / 2 + 22}`}>
         {/* Background arc */}
         <path
           d={`M ${d.strokeWidth / 2} ${d.width / 2} A ${radius} ${radius} 0 0 1 ${d.width - d.strokeWidth / 2} ${d.width / 2}`}
@@ -54,9 +54,9 @@ export function ScoreGauge({ score, label, size = 'md' }: ScoreGaugeProps) {
         </text>
         <text
           x={d.width / 2}
-          y={d.width / 2 + 12}
+          y={d.width / 2 + 15}
           textAnchor="middle"
-          className="text-[10px]"
+          className="text-xs"
           fill="#6B7280"
         >
           zo 100
