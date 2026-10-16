@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { KRAJE, OKRESY_BY_KRAJ } from '../../data/slovakLocations';
 import { FeedbackButton } from './FeedbackButton';
+import { dosadUlicu, navrhyUlic } from '../../utils/uliceSR';
 
 interface AddressAutocompleteProps {
   value: string;
@@ -10,6 +11,14 @@ interface AddressAutocompleteProps {
   countryCode: string; // 'sk', 'cz', or ''
   placeholder?: string;
   label?: string;
+  /**
+   * Ulice zvolenej obce z Registra adries. Keď sú zadané, návrhy sa ponúkajú z nich,
+   * lokálne, a návrhy z externej služby (Photon) sa nevolajú, takže zadaný text nikam
+   * neodchádza. Bez nich (obec nie je zvolená alebo nemá ulice) platí pôvodné správanie.
+   */
+  lokalneUlice?: string[] | null;
+  /** Obec, ku ktorej patria `lokalneUlice` (len na popis nad návrhmi). */
+  obecUlic?: string;
 }
 
 interface PhotonFeature {
@@ -86,6 +95,8 @@ export function AddressAutocomplete({
   countryCode,
   placeholder,
   label,
+  lokalneUlice = null,
+  obecUlic = '',
 }: AddressAutocompleteProps) {
   const [results, setResults] = useState<PhotonResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -95,6 +106,9 @@ export function AddressAutocomplete({
 
   // If no supported countryCode, render plain input
   const isSupported = countryCode === 'sk' || countryCode === 'cz';
+  const lokalnyRezim = lokalneUlice !== null && lokalneUlice.length > 0;
+  const [lokalneOtvorene, setLokalneOtvorene] = useState(false);
+  const lokalneNavrhy = lokalnyRezim ? navrhyUlic(lokalneUlice, value) : [];
 
   const fetchResults = useCallback(async (query: string) => {
     if (abortRef.current) abortRef.current.abort();
@@ -126,7 +140,12 @@ export function AddressAutocomplete({
   }, [countryCode]);
 
   useEffect(() => {
-    if (!isSupported) return;
+    if (!isSupported || lokalnyRezim) {
+      // Ulice sú k dispozícii lokálne: externá služba sa nevolá a staré návrhy zmiznú.
+      setResults([]);
+      setIsOpen(false);
+      return undefined;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (value.length < 3) {
       setResults([]);
@@ -139,7 +158,7 @@ export function AddressAutocomplete({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [value, isSupported, fetchResults]);
+  }, [value, isSupported, lokalnyRezim, fetchResults]);
 
   const handleSelect = useCallback(
     (result: PhotonResult) => {
@@ -157,11 +176,19 @@ export function AddressAutocomplete({
   );
 
   const handleBlur = useCallback(() => {
-    setTimeout(() => setIsOpen(false), 150);
+    setTimeout(() => { setIsOpen(false); setLokalneOtvorene(false); }, 150);
   }, []);
 
+  const handleSelectLokalna = useCallback(
+    (ulica: string) => {
+      onChange(dosadUlicu(value, ulica));
+      setLokalneOtvorene(false);
+    },
+    [onChange, value],
+  );
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') setIsOpen(false);
+    if (e.key === 'Escape') { setIsOpen(false); setLokalneOtvorene(false); }
   }, []);
 
   return (
@@ -176,7 +203,8 @@ export function AddressAutocomplete({
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { onChange(e.target.value); setLokalneOtvorene(true); }}
+          onFocus={() => setLokalneOtvorene(true)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -189,7 +217,27 @@ export function AddressAutocomplete({
           </div>
         )}
       </div>
-      {isOpen && results.length > 0 && (
+      {lokalnyRezim && lokalneOtvorene && lokalneNavrhy.length > 0 && (
+        <ul
+          className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label={obecUlic ? `Ulice v obci ${obecUlic}` : 'Ulice v obci'}
+        >
+          <li className="px-3 pt-2 pb-1 text-xs text-gray-600" aria-hidden="true">
+            Ulice v obci {obecUlic} (Register adries)
+          </li>
+          {lokalneNavrhy.map((ulica) => (
+            <li
+              key={ulica}
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
+              onClick={() => handleSelectLokalna(ulica)}
+            >
+              {ulica}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!lokalnyRezim && isOpen && results.length > 0 && (
         <ul
           className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
