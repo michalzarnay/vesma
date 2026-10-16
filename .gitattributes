@@ -1,0 +1,7 @@
+# Strojovo vyrobené dáta z Registra adries (scripts/vyrob-ciselnik-obci.mjs, postup obnovy je
+# v docs/chybajuce-hodnoty.md). GitHub ich v pull requestoch zbalí a nezapočíta do štatistiky
+# jazykov, takže tisíce riadkov dát nezakrývajú zmeny v kóde. Lokálne `git diff` ostáva
+# použiteľný (atribút `-diff` zámerne nie je nastavený).
+public/data/adresy/** linguist-generated=true
+src/data/obceSR.json linguist-generated=true
+src/data/ulice/*.json linguist-generated=true
