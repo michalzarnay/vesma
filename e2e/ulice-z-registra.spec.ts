@@ -65,3 +65,18 @@ test('obec vo viacerých okresoch ponúkne ulice až po výbere okresu', async (
   await ulica.fill('a');
   await expect(page.getByText('Ulice v obci Selce (Register adries)')).toBeVisible();
 });
+
+test('ulica s číslicou v názve (1.mája) sa ponúkne a číslo domu sa nerozreže', async ({ page }) => {
+  await openClean(page);
+  await vyberObec(page, 'Námestovo');
+
+  const ulica = page.getByPlaceholder('napr. Hlavná 15');
+  await ulica.fill('1.m');
+  await page.getByRole('listitem').filter({ hasText: /^1\.mája$/ }).click();
+  await expect(ulica).toHaveValue('1.mája ');
+
+  await ulica.fill('1.mája 7');
+  await ulica.press('Home');
+  await ulica.press('End');
+  await expect(ulica).toHaveValue('1.mája 7');
+});

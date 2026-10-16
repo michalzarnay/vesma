@@ -181,10 +181,10 @@ export function AddressAutocomplete({
 
   const handleSelectLokalna = useCallback(
     (ulica: string) => {
-      onChange(dosadUlicu(value, ulica));
+      onChange(dosadUlicu(value, ulica, lokalneUlice ?? []));
       setLokalneOtvorene(false);
     },
-    [onChange, value],
+    [onChange, value, lokalneUlice],
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {

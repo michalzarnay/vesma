@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { KRAJE, OBCE_ZAZNAMY, type ZaznamObce } from '../../data/slovakLocations';
 import {
-  dosadUlicu, jednoznacnaObec, nacitajUliceKraja, NACITACE_ULIC, navrhyUlic, nazovUliceZTextu, slugKraja, uliceObce,
+  dosadUlicu, jednoznacnaObec, nacitajUliceKraja, NACITACE_ULIC, navrhyUlic, nazovUliceZTextu, rozdelAdresu, slugKraja,
+  uliceObce,
   type UliceKraja,
 } from '../uliceSR';
 
@@ -86,6 +87,43 @@ describe('navrhyUlic', () => {
     expect(navrhyUlic(ULICE, '')).toEqual([]);
     const veľa = Array.from({ length: 30 }, (_, i) => `Ulica ${String.fromCharCode(65 + (i % 26))}${i}`);
     expect(navrhyUlic(veľa, 'ul', 5)).toHaveLength(5);
+  });
+});
+
+const S_CISLICOU = ['1.mája', '1. mája', '29. augusta', 'Hlavná', 'Hlavná stanica', 'Mája'];
+
+describe('ulice s číslicami v názve (1.mája, 29. augusta)', () => {
+  it('rozpozná celú ulicu s číslicou a oddelí od nej číslo domu', () => {
+    expect(rozdelAdresu('1.mája 12', S_CISLICOU)).toEqual({ ulica: '1.mája', cislo: '12', presna: true });
+    expect(rozdelAdresu('29. augusta 3/5', S_CISLICOU)).toEqual({ ulica: '29. augusta', cislo: '3/5', presna: true });
+  });
+
+  it('pri ulici, ktorej názov je predponou inej, berie najdlhšiu zhodu', () => {
+    expect(rozdelAdresu('Hlavná stanica 4', S_CISLICOU)).toEqual({ ulica: 'Hlavná stanica', cislo: '4', presna: true });
+    expect(rozdelAdresu('Hlavná 4', S_CISLICOU)).toEqual({ ulica: 'Hlavná', cislo: '4', presna: true });
+  });
+
+  it('rozpísaný začiatok ulice s číslicou nerozreže na číslo domu', () => {
+    expect(rozdelAdresu('1.m', S_CISLICOU)).toEqual({ ulica: '1.m', cislo: '', presna: false });
+    expect(rozdelAdresu('29', S_CISLICOU)).toEqual({ ulica: '29', cislo: '', presna: false });
+  });
+
+  it('ponúkne ulice s číslicou už pri písaní ich začiatku', () => {
+    expect(navrhyUlic(S_CISLICOU, '1.m')).toEqual(['1.mája', '1. mája']);
+    expect(navrhyUlic(S_CISLICOU, '29. a')).toEqual(['29. augusta']);
+  });
+
+  it('po výbere ulice s číslicou zachová už napísané číslo domu', () => {
+    expect(dosadUlicu('1.m', '1.mája', S_CISLICOU)).toBe('1.mája ');
+    expect(dosadUlicu('Hl 12', 'Hlavná', S_CISLICOU)).toBe('Hlavná 12');
+  });
+
+  it('v registri sa ulica s číslicou po rozpísaní pozná', async () => {
+    const poloha = jednoznacnaObec('Námestovo', '');
+    const ulice = uliceObce(await nacitajUliceKraja(poloha!.kraj), poloha!);
+    expect(ulice).toContain('1.mája');
+    expect(rozdelAdresu('1.mája 12', ulice)).toMatchObject({ ulica: '1.mája', cislo: '12' });
+    expect(navrhyUlic(ulice, '1.m')).toContain('1.mája');
   });
 });
 
