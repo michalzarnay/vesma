@@ -13,6 +13,7 @@ import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { MediaUpload } from '../media/MediaUpload';
 import { KRAJE, OKRESY_BY_KRAJ, OBCE_SR } from '../../data/slovakLocations';
 import { okresyObce, potrebujeVyberOkresu, predvyplnenieZObce } from '../../utils/obceSR';
+import { useUliceObce } from '../../hooks/useUliceObce';
 import { apiUrl } from '../../utils/apiUrl';
 import { NAZOV_KROKU_1 } from '../../types/wizard';
 import { checklistPripravy } from '../../utils/uvodChecklist';
@@ -85,6 +86,8 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
       : {};
     updateAreal({ obec, ...predvyplnenie });
   };
+
+  const uliceObce = useUliceObce(isSlovak, areal.obec, areal.okres);
 
   const okresyObceVoViac = isSlovak && potrebujeVyberOkresu(areal.obec, areal.okres)
     ? okresyObce(areal.obec).map((m) => m.okres)
@@ -276,6 +279,8 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           onSelect={handleAddressSelect}
           countryCode={photonCountryCode}
           placeholder="napr. Hlavná 15"
+          lokalneUlice={uliceObce}
+          obecUlic={areal.obec}
         />
 
         {/* Obec */}

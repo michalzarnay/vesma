@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 // @ts-expect-error – skript je čistý ESM bez typov.
 import {
   rozdelRiadok, spracujCsv, zoradTrojice, vydanieZNazvu, nazovKraja, nazovOkresu, zostavVystup,
+  slugKraja, zostavUlice,
 } from '../vyrob-ciselnik-obci.mjs';
 
 const HLAVICKA = 'IDENTIFIKATOR;KRAJ;OKRES;OBEC;CAST_OBCE;ULICA;SUPISNE_CISLO;ORIENTACNE_CISLO_CELE;PSC;ADRBOD_X;ADRBOD_Y';
@@ -87,5 +88,41 @@ describe('zoradTrojice a výstup', () => {
     expect(vydanieZNazvu('Adresy_BBkraj_UTF8_08_2026.csv')).toBe('08/2026');
     expect(vydanieZNazvu('Adresy BBkraj UTF8_04_2026.csv')).toBe('04/2026');
     expect(vydanieZNazvu('adresy.csv')).toBeNull();
+  });
+});
+
+describe('ulice podľa obce a okresu', () => {
+  it('zbiera ulice len vtedy, keď je zadaná mapa, a preskočí prázdne ulice', () => {
+    const text = [
+      HLAVICKA,
+      riadok('Žilinský', 'Ružomberok', 'Ružomberok', 'Hlavná'),
+      riadok('Žilinský', 'Ružomberok', 'Ružomberok', 'Hlavná'),
+      riadok('Žilinský', 'Ružomberok', 'Ružomberok', 'Čerešňová'),
+      riadok('Žilinský', 'Ružomberok', 'Likavka', ''),
+    ].join('\n');
+    expect(spracujCsv(text).trojice.size).toBe(2);
+
+    const ulice = new Map();
+    spracujCsv(text, new Map(), ulice);
+    expect(zostavUlice(ulice)).toEqual({
+      'Žilinský kraj': { Ružomberok: { Ružomberok: ['Čerešňová', 'Hlavná'] } },
+    });
+  });
+
+  it('rovnaká obec v dvoch okresoch má ulice oddelene', () => {
+    const text = [
+      HLAVICKA,
+      riadok('Banskobystrický', 'Poltár', 'Selce', 'Dolná'),
+      riadok('Banskobystrický', 'Krupina', 'Selce', 'Horná'),
+    ].join('\n');
+    const ulice = new Map();
+    spracujCsv(text, new Map(), ulice);
+    expect(zostavUlice(ulice)['Banskobystrický kraj'].Selce).toEqual({ Krupina: ['Horná'], Poltár: ['Dolná'] });
+  });
+
+  it('názov súboru kraja je bez diakritiky a bez slova kraj', () => {
+    expect(slugKraja('Žilinský kraj')).toBe('zilinsky');
+    expect(slugKraja('Banskobystrický kraj')).toBe('banskobystricky');
+    expect(slugKraja('Prešovský')).toBe('presovsky');
   });
 });
