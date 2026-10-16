@@ -63,9 +63,9 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
               <h1 className="text-sm font-bold text-gray-800 leading-tight">VESMA <span className="font-normal text-gray-400">{test ? 'Test ' : ''}{APP_VERSION}</span></h1>
               {/* Kým areál nemá názov, zostáva na riadku podtitul aplikácie. */}
               {nazov ? (
-                <p className="text-[11px] font-medium text-brand-strong truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
+                <p className="text-xs font-medium text-brand-strong truncate" title={nazov} data-testid="nazov-arealu">{nazov}</p>
               ) : (
-                <p className="text-[10px] text-gray-500 hidden sm:block">Voda a energia – sprievodca mapovaním areálov</p>
+                <p className="text-xs text-gray-500 hidden sm:block">Voda a energia – sprievodca mapovaním areálov</p>
               )}
             </div>
           </div>
@@ -128,7 +128,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
                     }`}
                 >
                   <span className="text-xs font-bold flex-shrink-0 w-4 text-center">{step.id}</span>
-                  <span className="text-[10px] font-medium truncate hidden sm:block">{step.nazov}</span>
+                  <span className="text-xs font-medium truncate hidden sm:block">{step.nazov}</span>
                 </button>
                 {idx < WIZARD_STEPS.length - 1 && (
                   <div className="w-1 flex-shrink-0 h-px bg-gray-200 mx-0.5" />
@@ -139,7 +139,7 @@ export function Header({ currentStep, totalSteps, visitedSteps, onGoTo, extraAct
         </div>
 
         {/* Mobil: v páse sú len čísla, preto názov aktuálneho kroku zvlášť (podnet 93). */}
-        <p className="sm:hidden text-xs font-semibold text-[#52A8DE]" data-testid="nazov-kroku-mobil" aria-live="polite">
+        <p className="sm:hidden text-xs font-semibold text-brand-strong" data-testid="nazov-kroku-mobil" aria-live="polite">
           {nazovKrokuNaMobile(currentStep)}
         </p>
 
