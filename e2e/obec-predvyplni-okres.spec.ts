@@ -9,7 +9,7 @@ import { openClean } from './helpers/stubs';
 async function vyberObec(page: import('@playwright/test').Page, nazov: string) {
   const pole = page.getByPlaceholder('napr. Likavka');
   await pole.fill(nazov);
-  await page.getByRole('listitem').filter({ hasText: new RegExp(`^${nazov}$`) }).first().click();
+  await page.getByRole('option').filter({ hasText: new RegExp(`^${nazov}$`) }).first().click();
 }
 
 test('obec v jedinom okrese doplní okres aj kraj', async ({ page }) => {

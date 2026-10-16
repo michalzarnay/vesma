@@ -4,6 +4,7 @@ import { KRAJE, OKRESY_BY_KRAJ } from '../../data/slovakLocations';
 import { FeedbackButton } from './FeedbackButton';
 import { dosadUlicu } from '../../utils/uliceSR';
 import { lokalneNavrhy as navrhyZRegistra, type AdresyObce } from '../../utils/adresySR';
+import { useNavigaciaZoznamu } from '../../hooks/useNavigaciaZoznamu';
 
 interface AddressAutocompleteProps {
   value: string;
@@ -207,9 +208,19 @@ export function AddressAutocomplete({
     [onChange, value, lokalneUlice, lokalneAdresy, lokalneNavrhy],
   );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') { setIsOpen(false); setLokalneOtvorene(false); }
-  }, []);
+  const lokalnyZoznamViditelny = lokalnyRezim && lokalneOtvorene && lokalneNavrhy !== null;
+  const photonZoznamViditelny = !lokalnyRezim && isOpen && results.length > 0;
+  const polozkyLokalne = lokalneNavrhy?.polozky ?? [];
+
+  // Jeden zoznam je viditeľný naraz: lokálny z registra, alebo z externej služby.
+  const navigacia = useNavigaciaZoznamu({
+    pocet: lokalnyRezim ? polozkyLokalne.length : results.length,
+    otvoreny: lokalnyRezim ? lokalnyZoznamViditelny && polozkyLokalne.length > 0 : photonZoznamViditelny,
+    otvor: () => (lokalnyRezim ? setLokalneOtvorene(true) : setIsOpen(true)),
+    zatvor: () => { setIsOpen(false); setLokalneOtvorene(false); },
+    vyber: (index) => (lokalnyRezim ? handleSelectLokalna(polozkyLokalne[index]) : handleSelect(results[index])),
+    kluc: lokalnyRezim ? `L|${lokalneNavrhy?.druh}|${lokalneNavrhy?.ulica}|${polozkyLokalne.join('|')}` : `P|${results.map((r) => r.displayPrimary).join('|')}`,
+  });
 
   return (
     <div className="flex flex-col gap-1 relative">
@@ -226,7 +237,13 @@ export function AddressAutocomplete({
           onChange={(e) => { onChange(e.target.value); setLokalneOtvorene(true); }}
           onFocus={() => setLokalneOtvorene(true)}
           onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
+          onKeyDown={navigacia.onKeyDown}
+          role="combobox"
+          aria-label={label}
+          aria-autocomplete="list"
+          aria-expanded={lokalnyZoznamViditelny || photonZoznamViditelny}
+          aria-controls={navigacia.idZoznamu}
+          aria-activedescendant={navigacia.aktivny >= 0 ? navigacia.idMoznosti(navigacia.aktivny) : undefined}
           placeholder={placeholder}
           className={inputClasses}
           autoComplete="off"
@@ -237,19 +254,25 @@ export function AddressAutocomplete({
           </div>
         )}
       </div>
-      {lokalnyRezim && lokalneOtvorene && lokalneNavrhy !== null && (
+      {lokalnyZoznamViditelny && lokalneNavrhy !== null && (
         <ul
+          id={navigacia.idZoznamu}
+          role="listbox"
           className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
           aria-label={nadpisLokalnych(lokalneNavrhy.druh, lokalneNavrhy.ulica, obecUlic)}
         >
-          <li className="px-3 pt-2 pb-1 text-xs text-gray-600" aria-hidden="true">
+          <li className="px-3 pt-2 pb-1 text-xs text-gray-600" role="presentation" aria-hidden="true">
             {nadpisLokalnych(lokalneNavrhy.druh, lokalneNavrhy.ulica, obecUlic)} (Register adries)
           </li>
-          {lokalneNavrhy.polozky.map((polozka) => (
+          {lokalneNavrhy.polozky.map((polozka, index) => (
             <li
               key={polozka}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
+              id={navigacia.idMoznosti(index)}
+              role="option"
+              aria-selected={index === navigacia.aktivny}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${index === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''}`}
+              onMouseMove={() => navigacia.nastavAktivny(index)}
               onClick={() => handleSelectLokalna(polozka)}
             >
               {polozka}
@@ -257,15 +280,21 @@ export function AddressAutocomplete({
           ))}
         </ul>
       )}
-      {!lokalnyRezim && isOpen && results.length > 0 && (
+      {photonZoznamViditelny && (
         <ul
+          id={navigacia.idZoznamu}
+          role="listbox"
           className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-64 overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
         >
           {results.map((r, i) => (
             <li
               key={i}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong"
+              id={navigacia.idMoznosti(i)}
+              role="option"
+              aria-selected={i === navigacia.aktivny}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#52A8DE]/10 hover:text-brand-strong ${i === navigacia.aktivny ? 'bg-[#52A8DE]/10 text-brand-strong' : ''}`}
+              onMouseMove={() => navigacia.nastavAktivny(i)}
               onClick={() => handleSelect(r)}
             >
               <div className="font-medium">{r.displayPrimary}</div>
