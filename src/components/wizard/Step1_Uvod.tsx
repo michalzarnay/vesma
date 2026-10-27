@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Building2, MapPin, Camera, ClipboardList, Globe, Loader2, Info, BookOpen, FileText } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Building2, MapPin, Camera, ClipboardList, Globe, Loader2, Info, BookOpen, FileText, ChevronRight } from 'lucide-react';
 import {
   Areal, MediaItem, KategoriaObjektu, KATEGORIE_OBJEKTU, TYP_OBJEKTU_OPTIONS, FIRMA_TYPY_S_KAPACITOU,
   ROZSAHY_MAPOVANIA, RozsahMapovania,
@@ -32,6 +33,19 @@ interface Step1Props {
   mediaReady: boolean;
 }
 
+
+/** Rozbaľovací blok úvodnej sekcie — natívny <details>, ovládateľný klávesnicou aj čítačkou. */
+function RozbalovaciBlok({ nadpis, tucne = false, children }: { nadpis: string; tucne?: boolean; children: ReactNode }) {
+  return (
+    <details className="group">
+      <summary className={`flex gap-1.5 cursor-pointer list-none select-none hover:text-brand-ink [&::-webkit-details-marker]:hidden ${tucne ? 'font-semibold text-gray-800' : ''}`}>
+        <ChevronRight className="w-3.5 h-3.5 mt-px flex-shrink-0 text-gray-400 transition-transform group-open:rotate-90" aria-hidden="true" />
+        <span>{nadpis}</span>
+      </summary>
+      <div className="mt-1.5 ml-5 text-gray-700">{children}</div>
+    </details>
+  );
+}
 
 const selectClasses =
   'w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#52A8DE] focus:ring-2 focus:ring-[#52A8DE]/20 focus:outline-none';
@@ -155,7 +169,7 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <Info className="w-5 h-5 text-brand-ink flex-shrink-0" />
-            <h3 id="uvod-priprava" className="text-base font-bold text-gray-800">Čo si pripraviť</h3>
+            <h3 id="uvod-priprava" className="text-base font-bold text-gray-800">Čo si pripraviť a zmapovať vopred</h3>
           </div>
           {PRIRUCKA_URL && (
             <a
@@ -170,9 +184,23 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
             </a>
           )}
         </div>
-        <ul className="text-xs text-gray-700 space-y-1 list-disc list-inside">
+        <p className="text-xs text-gray-700">
+          Najľahšie sa formulár vypĺňa, keď si areál zmapujete vopred. Pri položkách so šípkou
+          kliknutím rozbalíte, ako údaj zistiť.
+        </p>
+        <ul className="text-xs text-gray-700 space-y-1">
           {checklistPripravy(areal.rozsahMapovania).map((p) => (
-            <li key={p.id}>{p.text}</li>
+            <li key={p.id}>
+              {p.podrobnosti ? (
+                <RozbalovaciBlok nadpis={p.text}>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {p.podrobnosti.map((d) => <li key={d}>{d}</li>)}
+                  </ul>
+                </RozbalovaciBlok>
+              ) : (
+                <span className="flex gap-1.5"><span aria-hidden="true" className="w-3.5 flex-shrink-0 text-center">•</span>{p.text}</span>
+              )}
+            </li>
           ))}
         </ul>
         <p className="text-xs text-gray-700">
@@ -180,24 +208,23 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
           Povinné polia sú označené hviezdičkou <span className="text-red-600" aria-hidden="true">*</span>; ostatné sú nepovinné.
         </p>
 
-        <div className="space-y-1 border-t border-gray-200 pt-3">
-          <p className="text-xs font-semibold text-gray-800">Presné hodnoty vs. odhady</p>
-          <p className="text-xs text-gray-700">
-            Tam, kde viete zohnať presné dáta a fakty, vypĺňajte presné hodnoty.
-            Kde ich nemáte k dispozícii, stačí odborný odhad. Čím presnejšie údaje
-            zadáte, tým priliehavejší bude výsledok – zmysel má však aj vyplnenie
-            iba odhadov. Je na vás, do akej presnosti chcete ísť.
-          </p>
-        </div>
-
-        <div className="space-y-1 border-t border-gray-200 pt-3">
-          <p className="text-xs font-semibold text-gray-800">Odporúčaný postup mapovania</p>
-          <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
-            <li>Vyplňte polia dostupné z internetu (zrážky, slnečný svit, katastrálna mapa)</li>
-            <li>Uložte si rozrobený formulár pomocou tlačidla <strong>Relácie</strong> v hlavičke</li>
-            <li>Choďte do terénu – robte si poznámky, fotky, videá (nahrajte ich tu dole)</li>
-            <li>Po návrate otvorte uloženú reláciu a doplňte zvyšné polia</li>
-          </ol>
+        <div className="space-y-2 border-t border-gray-200 pt-3 text-xs">
+          <RozbalovaciBlok nadpis="Presné hodnoty vs. odhady" tucne>
+            <p>
+              Tam, kde viete zohnať presné dáta a fakty, vypĺňajte presné hodnoty.
+              Kde ich nemáte k dispozícii, stačí odborný odhad. Čím presnejšie údaje
+              zadáte, tým priliehavejší bude výsledok – zmysel má však aj vyplnenie
+              iba odhadov. Je na vás, do akej presnosti chcete ísť.
+            </p>
+          </RozbalovaciBlok>
+          <RozbalovaciBlok nadpis="Odporúčaný postup mapovania" tucne>
+            <ol className="space-y-1 list-decimal pl-5">
+              <li>Vyplňte polia dostupné z internetu (zrážky, slnečný svit, katastrálna mapa)</li>
+              <li>Uložte si rozrobený formulár pomocou tlačidla <strong>Relácie</strong> v hlavičke</li>
+              <li>Choďte do terénu – overte náčrt povrchov, robte si poznámky, fotky, videá (nahrajte ich tu dole)</li>
+              <li>Po návrate otvorte uloženú reláciu a doplňte zvyšné polia</li>
+            </ol>
+          </RozbalovaciBlok>
         </div>
       </section>
 
