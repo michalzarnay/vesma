@@ -4,6 +4,8 @@ import { NAZOV_KROKU_1, WIZARD_STEPS } from '../../types/wizard';
 import { poznamkaMimoRozsahu } from '../rozsahMapovania';
 import { glossary } from '../../data/glossary';
 import { ODPOVEDE_ASISTENTA } from '../../data/odpovedeAsistenta';
+import { createEmptyAreal, createEmptyPozemok } from '../../types/areal';
+import { plochyOkolia, KOEF_OKOLIE } from '../mziKlimasken';
 
 const ids = (r: Parameters<typeof checklistPripravy>[0]) => checklistPripravy(r).map((p) => p.id);
 
@@ -40,8 +42,8 @@ describe('sprievodca mapovaním povrchov', () => {
 });
 
 /**
- * Štrk: rozhoduje podklad. Na zemine/geotextílii je to prírodný (vsakovací)
- * povrch, na betóne nepriepustný — nikdy nie spevnený (polopriepustný).
+ * Štrk: rozhoduje podklad. Na zemine/geotextílii je to spevnený (polopriepustný)
+ * povrch, na betóne nepriepustný — nikdy nie prírodný (nie je biologicky aktívny).
  * Pravidlo musí platiť rovnako v sprievodcovi, v nápovede aj u asistenta.
  */
 describe('zaradenie štrku podľa podkladu', () => {
@@ -49,18 +51,18 @@ describe('zaradenie štrku podľa podkladu', () => {
   const riadok = (zaciatok: string) => povrchy.find((r) => r.startsWith(zaciatok))!;
 
   it('sprievodca', () => {
-    expect(riadok('Prírodný (vsakovací) povrch:')).toMatch(/štrk na zemine, geotextílii/);
+    expect(riadok('Spevnený (polopriepustný) povrch:')).toMatch(/štrk na zemine, geotextílii/);
     expect(riadok('Nepriepustný povrch:')).toMatch(/štrk nasypaný na betóne/);
-    expect(riadok('Spevnený (polopriepustný) povrch:')).not.toMatch(/štrkový chodník|štrk na/);
+    expect(riadok('Prírodný (vsakovací) povrch:')).not.toMatch(/štrk/);
   });
   it('nápoveda kroku Pozemky', () => {
-    expect(glossary.priepustnaPlochaDef.example).toMatch(/štrk na zemine alebo geotextílii/);
+    expect(glossary.polopriepustnaPlochaDef.example).toMatch(/štrk na zemine alebo geotextílii/);
     expect(glossary.spevnenaPlochaDef.example).toMatch(/štrk nasypaný na betóne/);
-    expect(glossary.polopriepustnaPlochaDef.example).not.toMatch(/štrk/);
+    expect(glossary.priepustnaPlochaDef.example).not.toMatch(/štrk/);
   });
   it('asistent', () => {
     const odpovede = Object.values(ODPOVEDE_ASISTENTA).join(' ');
-    expect(odpovede).not.toMatch(/štrk bez podkladu|štrk na pevnom podklade|zatrávňovacie tvárnice, štrk|dlažba, štrk,/);
+    expect(odpovede).not.toMatch(/štrk bez podkladu|štrk na pevnom podklade|→ prírodný \(vsakovací\)/);
     expect(odpovede).toMatch(/štrk na zemine alebo geotextílii/);
     expect(odpovede).toMatch(/štrk na betóne/);
   });
@@ -74,5 +76,18 @@ describe('názov prvého kroku', () => {
     expect(WIZARD_STEPS[0].nazov).toBe(NAZOV_KROKU_1);
     expect(poznamkaMimoRozsahu('voda')).toContain(NAZOV_KROKU_1);
     expect(poznamkaMimoRozsahu('energia')).toContain(NAZOV_KROKU_1);
+  });
+});
+
+describe('sypaný štrk v hodnotení MZI', () => {
+  it('ráta sa ako kód C (nespevnená plocha bez rastlinného krytu)', () => {
+    const areal = createEmptyAreal();
+    areal.pozemky = [{ ...createEmptyPozemok(), polopriepustnaPlochaCelkom: 200, polopriepustnaSypanyStrk: 100 }];
+    expect(plochyOkolia(areal)).toContainEqual(
+      expect.objectContaining({ nazov: 'Sypaný štrk', kod: 'C', vymera: 200, koef: KOEF_OKOLIE.priepustnyKryt }),
+    );
+  });
+  it('prázdny pozemok má sypaný štrk 0 — staré relácie sa doplnia nulou a výsledok sa nemení', () => {
+    expect(createEmptyPozemok().polopriepustnaSypanyStrk).toBe(0);
   });
 });

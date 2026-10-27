@@ -18,8 +18,8 @@ export interface PolozkaChecklistu {
  * Podrobnosti k povrchom pozemku vznikli z podnetu testera: najťažšie bolo
  * rozdeliť pozemok na plochy, keď si to nezmapoval vopred. Zaradenie povrchov
  * preberá definície z glossary.ts (nápovedy v kroku Pozemky) a z odpovedí
- * asistenta (ChatPanel.tsx) — pri zmene zaradenia upraviť všetky tri.
- * Štrk: rozhoduje podklad — zemina/geotextília → prírodný, betón → nepriepustný.
+ * asistenta (odpovedeAsistenta.ts) — pri zmene zaradenia upraviť všetky tri.
+ * Štrk: rozhoduje podklad — zemina/geotextília → spevnený (polopriepustný), betón → nepriepustný.
  */
 export function checklistPripravy(rozsah: RozsahMapovania): PolozkaChecklistu[] {
   const vsetko: PolozkaChecklistu[] = [
@@ -48,8 +48,8 @@ export function checklistPripravy(rozsah: RozsahMapovania): PolozkaChecklistu[] 
       text: 'Mapa povrchov pozemku – koľko m² je prírodného, spevneného a nepriepustného povrchu, kam odteká dažďová voda a prípadné nádrže',
       podrobnosti: [
         'Na výpise z katastrálnej mapy alebo leteckej snímke si nakreslite náčrt nezastavaného pozemku a rozdeľte ho na plochy. Formulár pýta tri skupiny povrchov v m²:',
-        'Prírodný (vsakovací) povrch: trávnik, lúka, záhony – aj mulčované záhony patria sem (ako byliny). Sem patrí aj štrk na zemine, geotextílii alebo inom vsakovacom podklade.',
-        'Spevnený (polopriepustný) povrch: zatrávňovacia dlažba, mlat, priepustný asfalt, dlažba s trávou alebo štrkom v škárach.',
+        'Prírodný (vsakovací) povrch: trávnik, lúka, záhony – aj mulčované záhony patria sem (ako byliny).',
+        'Spevnený (polopriepustný) povrch: štrk na zemine, geotextílii alebo inom vsakovacom podklade, zatrávňovacia dlažba, mlat, priepustný asfalt, dlažba s trávou alebo štrkom v škárach.',
         'Nepriepustný povrch: asfalt, betón, klasická dlažba, štrk nasypaný na betóne.',
         'Pri štrku rozhoduje, čo je pod ním – ak to neviete, pozrite sa na okraj chodníka alebo sa opýtajte správcu. Každú plochu zarátajte len raz, napr. dlaždicový chodník cez trávnik do jeho skupiny a trávnik okolo neho do prírodného. Plochu altánkov, prístreškov a búd nezarátajte, zadáva sa v kroku Iné stavby.',
         'Pri prírodnom povrchu formulár pýta aj podiel v %: trávnik a byliny, kry a stromy (plocha pod korunami pri pohľade zhora), pravidelne obrábaná pôda bez mulča. Pri spevnenom povrchu podiel podľa materiálu.',

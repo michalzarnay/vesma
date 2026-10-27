@@ -35,7 +35,7 @@ menovateľa ako samostatné plochy.
 |---|---|---|---|
 | A | nepriepustné spevnené plochy | 0 | `spevnenaPlochaCelkom`, `InaStavba.zastavanaPlocha` |
 | B | dlažba so škárou < 15 mm, mlatová plocha | 0,2 | `polopriepustnaMlatovyPovrch` |
-| C | priepustný kryt, nespevnená plocha bez rastlinného krytu | 0,4 | priepustný asfalt/betón, vodopriepustná dlažba, živica + kremičitý štrk, Stered, `priepustnaPlochaObrabanaPoda` |
+| C | priepustný kryt, nespevnená plocha bez rastlinného krytu | 0,4 | priepustný asfalt/betón, vodopriepustná dlažba, živica + kremičitý štrk, Stered, sypaný štrk (`polopriepustnaSypanyStrk`), `priepustnaPlochaObrabanaPoda` |
 | G | súvislý rastlinný kryt na silno zhutnenom podklade | 0,4 | `polopriepustnaPlnevegetacneTvarnice` |
 | H | zatrávnená plocha s intenzívnou údržbou | 0,7 | `priepustnaPlochaByliny` |
 | J | mohutné stromy v zapojenom poraste | 1,0 | `priepustnaPlochaStromy` (zdravé vzrastlé) |
