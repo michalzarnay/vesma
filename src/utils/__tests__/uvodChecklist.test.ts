@@ -3,6 +3,7 @@ import { checklistPripravy } from '../uvodChecklist';
 import { NAZOV_KROKU_1, WIZARD_STEPS } from '../../types/wizard';
 import { poznamkaMimoRozsahu } from '../rozsahMapovania';
 import { glossary } from '../../data/glossary';
+import { ODPOVEDE_ASISTENTA } from '../../data/odpovedeAsistenta';
 
 const ids = (r: Parameters<typeof checklistPripravy>[0]) => checklistPripravy(r).map((p) => p.id);
 
@@ -29,11 +30,39 @@ describe('sprievodca mapovaním povrchov', () => {
       expect(text).toContain(glossary[k].term);
     }
   });
-  it('zaraďuje mulčované záhony a štrkový chodník v súlade s nápovedou kroku Pozemky', () => {
+  it('zaraďuje mulčované záhony v súlade s nápovedou kroku Pozemky', () => {
     expect(glossary.obrabanaPodaDef.whereToFind).toMatch(/Mulčované záhony .* ako byliny/);
     expect(text).toMatch(/Prírodný \(vsakovací\) povrch:[^.]*mulčované záhony/);
-    expect(glossary.polopriepustnaPlochaDef.example).toContain('štrkový chodník');
-    expect(text).toMatch(/Spevnený \(polopriepustný\) povrch: štrkový chodník/);
+  });
+  it('povrchy sú pri vode rozbalené hneď od začiatku', () => {
+    expect(povrchy.otvorene).toBe(true);
+  });
+});
+
+/**
+ * Štrk: rozhoduje podklad. Na zemine/geotextílii je to prírodný (vsakovací)
+ * povrch, na betóne nepriepustný — nikdy nie spevnený (polopriepustný).
+ * Pravidlo musí platiť rovnako v sprievodcovi, v nápovede aj u asistenta.
+ */
+describe('zaradenie štrku podľa podkladu', () => {
+  const povrchy = checklistPripravy('voda').find((p) => p.id === 'voda')!.podrobnosti!;
+  const riadok = (zaciatok: string) => povrchy.find((r) => r.startsWith(zaciatok))!;
+
+  it('sprievodca', () => {
+    expect(riadok('Prírodný (vsakovací) povrch:')).toMatch(/štrk na zemine, geotextílii/);
+    expect(riadok('Nepriepustný povrch:')).toMatch(/štrk nasypaný na betóne/);
+    expect(riadok('Spevnený (polopriepustný) povrch:')).not.toMatch(/štrkový chodník|štrk na/);
+  });
+  it('nápoveda kroku Pozemky', () => {
+    expect(glossary.priepustnaPlochaDef.example).toMatch(/štrk na zemine alebo geotextílii/);
+    expect(glossary.spevnenaPlochaDef.example).toMatch(/štrk nasypaný na betóne/);
+    expect(glossary.polopriepustnaPlochaDef.example).not.toMatch(/štrk/);
+  });
+  it('asistent', () => {
+    const odpovede = Object.values(ODPOVEDE_ASISTENTA).join(' ');
+    expect(odpovede).not.toMatch(/štrk bez podkladu|štrk na pevnom podklade|zatrávňovacie tvárnice, štrk|dlažba, štrk,/);
+    expect(odpovede).toMatch(/štrk na zemine alebo geotextílii/);
+    expect(odpovede).toMatch(/štrk na betóne/);
   });
   it('podrobnosti ku katastru sú aj bez rozsahu vody', () => {
     expect(checklistPripravy('energia').find((p) => p.id === 'parcely')?.podrobnosti?.length).toBeGreaterThan(0);

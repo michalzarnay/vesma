@@ -9,8 +9,8 @@ export const glossary: Record<string, GlossaryEntry> = {
   priepustnaPlochaDef: {
     term: 'Prírodný (vsakovací) povrch',
     definition: 'Povrch, cez ktorý môže voda voľne vsiaknuť do zeme.',
-    example: 'Trávnik, lúka, záhon, zeleninové hriadky, nezhutnená zemina.',
-    whereToFind: 'Odhadnite podľa toho, koľko vášho pozemku tvorí trávnik, záhrady alebo prirodzená pôda.',
+    example: 'Trávnik, lúka, záhon, zeleninové hriadky, nezhutnená zemina, štrk na zemine alebo geotextílii.',
+    whereToFind: 'Odhadnite podľa toho, koľko vášho pozemku tvorí trávnik, záhrady alebo prirodzená pôda. Pri štrku rozhoduje, čo je pod ním: na zemine, geotextílii alebo inom vsakovacom podklade je to prírodný (vsakovací) povrch; na betóne nie.',
   },
   obrabanaPodaDef: {
     term: 'Pravidelne obrábaná pôda',
@@ -21,13 +21,13 @@ export const glossary: Record<string, GlossaryEntry> = {
   polopriepustnaPlochaDef: {
     term: 'Spevnený (polopriepustný) povrch',
     definition: 'Povrch, ktorý čiastočne prepúšťa vodu – časť vsiakne, časť odtečie.',
-    example: 'Zatrávňovacia dlažba, štrkový chodník, priepustný asfalt, vodopriepustná dlažba.',
-    whereToFind: 'Pozrite sa na chodníky, parkoviská alebo terasy – ak medzi dlaždicami rastie tráva alebo je viditeľný štrk, ide o spevnený (polopriepustný) povrch.',
+    example: 'Zatrávňovacia dlažba, priepustný asfalt, vodopriepustná dlažba, mlat.',
+    whereToFind: 'Pozrite sa na chodníky, parkoviská alebo terasy – ak medzi dlaždicami rastie tráva alebo je v škárach štrk, ide o spevnený (polopriepustný) povrch. Štrkový chodník či plocha zo štrku sem nepatrí – na zemine alebo geotextílii je to prírodný (vsakovací) povrch, na betóne nepriepustný.',
   },
   spevnenaPlochaDef: {
     term: 'Nepriepustný povrch',
     definition: 'Nepriepustný povrch, ktorý vodu neprepúšťa – voda po ňom steká.',
-    example: 'Asfalt, betón, klasická dlažba, budovy.',
+    example: 'Asfalt, betón, klasická dlažba, štrk nasypaný na betóne, budovy.',
   },
   vyspadovanyPozemokDef: {
     term: 'Spevnená plocha vo svahu s sklonom',

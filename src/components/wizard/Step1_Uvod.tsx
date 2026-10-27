@@ -35,9 +35,9 @@ interface Step1Props {
 
 
 /** Rozbaľovací blok úvodnej sekcie — natívny <details>, ovládateľný klávesnicou aj čítačkou. */
-function RozbalovaciBlok({ nadpis, tucne = false, children }: { nadpis: string; tucne?: boolean; children: ReactNode }) {
+function RozbalovaciBlok({ nadpis, tucne = false, otvorene = false, children }: { nadpis: string; tucne?: boolean; otvorene?: boolean; children: ReactNode }) {
   return (
-    <details className="group">
+    <details className="group" open={otvorene}>
       <summary className={`flex gap-1.5 cursor-pointer list-none select-none hover:text-brand-ink [&::-webkit-details-marker]:hidden ${tucne ? 'font-semibold text-gray-800' : ''}`}>
         <ChevronRight className="w-3.5 h-3.5 mt-px flex-shrink-0 text-gray-400 transition-transform group-open:rotate-90" aria-hidden="true" />
         <span>{nadpis}</span>
@@ -186,13 +186,13 @@ export function Step1_Uvod({ areal, updateAreal, addMedia, updateMedia, removeMe
         </div>
         <p className="text-xs text-gray-700">
           Najľahšie sa formulár vypĺňa, keď si areál zmapujete vopred. Pri položkách so šípkou
-          kliknutím rozbalíte, ako údaj zistiť.
+          kliknutím rozbalíte alebo zbalíte, ako údaj zistiť.
         </p>
         <ul className="text-xs text-gray-700 space-y-1">
           {checklistPripravy(areal.rozsahMapovania).map((p) => (
             <li key={p.id}>
               {p.podrobnosti ? (
-                <RozbalovaciBlok nadpis={p.text}>
+                <RozbalovaciBlok nadpis={p.text} otvorene={p.otvorene}>
                   <ul className="list-disc pl-5 space-y-1">
                     {p.podrobnosti.map((d) => <li key={d}>{d}</li>)}
                   </ul>
