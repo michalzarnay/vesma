@@ -87,6 +87,7 @@ const KOEF_POLOPRIEPUSTNE: Array<{ nazov: string; kod: string; podiel: (p: Pozem
   { nazov: 'Živica s kremičitým štrkom', kod: 'C', podiel: (p) => p.polopriepustnaZivicaKremicityStrk, koef: KOEF_OKOLIE.priepustnyKryt },
   { nazov: 'Stered', kod: 'C', podiel: (p) => p.polopriepustnaStered, koef: KOEF_OKOLIE.priepustnyKryt },
   { nazov: 'Plnevegetačné tvárnice', kod: 'G', podiel: (p) => p.polopriepustnaPlnevegetacneTvarnice, koef: KOEF_OKOLIE.zhutnenaZelen },
+  { nazov: 'Sypaný štrk', kod: 'C', podiel: (p) => p.polopriepustnaSypanyStrk, koef: KOEF_OKOLIE.priepustnyKryt },
   { nazov: 'Mlatový povrch', kod: 'B', podiel: (p) => p.polopriepustnaMlatovyPovrch, koef: KOEF_OKOLIE.dlazbaMlat },
   { nazov: 'Polovegetačné tvárnice', kod: 'B/C', podiel: (p) => p.polopriepustnaPolovegetacneTvarnice, koef: KOEF_OKOLIE.neurcenyPolopriepustny },
   { nazov: 'Iný polopriepustný povrch', kod: 'B/C', podiel: (p) => p.polopriepustnaInyPovrch, koef: KOEF_OKOLIE.neurcenyPolopriepustny },

@@ -182,6 +182,11 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
               { key: 'polopriepustnaZivicaKremicityStrk', label: 'živica a kremičitý štrk' },
               { key: 'polopriepustnaMlatovyPovrch', label: 'mlatový povrch' },
               {
+                key: 'polopriepustnaSypanyStrk',
+                label: 'sypaný štrk (na zemine alebo geotextílii)',
+                tooltipText: 'Voľne sypaný štrk, napr. štrkový chodník alebo dvor. Štrk nasypaný na betóne sem nepatrí – zarátajte ho do nepriepustného povrchu.',
+              },
+              {
                 key: 'polopriepustnaStered',
                 label: 'geomreža / priepustná dlažba (napr. STERED, Aquadesk)',
                 tooltipText: 'Priepustná plastová dlažba alebo geomreža umožňuje vsakovanie dažďovej vody. Komerčné názvy: STERED, Aquadesk a pod.',
@@ -197,6 +202,7 @@ export function PozemokForm({ pozemok, onChange }: PozemokFormProps) {
               polopriepustnaZivicaKremicityStrk: pozemok.polopriepustnaZivicaKremicityStrk,
               polopriepustnaMlatovyPovrch: pozemok.polopriepustnaMlatovyPovrch,
               polopriepustnaStered: pozemok.polopriepustnaStered,
+              polopriepustnaSypanyStrk: pozemok.polopriepustnaSypanyStrk,
               polopriepustnaInyPovrch: pozemok.polopriepustnaInyPovrch,
             }}
             onChange={(key, value) => onChange({ [key]: value })}

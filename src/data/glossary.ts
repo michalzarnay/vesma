@@ -10,7 +10,7 @@ export const glossary: Record<string, GlossaryEntry> = {
     term: 'Prírodný (vsakovací) povrch',
     definition: 'Povrch, cez ktorý môže voda voľne vsiaknuť do zeme.',
     example: 'Trávnik, lúka, záhon, zeleninové hriadky, nezhutnená zemina.',
-    whereToFind: 'Odhadnite podľa toho, koľko vášho pozemku tvorí trávnik, záhrady alebo prirodzená pôda.',
+    whereToFind: 'Odhadnite podľa toho, koľko vášho pozemku tvorí trávnik, záhrady alebo prirodzená pôda. Štrk sem nepatrí – nie je biologicky aktívna plocha.',
   },
   obrabanaPodaDef: {
     term: 'Pravidelne obrábaná pôda',
@@ -21,13 +21,13 @@ export const glossary: Record<string, GlossaryEntry> = {
   polopriepustnaPlochaDef: {
     term: 'Spevnený (polopriepustný) povrch',
     definition: 'Povrch, ktorý čiastočne prepúšťa vodu – časť vsiakne, časť odtečie.',
-    example: 'Zatrávňovacia dlažba, štrkový chodník, priepustný asfalt, vodopriepustná dlažba.',
-    whereToFind: 'Pozrite sa na chodníky, parkoviská alebo terasy – ak medzi dlaždicami rastie tráva alebo je viditeľný štrk, ide o spevnený (polopriepustný) povrch.',
+    example: 'Zatrávňovacia dlažba, priepustný asfalt, vodopriepustná dlažba, mlat, štrk na zemine alebo geotextílii.',
+    whereToFind: 'Pozrite sa na chodníky, parkoviská alebo terasy – ak medzi dlaždicami rastie tráva alebo je v škárach štrk, ide o spevnený (polopriepustný) povrch. Sem patrí aj štrkový chodník či plocha zo sypaného štrku na zemine alebo geotextílii; štrk nasypaný na betóne je nepriepustný povrch.',
   },
   spevnenaPlochaDef: {
     term: 'Nepriepustný povrch',
     definition: 'Nepriepustný povrch, ktorý vodu neprepúšťa – voda po ňom steká.',
-    example: 'Asfalt, betón, klasická dlažba, budovy.',
+    example: 'Asfalt, betón, klasická dlažba, štrk nasypaný na betóne, budovy.',
   },
   vyspadovanyPozemokDef: {
     term: 'Spevnená plocha vo svahu s sklonom',

@@ -199,6 +199,8 @@ export interface Pozemok {
   polopriepustnaZivicaKremicityStrk: number; // %
   polopriepustnaMlatovyPovrch: number; // %
   polopriepustnaStered: number; // %
+  /** %, voľne sypaný štrk na vsakovacom podklade (zemina, geotextília). Štrk na betóne je nepriepustný povrch. */
+  polopriepustnaSypanyStrk: number;
   polopriepustnaInyPovrch: number; // %
   polopriepustnaVyspadovana: number; // %
 
@@ -506,6 +508,7 @@ export function createEmptyPozemok(): Pozemok {
     polopriepustnaZivicaKremicityStrk: 0,
     polopriepustnaMlatovyPovrch: 0,
     polopriepustnaStered: 0,
+    polopriepustnaSypanyStrk: 0,
     polopriepustnaInyPovrch: 0,
     polopriepustnaVyspadovana: 0,
     spevnenaPlochaCelkom: 0,
